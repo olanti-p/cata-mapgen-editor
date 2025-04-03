@@ -90,6 +90,7 @@
 #include "translation.h"
 #include "translations.h"
 #include "trap.h"
+#include "type_id.h"
 #include "uilist.h"
 #include "units.h"
 #include "value_ptr.h"
@@ -99,6 +100,10 @@
 #include "vpart_position.h"
 #include "vpart_range.h"
 #include "weighted_list.h"
+
+#include "mapgen_map_key.h"
+
+#include "mapgen_map_key.h"
 
 static const field_type_str_id field_fd_blood( "fd_blood" );
 static const field_type_str_id field_fd_fire( "fd_fire" );
@@ -1043,6 +1048,40 @@ void check_mapgen_definitions()
     }
 }
 
+const std::map<std::string, weighted_int_list<std::shared_ptr<mapgen_function_json_nested>> >
+        &get_all_nested_mapgen()
+{
+    return nested_mapgen;
+}
+
+const std::map<std::string, std::vector<std::unique_ptr<update_mapgen_function_json>> >
+        &get_all_update_mapgen()
+{
+    return update_mapgen;
+}
+
+const mapgen_factory &get_all_oter_mapgen()
+{
+    return oter_mapgen;
+}
+
+const std::map<std::string, weighted_int_list<std::shared_ptr<mapgen_function_json_nested>> >
+        &get_all_nested_mapgen()
+{
+    return nested_mapgen;
+}
+
+const std::map<std::string, std::vector<std::unique_ptr<update_mapgen_function_json>> >
+        &get_all_update_mapgen()
+{
+    return update_mapgen;
+}
+
+const mapgen_factory &get_all_oter_mapgen()
+{
+    return oter_mapgen;
+}
+
 /////////////////////////////////////////////////////////////////////////////////
 ///// json mapgen functions
 ///// 1 - init():
@@ -1091,8 +1130,11 @@ load_mapgen_function( const JsonObject &jio, const std::string &id_base,
     }
     const std::string mgtype = jio.get_string( "method" );
     if( mgtype == "builtin" ) {
-        if( const building_gen_pointer ptr = get_mapgen_cfunction( jio.get_string( "name" ) ) ) {
-            return std::make_shared<mapgen_function_builtin>( ptr, std::move( weight ) );
+        std::string fname = jio.get_string( "name" );
+        if( const auto ptr = get_mapgen_cfunction( fname ) ) {
+            auto ret = std::make_shared<mapgen_function_builtin>( ptr, mgweight );
+            ret->fname = fname;
+            return ret;
         } else {
             jio.throw_error_at( "name", "function does not exist" );
         }
@@ -1107,6 +1149,7 @@ load_mapgen_function( const JsonObject &jio, const std::string &id_base,
     } else {
         jio.throw_error_at( "method", R"(invalid value: must be "builtin" or "json")" );
     }
+    return nullptr;
 }
 
 void load_and_add_mapgen_function( const JsonObject &jio, const std::string &id_base,
@@ -1986,6 +2029,15 @@ class mapgen_value
                 *this = mapgen_value( jsin.get_string() );
             }
         }
+
+        bool is_id_source() const {
+            return dynamic_cast<const id_source*>(source_.get()) != nullptr;
+        }
+
+        const Id& get_raw_id_source() const {
+            return dynamic_cast<const id_source*>(source_.get())->id;
+        }
+
     private:
         bool is_null_ = false;
         shared_ptr_fast<const value_source> source_;
@@ -4592,7 +4644,7 @@ void mapgen_palette::load_place_mapings( const JsonObject &jo, const std::string
     }
 }
 
-static std::map<palette_id, mapgen_palette> palettes;
+std::map<palette_id, mapgen_palette> palettes;
 
 template<>
 const mapgen_palette &string_id<mapgen_palette>::obj() const
@@ -4709,6 +4761,11 @@ const mapgen_palette &mapgen_palette::get( const palette_id &id )
     debugmsg( "Requested palette with unknown id %s", id.c_str() );
     static mapgen_palette dummy;
     return dummy;
+}
+
+const std::map<palette_id, mapgen_palette> &mapgen_palette::get_all()
+{
+    return palettes;
 }
 
 void mapgen_palette::check_definitions()
@@ -8620,3 +8677,337 @@ bool has_update_mapgen_for( const update_mapgen_id &key )
 {
     return update_mapgens.count( key );
 }
+
+#include "editor/mapgen/piece_impl.h"
+#include "editor/common/weighted_list.h"
+#include "editor/widget/editable_id.h"
+
+//
+// - Hey, Fred, why don't we put all the jmapgen_piece subclasses into mapgen.cpp?
+// - Why would we do that, Joe? It's gonna be an ASS to work with them, and this file is already 6k lines!
+// - Well, we'll get to have one less header file in the project.
+// - ... You're a genious, Joe!
+//
+// That is the most likely cause of why I have to suffer through this bullshit.
+// TODO: perhaps unfuck this in a way that does not generate a 1.2kloc merge conflict.
+//
+
+namespace editor
+{
+
+bool PieceField::try_import( const jmapgen_piece &piece )
+{
+    const jmapgen_field *casted = dynamic_cast<const jmapgen_field *>( &piece );
+    if( !casted ) {
+        return false;
+    }
+    if (!casted->ftype.is_id_source()) {
+        return false; // TODO: parametric
+    }
+    ftype = EID::Field( casted->ftype.get_raw_id_source().id() );
+    intensity = casted->intensity;
+    age = casted->age;
+    return true;
+}
+
+bool PieceNPC::try_import( const jmapgen_piece &piece )
+{
+    const jmapgen_npc *casted = dynamic_cast<const jmapgen_npc *>( &piece );
+    if( !casted ) {
+        return false;
+    }
+    if (!casted->npc_class.is_id_source()) {
+        return false; // TODO: parametric
+    }
+    npc_class = casted->npc_class.get_raw_id_source();
+    target = casted->target;
+    traits.clear();
+    for( const trait_id &trait : casted->traits ) {
+        traits.emplace_back( trait );
+    }
+    return true;
+}
+
+bool PieceFaction::try_import( const jmapgen_piece &piece )
+{
+    const jmapgen_faction *casted = dynamic_cast<const jmapgen_faction *>( &piece );
+    if( !casted ) {
+        return false;
+    }
+    if (!casted->id.is_id_source()) {
+        return false; // TODO: parametric
+    }
+    id = casted->id.get_raw_id_source().str();
+    return true;
+}
+
+bool PieceSign::try_import( const jmapgen_piece &piece )
+{
+    const jmapgen_sign *casted = dynamic_cast<const jmapgen_sign *>( &piece );
+    if( !casted ) {
+        return false;
+    }
+    if( casted->snippet.empty() ) {
+        text = casted->signage;
+        use_snippet = false;
+    } else {
+        snippet = casted->snippet;
+        use_snippet = true;
+    }
+    return true;
+}
+
+bool PieceGraffiti::try_import( const jmapgen_piece &piece )
+{
+    const jmapgen_graffiti *casted = dynamic_cast<const jmapgen_graffiti *>( &piece );
+    if( !casted ) {
+        return false;
+    }
+    if( casted->snippet.empty() ) {
+        text = casted->text;
+        use_snippet = false;
+    } else {
+        snippet = casted->snippet;
+        use_snippet = true;
+    }
+    return true;
+}
+
+bool PieceVendingMachine::try_import( const jmapgen_piece &piece )
+{
+    const jmapgen_vending_machine *casted = dynamic_cast<const jmapgen_vending_machine *>( &piece );
+    if( !casted ) {
+        return false;
+    }
+    reinforced = casted->reinforced;
+    if (!casted->group_id.is_id_source()) {
+        return false; // TODO: parametric
+    }
+    if( casted->group_id.get_raw_id_source() == item_group_id("default_vending_machine")) {
+        use_default_group = true;
+    } else {
+        use_default_group = false;
+        item_group = casted->group_id.get_raw_id_source().str();
+    }
+    return true;
+}
+
+bool PieceToilet::try_import( const jmapgen_piece &piece )
+{
+    const jmapgen_toilet *casted = dynamic_cast<const jmapgen_toilet *>( &piece );
+    if( !casted ) {
+        return false;
+    }
+    amount = casted->amount;
+    use_default_amount = ( amount.min == 0 && amount.max == 0 );
+    return true;
+}
+
+bool PieceGaspump::try_import( const jmapgen_piece &piece )
+{
+    const jmapgen_gaspump *casted = dynamic_cast<const jmapgen_gaspump *>( &piece );
+    if( !casted ) {
+        return false;
+    }
+    amount = casted->amount;
+    use_default_amount = ( amount.min == 0 && amount.max == 0 );
+    if (!casted->fuel.is_id_source()) {
+        return false; // TODO: parametric
+    }
+    if( casted->fuel.get_raw_id_source().str() == "gasoline") {
+        fuel = GasPumpFuel::Gasoline;
+    } else if( casted->fuel.get_raw_id_source().str() == "diesel" ) {
+        fuel = GasPumpFuel::Diesel;
+    } else {
+        fuel = GasPumpFuel::Random;
+    }
+    return true;
+}
+
+bool PieceLiquid::try_import( const jmapgen_piece &piece )
+{
+    const jmapgen_liquid_item *casted = dynamic_cast<const jmapgen_liquid_item *>( &piece );
+    if( !casted ) {
+        return false;
+    }
+    if (!casted->liquid.is_id_source()) {
+        return false; // TODO: parametric
+    }
+    amount = casted->amount;
+    use_default_amount = ( amount.min == 0 && amount.max == 0 );
+    liquid = casted->liquid.get_raw_id_source().str();
+    chance = casted->chance;
+    spawn_always = ( chance.min == 1 && chance.max == 1 );
+    return true;
+}
+
+bool PieceIGroup::try_import( const jmapgen_piece &piece )
+{
+    const jmapgen_item_group *casted = dynamic_cast<const jmapgen_item_group *>( &piece );
+    if( !casted ) {
+        return false;
+    }
+    group_id = EID::IGroup( casted->group_id.str() );
+    chance = IntRange( casted->chance );
+    repeat = IntRange( casted->repeat );
+    spawn_once = ( repeat.min == 1 && repeat.max == 1 );
+    return true;
+}
+
+bool PieceLoot::try_import( const jmapgen_piece &piece )
+{
+    return false; // TODO
+}
+
+bool PieceMGroup::try_import( const jmapgen_piece &piece )
+{
+    return false; // TODO
+}
+
+bool PieceMonster::try_import( const jmapgen_piece &piece )
+{
+    return false; // TODO
+}
+
+bool PieceVehicle::try_import( const jmapgen_piece &piece )
+{
+    return false; // TODO
+}
+
+bool PieceItem::try_import( const jmapgen_piece &piece )
+{
+    return false; // TODO
+}
+
+bool PieceTrap::try_import( const jmapgen_piece &piece )
+{
+    return false; // TODO
+}
+
+bool PieceFurniture::try_import( const jmapgen_piece &piece )
+{
+    return false; // TODO
+}
+
+bool PieceTerrain::try_import( const jmapgen_piece &piece )
+{
+    return false; // TODO
+}
+
+bool PieceTerFurnTransform::try_import( const jmapgen_piece &piece )
+{
+    return false; // TODO
+}
+
+bool PieceMakeRubble::try_import( const jmapgen_piece &piece )
+{
+    return false; // TODO
+}
+
+bool PieceComputer::try_import( const jmapgen_piece &piece )
+{
+    return false; // TODO
+}
+
+bool PieceSealeditem::try_import( const jmapgen_piece &piece )
+{
+    return false; // TODO
+}
+
+bool PieceTranslate::try_import( const jmapgen_piece &piece )
+{
+    return false; // TODO
+}
+
+bool PieceZone::try_import( const jmapgen_piece &piece )
+{
+    return false; // TODO
+}
+
+bool PieceNested::try_import( const jmapgen_piece &piece )
+{
+    return false; // TODO
+}
+
+template<typename T, typename P>
+bool import_alternatively( editor::WeightedList<T> &list, const std::vector<P> &source )
+{
+    for( const auto &entry : source ) {
+        if (!entry.id.is_id_source()) {
+            return false; // TODO: parametric
+        }
+        T new_id( entry.id.get_raw_id_source().id().str());
+        if( !list.entries.empty() && list.entries.back().val == new_id ) {
+            // Undo the weighted list optimization
+            list.entries.back().weight += 1;
+        } else {
+            list.entries.emplace_back( std::move( new_id ), 1 );
+        }
+    }
+    return true;
+}
+
+bool PieceAltTrap::try_import( const jmapgen_piece &piece )
+{
+    const jmapgen_alternatively<jmapgen_trap> *casted =
+        dynamic_cast<const jmapgen_alternatively<jmapgen_trap>*>( &piece );
+    if( !casted ) {
+        const jmapgen_trap* casted_new = dynamic_cast<const jmapgen_trap*>(&piece);
+        if (!casted_new) {
+            return false;
+        }
+        if (!casted_new->id.is_id_source()) {
+            return false; // TODO: parametric
+        }
+        list.entries.emplace_back( EID::Trap( casted_new->id.get_raw_id_source().id().str() ), 1);
+        return true;
+    }
+    if (!import_alternatively<EID::Trap, jmapgen_trap>(list, casted->alternatives)) {
+        return false;
+    }
+    return true;
+}
+
+bool PieceAltFurniture::try_import( const jmapgen_piece &piece )
+{
+    const jmapgen_alternatively<jmapgen_furniture> *casted =
+        dynamic_cast<const jmapgen_alternatively<jmapgen_furniture>*>( &piece );
+    if( !casted ) {
+        const jmapgen_furniture* casted_new = dynamic_cast<const jmapgen_furniture*>(&piece);
+        if (!casted_new) {
+            return false;
+        }
+        if (!casted_new->id.is_id_source()) {
+            return false; // TODO: parametric
+        }
+        list.entries.emplace_back(EID::Furn(casted_new->id.get_raw_id_source().id().str()), 1);
+        return true;
+    }
+    if (!import_alternatively<EID::Furn, jmapgen_furniture>(list, casted->alternatives)) {
+        return false;
+    }
+    return true;
+}
+
+bool PieceAltTerrain::try_import( const jmapgen_piece &piece )
+{
+    const jmapgen_alternatively<jmapgen_terrain> *casted =
+        dynamic_cast<const jmapgen_alternatively<jmapgen_terrain>*>( &piece );
+    if( !casted ) {
+        const jmapgen_terrain* casted_new = dynamic_cast<const jmapgen_terrain*>(&piece);
+        if (!casted_new) {
+            return false;
+        }
+        if (!casted_new->id.is_id_source()) {
+            return false; // TODO: parametric
+        }
+        list.entries.emplace_back(EID::Ter(casted_new->id.get_raw_id_source().id().str()), 1);
+        return true;
+    }
+    if (!import_alternatively<EID::Ter, jmapgen_terrain>(list, casted->alternatives)) {
+        return false;
+    }
+    return true;
+}
+
+} // namespace editor

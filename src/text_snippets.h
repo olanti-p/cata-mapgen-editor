@@ -145,6 +145,8 @@ class snippet_library
             std::vector<weighted_id> ids;
             std::vector<weighted_translation> no_id;
         };
+
+    public:
         std::unordered_map<std::string, category_snippets> snippets_by_category;
 
         std::optional<std::map<int, snippet_id>> hash_to_id_migration;

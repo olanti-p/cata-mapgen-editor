@@ -143,9 +143,11 @@ class translation
         struct no_translation_tag {};
         translation( const std::string &str, no_translation_tag );
 
+    public:
         cata::value_ptr<std::string> ctxt;
         std::string raw;
         cata::value_ptr<std::string> raw_pl;
+    private:
         bool needs_translation = false;
         // translation cache. For "plural" translation only latest `num` is optimistically cached
         mutable int cached_language_version = INVALID_LANGUAGE_VERSION;

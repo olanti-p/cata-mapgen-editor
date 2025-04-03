@@ -883,8 +883,9 @@ class game
 #if defined(__ANDROID__)
         void load_shortcuts( const cata_path &path );
 #endif
+    public:
         bool start_game(); // Starts a new game in the active world
-
+    private:
         //private save functions.
         // returns false if saving failed for whatever reason
         bool save_factions_missions_npcs();
@@ -1127,6 +1128,10 @@ class game
         scent_map &scent;
         // scenario is saved in avatar::store
         const scenario *scen = nullptr; // NOLINT(cata-serialize)
+
+        bool enter_editor_on_start = false;
+        std::optional<std::string> load_editor_project_on_start;
+        std::optional<std::string> export_editor_project_on_start;
 
         event_bus &events();
         timed_event_manager &timed_events; // NOLINT(cata-serialize)

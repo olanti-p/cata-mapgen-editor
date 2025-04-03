@@ -214,6 +214,9 @@
 #include "weather.h"
 #include "weather_type.h"
 #include "worldfactory.h"
+#include "profile.h"
+
+class computer;
 
 #if defined(TILES)
 #include "sdl_utils.h"
@@ -1549,15 +1552,272 @@ void game::calc_driving_offset( vehicle *veh )
                                     ( offset_difference.y() < 0 ) ? -1 : 1 );
     // Shift the current offset in the direction of the calculated offset by one tile
     // per draw event, but snap to calculated offset if we're close enough to avoid jitter.
-    offset.x = ( std::abs( offset_difference.x() ) > 1 ) ?
-               ( driving_view_offset.x() + offset_sign.x() ) : offset.x;
-    offset.y = ( std::abs( offset_difference.y() ) > 1 ) ?
-               ( driving_view_offset.y() + offset_sign.y() ) : offset.y;
+    offset.x = ( std::abs( offset_difference.x ) > 1 ) ?
+               ( driving_view_offset.x + offset_sign.x ) : offset.x;
+    offset.y = ( std::abs( offset_difference.y ) > 1 ) ?
+               ( driving_view_offset.y + offset_sign.y ) : offset.y;
 
-    set_driving_view_offset( { offset.x, offset.y } );
+    set_driving_view_offset( point( offset.x, offset.y ) );
 }
 
-void game::set_driving_view_offset( const point_rel_ms &p )
+// MAIN GAME LOOP
+// Returns true if game is over (death, saved, quit, etc)
+bool game::do_turn()
+{
+    ZoneScoped;
+    cleanup_arenas();
+    if( is_game_over() ) {
+        return cleanup_at_end();
+    }
+    // Actual stuff
+    if( new_game ) {
+        new_game = false;
+    } else {
+        gamemode->per_turn();
+        calendar::turn += 1_turns;
+    }
+
+    // starting a new turn, clear out temperature cache
+    weather_manager &weather = get_weather();
+    weather.clear_temp_cache();
+
+    if( npcs_dirty ) {
+        load_npcs();
+    }
+
+    timed_events.process();
+    mission::process_all();
+    // If controlling a vehicle that is owned by someone else
+    if( u.in_vehicle && u.controlling_vehicle ) {
+        vehicle *veh = veh_pointer_or_null( m.veh_at( u.pos() ) );
+        if( veh && !veh->handle_potential_theft( u, true ) ) {
+            veh->handle_potential_theft( u, false, false );
+        }
+    }
+    // If riding a horse - chance to spook
+    if( u.is_mounted() ) {
+        u.check_mount_is_spooked();
+    }
+    if( calendar::once_every( 1_days ) ) {
+        overmap_buffer.process_mongroups();
+    }
+
+    // Move hordes every 2.5 min
+    if( calendar::once_every( time_duration::from_minutes( 2.5 ) ) ) {
+        overmap_buffer.move_hordes();
+        // Hordes that reached the reality bubble need to spawn,
+        // make them spawn in invisible areas only.
+        m.spawn_monsters( false );
+    }
+
+    debug_hour_timer.print_time();
+
+    u.update_body();
+
+    // Auto-save if autosave is enabled
+    if( get_option<bool>( "AUTOSAVE" ) &&
+        calendar::once_every( 1_turns * get_option<int>( "AUTOSAVE_TURNS" ) ) &&
+        !u.is_dead_state() ) {
+        autosave();
+    }
+
+    weather.update_weather();
+    reset_light_level();
+
+    perhaps_add_random_npc();
+    process_voluntary_act_interrupt();
+    process_activity();
+    // Process NPC sound events before they move or they hear themselves talking
+    for( npc &guy : all_npcs() ) {
+        if( rl_dist( guy.pos(), u.pos() ) < MAX_VIEW_DISTANCE ) {
+            sounds::process_sound_markers( &guy );
+        }
+    }
+
+    // Process sound events into sound markers for display to the player.
+    sounds::process_sound_markers( &u );
+
+    if( u.is_deaf() ) {
+        sfx::do_hearing_loss();
+    }
+
+    if( !u.has_effect( effect_sleep ) || uquit == QUIT_WATCH ) {
+        if( u.moves > 0 || uquit == QUIT_WATCH ) {
+            while( u.moves > 0 || uquit == QUIT_WATCH ) {
+                cleanup_dead();
+                mon_info_update();
+                // Process any new sounds the player caused during their turn.
+                for( npc &guy : all_npcs() ) {
+                    if( rl_dist( guy.pos(), u.pos() ) < MAX_VIEW_DISTANCE ) {
+                        sounds::process_sound_markers( &guy );
+                    }
+                }
+                sounds::process_sound_markers( &u );
+                if( !u.activity && !u.has_distant_destination() && uquit != QUIT_WATCH && wait_popup ) {
+                    wait_popup.reset();
+                    ui_manager::redraw();
+                }
+
+                if( queue_screenshot ) {
+                    invalidate_main_ui_adaptor();
+                    ui_manager::redraw();
+                    take_screenshot();
+                    queue_screenshot = false;
+                }
+
+                if( handle_action() ) {
+                    ++moves_since_last_save;
+                }
+
+                if( is_game_over() ) {
+                    return cleanup_at_end();
+                }
+
+                if( uquit == QUIT_WATCH ) {
+                    break;
+                }
+                if( u.activity ) {
+                    process_activity();
+                }
+            }
+            // Reset displayed sound markers now that the turn is over.
+            // We only want this to happen if the player had a chance to examine the sounds.
+            sounds::reset_markers();
+        }
+    }
+
+    if( driving_view_offset.x != 0 || driving_view_offset.y != 0 ) {
+        // Still have a view offset, but might not be driving anymore,
+        // or the option has been deactivated,
+        // might also happen when someone dives from a moving car.
+        // or when using the handbrake.
+        vehicle *veh = veh_pointer_or_null( m.veh_at( u.pos() ) );
+        calc_driving_offset( veh );
+    }
+
+    // No-scent debug mutation has to be processed here or else it takes time to start working
+    if( !u.has_active_bionic( bionic_id( "bio_scent_mask" ) ) &&
+        !u.has_trait( trait_id( "DEBUG_NOSCENT" ) ) ) {
+        scent.set( u.pos(), u.scent, u.get_type_of_scent() );
+        overmap_buffer.set_scent( u.global_omt_location(),  u.scent );
+    }
+    scent.update( u.pos(), m );
+
+    // We need floor cache before checking falling 'n stuff
+    m.build_floor_caches();
+
+    m.process_falling();
+    autopilot_vehicles();
+    m.vehmove();
+    m.process_fields();
+    m.process_items();
+    m.creature_in_field( u );
+    grid_tracker_ptr->update( calendar::turn );
+
+    // Apply sounds from previous turn to monster and NPC AI.
+    sounds::process_sounds();
+    // Update vision caches for monsters. If this turns out to be expensive,
+    // consider a stripped down cache just for monsters.
+    m.build_map_cache( get_levz(), true );
+    monmove();
+    if( calendar::once_every( 5_minutes ) ) {
+        overmap_npc_move();
+    }
+    if( calendar::once_every( 10_seconds ) ) {
+        ZoneScopedN( "field_emits" );
+        for( const tripoint &elem : m.get_furn_field_locations() ) {
+            const auto &furn = m.furn( elem ).obj();
+            for( const emit_id &e : furn.emissions ) {
+                m.emit_field( elem, e );
+            }
+        }
+    }
+    update_stair_monsters();
+    mon_info_update();
+    u.process_turn();
+
+    cata::run_on_every_x_hooks( *DynamicDataLoader::get_instance().lua );
+
+    explosion_handler::get_explosion_queue().execute();
+    cleanup_dead();
+
+    if( u.moves < 0 && get_option<bool>( "FORCE_REDRAW" ) ) {
+        ui_manager::redraw();
+        refresh_display();
+    }
+
+    if( get_levz() >= 0 && !u.is_underwater() ) {
+        handle_weather_effects( weather.weather_id );
+    }
+
+    const bool player_is_sleeping = u.has_effect( effect_sleep );
+    bool wait_redraw = false;
+    std::string wait_message;
+    time_duration wait_refresh_rate;
+    if( player_is_sleeping ) {
+        wait_redraw = true;
+        wait_message = _( "Wait till you wake up…" );
+        wait_refresh_rate = 30_minutes;
+        if( calendar::once_every( 1_hours ) ) {
+            add_artifact_dreams();
+        }
+    } else if( u.has_destination() ) {
+        wait_redraw = true;
+        wait_message = _( "Travelling…" );
+        wait_refresh_rate = 15_turns;
+    } else if( const std::optional<std::string> progress = u.activity->get_progress_message( u ) ) {
+        wait_redraw = true;
+        wait_message = *progress;
+        if( u.activity->id() == ACT_AUTODRIVE ) {
+            wait_refresh_rate = 1_turns;
+        } else {
+            wait_refresh_rate = 5_minutes;
+        }
+    }
+    if( wait_redraw ) {
+        ZoneScopedN( "wait_redraw" );
+        if( first_redraw_since_waiting_started ||
+            calendar::once_every( std::min( 1_minutes, wait_refresh_rate ) ) ) {
+            if( first_redraw_since_waiting_started || calendar::once_every( wait_refresh_rate ) ) {
+                ui_manager::redraw();
+            }
+
+            // Avoid redrawing the main UI every time due to invalidation
+            ui_adaptor dummy( ui_adaptor::disable_uis_below {} );
+            wait_popup = std::make_unique<static_popup>();
+            wait_popup->on_top( true ).wait_message( "%s", wait_message );
+            ui_manager::redraw();
+            refresh_display();
+            first_redraw_since_waiting_started = false;
+        }
+    } else {
+        // Nothing to wait for now
+        wait_popup.reset();
+        first_redraw_since_waiting_started = true;
+    }
+
+    u.update_bodytemp( m, weather );
+    character_funcs::update_body_wetness( u, get_weather().get_precise() );
+    u.apply_wetness_morale( weather.temperature );
+
+    if( !u.is_deaf() ) {
+        sfx::remove_hearing_loss();
+    }
+    sfx::do_danger_music();
+    sfx::do_vehicle_engine_sfx();
+    sfx::do_vehicle_exterior_engine_sfx();
+    sfx::do_fatigue();
+
+    // reset player noise
+    u.volume = 0;
+
+    // Finally, clear pathfinding cache
+    Pathfinding::clear_d_maps();
+
+    return false;
+}
+
+void game::set_driving_view_offset( point p )
 {
     // remove the previous driving offset,
     // store the new offset and apply the new offset.

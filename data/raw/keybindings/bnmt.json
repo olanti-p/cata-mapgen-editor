@@ -1,0 +1,9 @@
+[
+    {
+        "type": "keybinding",
+        "name": "Reload Tileset",
+        "category": "OVERMAP",
+        "id": "RELOAD_TILESET",
+        "bindings": []
+    }
+]

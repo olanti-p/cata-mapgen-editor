@@ -76,6 +76,8 @@
 #include "wcwidth.h"
 #include "cata_imgui.h"
 
+#include "editor/runtime/editor_engine.h"
+
 std::unique_ptr<cataimgui::client> imclient;
 
 #if defined(__linux__)
@@ -540,6 +542,12 @@ void refresh_display()
     if( test_mode ) {
         return;
     }
+
+    if( !editor::show_cata_ui() ) {
+        ClearScreen();
+    }
+
+    editor::render_ui();
 
     // Select default target (the window), copy rendered buffer
     // there, present it, select the buffer as target again.
@@ -2962,6 +2970,15 @@ static void CheckMessages()
 
     while( SDL_PollEvent( &ev ) ) {
         imclient->process_input( &ev );
+        if( ev.type == SDL_QUIT ) {
+            quit = true;
+            break;
+        }
+        if( editor::process_event( ev ) ) {
+            last_input = input_event();
+            needupdate = true;
+            continue;
+        }
         switch( ev.type ) {
             case SDL_WINDOWEVENT:
                 switch( ev.window.event ) {
@@ -3540,9 +3557,11 @@ static void CheckMessages()
         // on focus gain. This seems to mess up the first redraw and
         // causes black screen that lasts ~0.5 seconds before the screen
         // contents are redrawn in the following code.
-        ui_manager::invalidate( rectangle<point>( point::zero, point( WindowWidth, WindowHeight ) ),
+        if( editor::show_cata_ui() ) {
+            ui_manager::invalidate( rectangle<point>( point::zero, point( WindowWidth, WindowHeight ) ),
                                 false );
-        ui_manager::redraw_invalidated();
+            ui_manager::redraw_invalidated();
+        }
     }
     if( needupdate ) {
         try_sdl_update();
@@ -3667,6 +3686,18 @@ static void init_term_size_and_scaling_factor()
     TERMINAL_HEIGHT = terminal.y / scaling_factor;
 }
 
+static void init_imgui_interface()
+{
+    DebugLog( DL::Info, DC::Main ) << "Initializing IMGUI";
+    editor::init_ui( *window.get(), *renderer.get() );
+}
+
+static void deinit_imgui_interface()
+{
+    DebugLog( DL::Info, DC::Main ) << "Deinitializing IMGUI";
+    editor::shutdown_ui();
+}
+
 //Basic Init, create the font, backbuffer, etc
 void catacurses::init_interface()
 {
@@ -3773,6 +3804,8 @@ void catacurses::init_interface()
     preview_terminal_width = TERMINAL_WIDTH * fontwidth;
     preview_terminal_height = TERMINAL_HEIGHT * fontheight;
 #endif
+
+    init_imgui_interface();
 }
 
 // This is supposed to be called from init.cpp, and only from there.
@@ -3803,6 +3836,7 @@ void load_tileset()
 //Ends the terminal, destroy everything
 void catacurses::endwin()
 {
+    deinit_imgui_interface();
     tilecontext.reset();
     closetilecontext.reset();
     fartilecontext.reset();
@@ -3881,7 +3915,9 @@ input_event input_manager::get_input_event( const keyboard_mode preferred_keyboa
         try_sdl_update();
     }
 
-    if( inputdelay < 0 ) {
+    if( editor::ui_exists() ) {
+        CheckMessages();
+    } else if( inputdelay < 0 ) {
         do {
             CheckMessages();
             if( last_input.type != input_event_t::error ) {

@@ -46,6 +46,8 @@
 #include "ui_manager.h"
 #include "worldfactory.h"
 
+#include "editor/runtime/editor_engine.h"
+
 #if !defined(_MSC_VER)
 #include <sys/time.h>
 #endif
@@ -524,7 +526,7 @@ void realDebugmsg( const char *filename, const char *line, const char *funcname,
         }
     }
 
-    if( test_mode ) {
+    if( test_mode || editor::ui_exists() ) {
         return;
     }
 

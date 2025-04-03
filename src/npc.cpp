@@ -498,6 +498,11 @@ void npc_template::check_consistency()
     }
 }
 
+const std::map<string_id<npc_template>, npc_template> &get_all_npc_templates()
+{
+    return npc_templates;
+}
+
 template<>
 bool string_id<npc_template>::is_valid() const
 {

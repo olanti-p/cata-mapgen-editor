@@ -1506,6 +1506,8 @@ class npc_template
         static void check_consistency();
 };
 
+const std::map<string_id<npc_template>, npc_template> &get_all_npc_templates();
+
 std::ostream &operator<< ( std::ostream &os, const npc_need &need );
 
 /** Opens a menu and allows player to select a friendly NPC. */

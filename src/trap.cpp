@@ -109,6 +109,11 @@ size_t trap::count()
     return trap_factory.size();
 }
 
+const std::vector<trap> &trap::get_all()
+{
+    return trap_factory.get_all();
+}
+
 void trap::load_trap( const JsonObject &jo, const std::string &src )
 {
     trap_factory.load( jo, src );

@@ -17,6 +17,7 @@ enum class origin {
     overmap_terrain, // from corner of overmap_terrain
     overmap, // from corner of overmap
     reality_bubble, // from corner of a reality bubble (aka 'map' or 'tinymap')
+    etile, // Editor: from nearest tile
 };
 
 enum class scale {
@@ -25,7 +26,10 @@ enum class scale {
     overmap_terrain,
     segment,
     overmap,
-    vehicle
+    vehicle,
+    screen,  // Editor: screen space, in pixels
+    epos,    // Editor: canvas pos, in canvas points
+    etile,   // Editor: canvas pos, in canvas tiles
 };
 
 constexpr scale ms = scale::map_square;
@@ -33,6 +37,9 @@ constexpr scale sm = scale::submap;
 constexpr scale omt = scale::overmap_terrain;
 constexpr scale seg = scale::segment;
 constexpr scale om = scale::overmap;
+constexpr scale screen = scale::screen;
+constexpr scale epos = scale::epos;
+constexpr scale etile = scale::etile;
 
 template<typename Point, origin Origin, scale Scale>
 class coord_point_ob;
@@ -101,6 +108,16 @@ using tripoint_abs_omt = coords::coord_point<tripoint, coords::origin::abs, coor
 using tripoint_om_omt = coords::coord_point<tripoint, coords::origin::overmap, coords::omt>;
 using tripoint_abs_seg = coords::coord_point<tripoint, coords::origin::abs, coords::seg>;
 using tripoint_abs_om = coords::coord_point<tripoint, coords::origin::abs, coords::om>;
+
+using point_rel_epos = coords::coord_point<point, coords::origin::relative, coords::epos>;
+using point_abs_epos = coords::coord_point<point, coords::origin::abs, coords::epos>;
+using point_etile_epos = coords::coord_point<point, coords::origin::etile, coords::epos>;
+
+using point_rel_etile = coords::coord_point<point, coords::origin::relative, coords::etile>;
+using point_abs_etile = coords::coord_point<point, coords::origin::abs, coords::etile>;
+
+using point_rel_screen = coords::coord_point<point, coords::origin::relative, coords::screen>;
+using point_abs_screen = coords::coord_point<point, coords::origin::abs, coords::screen>;
 /*@}*/
 
 #endif // CATA_SRC_COORDS_FWD_H

@@ -947,6 +947,8 @@ CLANG_TIDY_PLUGIN_SOURCES := \
   $(wildcard tools/clang-tidy-plugin/*.cpp tools/clang-tidy-plugin/*/*.cpp)
 CLANG_TIDY_PLUGIN_HEADERS := \
   $(wildcard tools/clang-tidy-plugin/*.h tools/clang-tidy-plugin/*/*.h)
+EDITOR_SOURCES := $(wildcard src/editor/**/*.cpp)
+EDITOR_HEADERS := $(wildcard src/editor/**/*.h)
 # Using sort here because it has the side-effect of deduplicating the list
 ASTYLE_SOURCES := $(sort \
   src/cldr/imgui-glyph-ranges.cpp \
@@ -956,6 +958,8 @@ ASTYLE_SOURCES := $(sort \
   $(OBJECT_CREATOR_HEADERS) \
   $(TESTSRC) \
   $(TESTHDR) \
+  $(EDITOR_SOURCES) \
+  $(EDITOR_HEADERS) \
   $(JSON_FORMATTER_SOURCES) \
   $(JSON_FORMATTER_HEADERS) \
   $(CHKJSON_SOURCES) \

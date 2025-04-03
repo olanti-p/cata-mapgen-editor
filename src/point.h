@@ -16,6 +16,7 @@
 
 class JsonArray;
 class JsonOut;
+struct ImVec2;
 
 // NOLINTNEXTLINE(cata-xy)
 struct point {
@@ -48,6 +49,9 @@ struct point {
     int y = 0;
     constexpr point() = default;
     constexpr point( int X, int Y ) : x( X ), y( Y ) {}
+    point( ImVec2 v );
+
+    operator ImVec2();
 
     static point from_string( const std::string & );
 

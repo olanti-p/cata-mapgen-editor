@@ -25,6 +25,9 @@
 class JsonOut;
 class JsonValue;
 
+/** Size of editor canvas tile, in canvas pts. */
+constexpr int ETILE_SIZE = 32;
+
 namespace coords
 {
 template <typename Point, origin Origin, scale Scale> class coord_point_ob;
@@ -45,6 +48,10 @@ constexpr int map_squares_per( scale s )
             return SEG_SIZE * map_squares_per( scale::overmap_terrain );
         case scale::overmap:
             return OMAPX * map_squares_per( scale::overmap_terrain );
+        case scale::epos:
+            return 1;
+        case scale::etile:
+            return ETILE_SIZE;
         default:
             constexpr_fatal( 0, "Requested scale of %d", s );
     }
@@ -59,6 +66,8 @@ constexpr origin origin_from_scale( scale s )
             return origin::overmap_terrain;
         case scale::overmap:
             return origin::overmap;
+        case scale::etile:
+            return origin::etile;
         default:
             constexpr_fatal( origin::abs, "Requested origin for scale %d", s );
     }

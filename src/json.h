@@ -811,6 +811,19 @@ class JsonOut
             write( std::string( val ) );
         }
 
+        // special overload for booleans that must be written as 'true'/'false'
+        void write_bool( bool val ) {
+            if( need_separator ) {
+                write_separator();
+            }
+            if( val ) {
+                *stream << "true";
+            } else {
+                *stream << "false";
+            }
+            need_separator = true;
+        }
+
         // char should always be written as an unquoted numeral
         void write( char val ) {
             write( static_cast<int>( val ) );

@@ -284,6 +284,16 @@ WORLD *worldfactory::make_new_world( special_game_type special_type )
     return ( all_worlds[worldname] = std::move( special_world ) ).get();
 }
 
+WORLD* worldfactory::make_new_world_bnmt( const std::string &worldname,
+        const std::vector<mod_id> &mods )
+{
+    std::unique_ptr<WORLD> new_world = std::make_unique<WORLD>();
+    new_world->world_name = worldname;
+    new_world->WORLD_OPTIONS["WORLD_END"].setValue( "delete" );
+    new_world->active_mod_order = mods;
+    return add_world( std::move( new_world ) );
+}
+
 void worldfactory::set_active_world( WORLD *world )
 {
     world_generator->active_world = world;

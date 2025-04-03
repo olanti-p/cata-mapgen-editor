@@ -141,6 +141,11 @@ class texture
         std::pair<int, int> dimension() const {
             return std::make_pair( srcrect.w, srcrect.h );
         }
+
+        const SDL_Rect &rect() const {
+            return srcrect;
+        }
+
         /// Interface to @ref SDL_RenderCopyEx, using this as the texture, and
         /// null as source rectangle (render the whole texture). Other parameters
         /// are simply passed through.
@@ -149,6 +154,16 @@ class texture
                             const SDL_Point *const center, const SDL_RendererFlip flip ) const {
             return SDL_RenderCopyEx( renderer.get(), sdl_texture_ptr.get(), &srcrect, dstrect, angle, center,
                                      flip );
+        }
+
+        inline SDL_Texture *get_ptr() const {
+            return sdl_texture_ptr.get();
+        }
+
+        SDL_Point getsize() const {
+            SDL_Point size;
+            SDL_QueryTexture( sdl_texture_ptr.get(), nullptr, nullptr, &size.x, &size.y );
+            return size;
         }
 };
 
@@ -769,6 +784,11 @@ class cata_tiles
             bool iso );
         static std::vector<options_manager::id_and_option> build_renderer_list();
         static std::vector<options_manager::id_and_option> build_display_list();
+
+        inline tileset &get_tileset() {
+            return *tileset_ptr;
+        }
+
     private:
         std::pair<std::string, bool> get_omt_id_rotation_and_subtile( const tripoint_abs_omt &omp,
                 int &rota, int &subtile );

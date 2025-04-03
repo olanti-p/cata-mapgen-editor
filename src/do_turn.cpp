@@ -79,6 +79,8 @@
 #include "weather_type.h"
 #include "worldfactory.h"
 
+#include "editor/runtime/editor_engine.h"
+
 static const activity_id ACT_AUTODRIVE( "ACT_AUTODRIVE" );
 static const activity_id ACT_FIRSTAID( "ACT_FIRSTAID" );
 static const activity_id ACT_OPERATION( "ACT_OPERATION" );
@@ -584,6 +586,12 @@ bool do_turn()
                 if( g->queue_screenshot ) {
                     g->take_screenshot();
                     g->queue_screenshot = false;
+                }
+
+                if( enter_editor_on_start ) {
+                    enter_editor_on_start = false;
+                    editor::bnmt_entry_point();
+                    continue;
                 }
 
                 if( g->handle_action() ) {

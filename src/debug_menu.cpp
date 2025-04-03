@@ -153,6 +153,8 @@ static const mongroup_id GROUP_DEBUG_EXACTLY_ONE( "GROUP_DEBUG_EXACTLY_ONE" );
 
 static const morale_type morale_perm_debug( "morale_perm_debug" );
 
+#include "editor/runtime/editor_engine.h"
+
 static const mtype_id mon_generator( "mon_generator" );
 
 static const trait_id trait_ASTHMA( "ASTHMA" );

@@ -60,6 +60,9 @@
 #include "type_id.h"
 #include "ui_manager.h"
 #include "cata_imgui.h"
+#include "avatar.h"
+#include "worldfactory.h"
+#include "mod_manager.h"
 
 #if defined(EMSCRIPTEN)
 #include <emscripten.h>
@@ -71,6 +74,10 @@
 #endif
 
 class ui_adaptor;
+
+#include "editor/runtime/welcome_screen.h"
+
+#include "editor/runtime/welcome_screen.h"
 
 #if defined(TILES) || defined(SDL_SOUND)
 #   if defined(_MSC_VER) && defined(USE_VCPKG)
@@ -277,6 +284,13 @@ struct cli_opts {
     std::vector<std::string> opts;
     std::string world; /** if set try to load first save in this world on startup */
     bool disable_ascii_art = false;
+    bool enter_editor_on_start = false;
+    std::string dump;
+    dump_mode dmode = dump_mode::TSV;
+    std::vector<std::string> opts;
+    std::string world; /** if set try to load first save in this world on startup */
+    std::optional<std::string> load_editor_project_on_start;
+    std::optional<std::string> export_editor_project_on_start;
 };
 
 cli_opts parse_commandline( int argc, const char **argv )
@@ -430,7 +444,17 @@ cli_opts parse_commandline( int argc, const char **argv )
                     result.disable_ascii_art = true;
                     return 0;
                 }
-            }
+            },
+            {
+                "--editor", nullptr,
+                "If set, will enter Advanced Map Editor on first world load",
+                section_default,
+                0,
+                [&]( int, const char ** ) -> int {
+                    enter_editor_on_start = true;
+                    return 0;
+                }
+            },
         }
     };
 
@@ -527,6 +551,34 @@ cli_opts parse_commandline( int argc, const char **argv )
                     return 1;
                 }
             },
+            {
+                "--project", "<path>",
+                "Load editor project",
+                section_default,
+                1,
+                [&]( int n, const char *params[] ) -> int {
+                    if( n < 1 )
+                    {
+                        return -1;
+                    }
+                    load_editor_project_on_start = params[0];
+                    return 1;
+                }
+            },
+            {
+                "--export", "<path>",
+                "Export editor project",
+                section_default,
+                1,
+                [&]( int n, const char *params[] ) -> int {
+                    if( n < 1 )
+                    {
+                        return -1;
+                    }
+                    export_editor_project_on_start = params[0];
+                    return 1;
+                }
+            }
         }
     };
 
@@ -699,6 +751,9 @@ int main( int argc, const char *argv[] )
         exit( 1 );
     }
 
+    assure_dir_exist( PATH_INFO::config_dir() + "imgui/" );
+    assure_dir_exist( PATH_INFO::config_dir() + "autosave/" );
+
 #if defined(EMSCRIPTEN)
     setupDebug( DebugOutput::std_err );
 #else
@@ -781,7 +836,9 @@ int main( int argc, const char *argv[] )
     game_ui::init_ui();
 
     g = std::make_unique<game>();
-
+    g->enter_editor_on_start = cli.enter_editor_on_start;
+    g->load_editor_project_on_start = cli.load_editor_project_on_start;
+    g->export_editor_project_on_start = cli.export_editor_project_on_start;
     // First load and initialize everything that does not
     // depend on the mods.
     try {
@@ -835,28 +892,97 @@ int main( int argc, const char *argv[] )
     sigaction( SIGINT, &sigIntHandler, nullptr );
 #endif
 
-    if( !assure_essential_dirs_exist() ) {
-        exit_handler( -999 );
-        return 0;
+    DebugLog( DL::Info, DC::Main ) << "LAPI version: " << cata::get_lapi_version_string();
+    cata::startup_lua_test();
+
+    if( lua_doc_mode ) {
+        init_colors();
+        if( cata::generate_lua_docs() ) {
+            cata_printf( "Lua doc: Done!\n" );
+            return 0;
+        } else {
+            cata_printf( "Lua doc: Failed.\n" );
+            return 1;
+        }
     }
 
-#if defined(LOCALIZE)
-    if( get_option<std::string>( "USE_LANG" ).empty() && !SystemLocale::Language().has_value() ) {
-        imclient->new_frame(); // we have to prime the pump, because of reasons
-        imclient->end_frame();
-        const std::string lang = select_language();
-        get_options().get_option( "USE_LANG" ).setValue( lang );
-        set_language_from_options();
-    }
-#endif
+    prompt_select_lang_on_startup();
     replay_buffered_debugmsg_prompts();
 
-    main_menu::queued_world_to_load = std::move( cli.world );
+    world_generator->init();
+    const std::string bnmt_world_id( "BNMT-world" );
+    const mod_id bnmt_mod_id( "me_interface" );
+    std::vector<mod_id> bnmt_modlist;
+    if( world_generator->has_world( bnmt_world_id ) ) {
+        bnmt_modlist = world_generator->get_world( bnmt_world_id )->active_mod_order;
+    } else {
+        bnmt_modlist = {{
+                mod_management::get_default_core_content_pack(),
+                bnmt_mod_id,
+            }
+        };
+    }
+
+    // It's best to recreate world from scratch to avoid side effects
+    const auto &remake_world = [&]() -> WORLDINFO* {
+        if( world_generator->has_world( bnmt_world_id ) )
+        {
+            world_generator->delete_world( bnmt_world_id, true );
+        }
+        return world_generator->make_new_world_bnmt( bnmt_world_id, bnmt_modlist );
+    };
 
     while( true ) {
-        main_menu menu;
-        if( !menu.opening_screen() ) {
-            break;
+        editor::WelcomeResult res = editor::show_welcome_screen();
+        if( res.quit_to_desktop ) {
+            return 0;
+        }
+        if( res.edit_mods ) {
+            WORLDINFO* world = remake_world();
+            world_generator->edit_active_world_mods( world );
+            bnmt_modlist = world->active_mod_order;
+            // Prevent footguns
+            if( std::find( bnmt_modlist.begin(), bnmt_modlist.end(), bnmt_mod_id ) == bnmt_modlist.end() ) {
+                bnmt_modlist.emplace_back( bnmt_mod_id );
+                world->active_mod_order = bnmt_modlist;
+                world->save();
+            }
+            continue;
+        }
+        if( res.open_editor ) {
+            g->enter_editor_on_start = true;
+            WORLDINFO* world = remake_world();
+            world_generator->set_active_world( world );
+            try {
+                g->setup();
+            } catch( const std::exception &err ) {
+                debugmsg( "Error: %s", err.what() );
+                continue;
+            }
+            if( !get_avatar().create( character_type::NOW ) ) {
+                get_avatar() = avatar();
+                world_generator->set_active_world( nullptr );
+                continue;
+            }
+            if( !g->start_game() ) {
+                get_avatar() = avatar();
+                world_generator->set_active_world( nullptr );
+                continue;
+            }
+        }
+        if( res.quit_to_game ) {
+            if( !world.empty() ) {
+                if( !g->load( world ) ) {
+                    break;
+                }
+                world.clear(); // ensure quit returns to opening screen
+
+            } else {
+                main_menu menu;
+                if( !menu.opening_screen() ) {
+                    break;
+                }
+            }
         }
 
         shared_ptr_fast<ui_adaptor> ui = g->create_or_get_main_ui_adaptor();

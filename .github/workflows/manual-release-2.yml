@@ -1,0 +1,169 @@
+name: "Manual release BNMT"
+concurrency: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version string for the release"
+        required: true
+        type: string
+env:
+  VERSION: ${{ inputs.version }}
+  VCPKG_BINARY_SOURCES: "default"
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-22.04
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      release_already_exists: ${{ steps.tag_check.outputs.exists }}
+    steps:
+      - name: Get build timestamp
+        id: get-timestamp
+        uses: nanzm/get-time-action@v1.1
+        with:
+          timeZone: 0
+          format: "YYYY-MM-DD-HHmm"
+      - name: Generate environmental variables
+        id: generate_env_vars
+        run: |
+          echo "tag_name=bnmt-${{ inputs.version }}" >> $GITHUB_OUTPUT
+          echo "release_name=BNMT ${{ inputs.version }}" >> $GITHUB_OUTPUT
+      - name: Check if there is existing git tag
+        id: tag_check
+        uses: mukunku/tag-exists-action@v1.4.0
+        with:
+          tag: ${{ steps.generate_env_vars.outputs.tag_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v3
+      - name: Push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v5.5
+        if: ${{ steps.tag_check.outputs.exists == 'false' }}
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          custom_tag: ${{ steps.generate_env_vars.outputs.tag_name }}
+          tag_prefix: ""
+      - uses: actions/checkout@v3
+      - run: git fetch origin tag ${{ steps.generate_env_vars.outputs.tag_name }} --no-tags
+      - name: Build Changelog
+        id: build_changelog
+        uses: mikepenz/release-changelog-builder-action@v2.1.0
+        with:
+          configuration: "changelog.json"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        if: ${{ steps.tag_check.outputs.exists == 'false' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.generate_env_vars.outputs.tag_name }}
+          release_name: ${{ steps.generate_env_vars.outputs.release_name }}
+          body: |
+            ${{ steps.build_changelog.outputs.changelog }}
+            These are the outputs for the manually triggered build of commit [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+          draft: true
+          prerelease: false
+  builds:
+    needs: release
+    if: ${{ needs.release.outputs.release_already_exists == 'false' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows Tiles x64
+            mxe: x86_64
+            mxe_apt: x86-64
+            artifact: windows-tiles-x64
+            os: ubuntu-20.04
+            ext: zip
+            content: application/zip
+          - name: Linux Tiles x64
+            os: ubuntu-22.04
+            mxe: none
+            android: none
+            tiles: 1
+            artifact: linux-tiles-x64
+            ext: tar.gz
+            content: application/gzip
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    env:
+      ZSTD_CLEVEL: 17
+    steps:
+      - uses: actions/checkout@v3
+      - name: Create VERSION.TXT
+        shell: bash
+        run: |
+          cat >VERSION.txt <<EOL
+          build type: ${{ matrix.artifact }}
+          build version string: ${{ inputs.version }}
+          commit sha: ${{ github.sha }}
+          commit url: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
+          EOL
+      - name: Install dependencies (windows mxe)
+        if: matrix.mxe != 'none'
+        run: |
+          sudo apt update
+          sudo apt install astyle autoconf automake autopoint bash bison bzip2 cmake flex gettext git g++ gperf intltool \
+            libffi-dev libgdk-pixbuf2.0-dev libtool libltdl-dev libssl-dev libxml-parser-perl lzip make mingw-w64 openssl \
+            p7zip-full patch perl pkg-config python ruby scons sed unzip wget xz-utils g++-multilib libc6-dev-i386 libtool-bin
+      - name: Install MXE
+        if: matrix.mxe != 'none'
+        run: |
+          curl -L -o mxe-${{ matrix.mxe }}.tar.xz https://github.com/BrettDong/MXE-GCC/releases/download/mxe-gcc-11.2/mxe-${{ matrix.mxe }}.tar.xz
+          curl -L -o mxe-${{ matrix.mxe }}.tar.xz.sha256 https://github.com/BrettDong/MXE-GCC/releases/download/mxe-gcc-11.2/mxe-${{ matrix.mxe }}.tar.xz.sha256
+          shasum -a 256 -c ./mxe-${{ matrix.mxe }}.tar.xz.sha256
+          sudo tar xJf mxe-${{ matrix.mxe }}.tar.xz -C /opt
+          curl -L -o libbacktrace-${{ matrix.mxe }}-w64-mingw32.tar.gz https://github.com/Qrox/libbacktrace/releases/download/2020-01-03/libbacktrace-${{ matrix.mxe }}-w64-mingw32.tar.gz
+          shasum -a 256 -c ./build-scripts/libbacktrace-${{ matrix.mxe }}-w64-mingw32-sha256
+          sudo tar -xzf libbacktrace-${{ matrix.mxe }}-w64-mingw32.tar.gz --exclude=LICENSE -C /opt/mxe/usr/${{ matrix.mxe }}-w64-mingw32.static.gcc11
+      - name: Install dependencies (Linux)
+        if: runner.os == 'Linux' && matrix.mxe == 'none' && matrix.android == 'none'
+        run: |
+          sudo apt-get update
+          sudo apt-get install libncursesw5-dev libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev \
+            libsdl2-mixer-dev libpulse-dev ccache gettext parallel libflac-dev
+      - name: Configure (Linux)
+        if: runner.os == 'Linux' && matrix.mxe == 'none' && matrix.android == 'none'
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DTILES=1 -DSOUND=0 -DCURSES=0 -DLUA=0 -DUSE_HOME_DIR=0 -DUSE_PREFIX_DATA_DIR=0 
+      - name: Configure (MXE)
+        if: matrix.mxe != 'none'
+        run: |
+          mkdir build
+          cd build
+          /opt/mxe/usr/bin/x86_64-w64-mingw32.static.gcc11-cmake .. -DCMAKE_BUILD_TYPE=MinSizeRel -DTILES=1 -DSOUND=0 -DCURSES=0 -DLUA=0 -DUSE_HOME_DIR=0 -DUSE_PREFIX_DATA_DIR=0 
+      - name: Build BNMT (Linux)
+        if: runner.os == 'Linux' && matrix.mxe == 'none' && matrix.android == 'none'
+        run: |
+          cmake --build build --target cataclysm-tiles
+          strip build/src/cataclysm-tiles
+      - name: Build BNMT (windows)
+        if: matrix.mxe != 'none'
+        env:
+          PLATFORM: /opt/mxe/usr/bin/${{ matrix.mxe }}-w64-mingw32.static.gcc11-
+        run: |
+          /opt/mxe/usr/bin/x86_64-w64-mingw32.static.gcc11-cmake --build build --target cataclysm-tiles
+      - name: Package
+        run: |
+          python3 build-scripts/make_release.py
+          mv bnmt-bindist.zip bnmt-${{ matrix.artifact }}-${{ inputs.version }}.tar.gz
+      - name: Upload release asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.release.outputs.upload_url }}
+          asset_path: bnmt-${{ matrix.artifact }}-${{ inputs.version }}.${{ matrix.ext }}
+          asset_name: bnmt-${{ matrix.artifact }}-${{ inputs.version }}.${{ matrix.ext }}
+          asset_content_type: ${{ matrix.content }}
+

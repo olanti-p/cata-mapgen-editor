@@ -1,0 +1,37 @@
+[
+  {
+    "type": "mod_tileset",
+    "compatibility": [
+      "UNDEAD_PEOPLE_BASE",
+      "UNDEAD_PEOPLE",
+      "MshockRealXotto",
+      "MSX++DEAD_PEOPLE",
+      "MSXotto+",
+      "retrodays",
+      "retrodays+"
+    ],
+    "tiles-new": [
+      {
+        "file": "icons.png",
+        "sprite_width": 13,
+        "sprite_height": 13,
+        "sprite_offset_x": 0,
+        "sprite_offset_y": 0,
+        "tiles": [
+          { "id": "me_delete", "fg": 0 },
+          { "id": "me_move_up", "fg": 1 },
+          { "id": "me_move_down", "fg": 2 },
+          { "id": "me_add", "fg": 3 },
+          { "id": "me_set_rows_brush", "fg": 4 },
+          { "id": "me_clear_rows_brush", "fg": 5 },
+          { "id": "me_duplicate", "fg": 6 },
+          { "id": "me_palette", "fg": 7 },
+          { "id": "me_mapobject", "fg": 8 },
+          { "id": "me_visible", "fg": 9 },
+          { "id": "me_hidden", "fg": 10 },
+          { "id": "me_draggable", "fg": 11 }
+        ]
+      }
+    ]
+  }
+]

@@ -44,7 +44,12 @@
       "generator": "Ninja Multi-Config",
       "cacheVariables": {
         "DYNAMIC_LINKING": "False",
-        "CURSES": "False", "LOCALIZE": "True", "TILES": "True", "SOUND": "True", "TESTS": "True",
+        "CURSES": "False",
+        "LOCALIZE": "True",
+        "TILES": "True",
+        "SOUND": "True",
+        "TESTS": "True",
+        "USE_HOME_DIR": "False",
         "CMAKE_INSTALL_MESSAGE": "NEVER"
       }
     },

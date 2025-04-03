@@ -14,6 +14,7 @@
 #include <utility>
 #include <vector>
 
+#include "mapgen_map_key.h"
 #include "cata_assert.h"
 #include "cata_variant.h"
 #include "coordinates.h"
@@ -73,6 +74,7 @@ class mapgen_function_builtin : public virtual mapgen_function
 {
     public:
         building_gen_pointer fptr;
+        std::string fname;
         explicit mapgen_function_builtin( building_gen_pointer ptr,
                                           int w = 1000 ) : mapgen_function( w ),
             fptr( ptr ) { }
@@ -284,32 +286,6 @@ class jmapgen_place
         jmapgen_int repeat;
 };
 
-// Strong typedef for strings used as map/palette keys
-// Each key should be a UTF-8 string displayed in only one column (i.e.
-// utf8_width of 1) but can contain multiple Unicode code points.
-class map_key
-{
-    public:
-        explicit map_key( const std::string & );
-        explicit map_key( const JsonMember & );
-
-        friend bool operator==( const map_key &l, const map_key &r ) {
-            return l.str == r.str;
-        }
-
-        std::string str;
-};
-
-namespace std
-{
-template<>
-struct hash<map_key> {
-    size_t operator()( const map_key &k ) const noexcept {
-        return hash<std::string> {}( k.str );
-    }
-};
-} // namespace std
-
 template<typename T>
 struct mapgen_constraint {
     mapgen_constraint( const std::string &name, const T &val )
@@ -373,6 +349,8 @@ class mapgen_palette
          */
         static const mapgen_palette &get( const palette_id &id );
 
+        static const std::map<palette_id, mapgen_palette> &get_all();
+
         static void check_definitions();
 
         static void reset();
@@ -412,6 +390,7 @@ class mapgen_palette
 };
 
 struct jmapgen_objects {
+    public:
 
         jmapgen_objects( const tripoint_rel_ms &offset, const point_rel_ms &mapsize,
                          const point_rel_ms &tot_size );
@@ -453,7 +432,6 @@ struct jmapgen_objects {
          **/
         ret_val<void> has_vehicle_collision( const mapgendata &dat, const tripoint_rel_ms &offset ) const;
 
-    private:
         /**
          * Combination of where to place something and what to place.
          */
@@ -469,20 +447,11 @@ class mapgen_function_json_base
     public:
         void merge_non_nest_parameters_into( mapgen_parameters &,
                                              const std::string &outer_context ) const;
-        bool check_inbounds( const jmapgen_int &x, const jmapgen_int &y, const jmapgen_int &z,
-                             const JsonObject &jso ) const;
-        size_t calc_index( const point_rel_ms &p ) const;
-        ret_val<void> has_vehicle_collision( const mapgendata &dat, const tripoint_rel_ms &offset ) const;
+        bool check_inbounds( const jmapgen_int &x, const jmapgen_int &y, const JsonObject &jso ) const;
+        size_t calc_index( const point &p ) const;
+        bool has_vehicle_collision( const mapgendata &dat, const point &offset ) const;
 
-        void add_placement_coords_to( std::unordered_set<point_rel_ms> & ) const;
-
-        const mapgen_parameters &get_parameters() const {
-            return parameters;
-        }
-
-    private:
         JsonObject jsobj;
-    protected:
         mapgen_function_json_base( const JsonObject &jsobj, const std::string &context );
         virtual ~mapgen_function_json_base();
 
@@ -530,10 +499,8 @@ class mapgen_function_json : public mapgen_function_json_base, public virtual ma
         cata::value_ptr<mapgen_value<ter_id>> fill_ter;
         oter_id predecessor_mapgen;
 
-    protected:
         bool setup_internal( const JsonObject &jo ) override;
 
-    private:
         jmapgen_int rotation;
         oter_str_id fallback_predecessor_mapgen_;
 };
@@ -558,7 +525,6 @@ class update_mapgen_function_json : public mapgen_function_json_base
                                   const tripoint_rel_ms &offset = tripoint_rel_ms::zero,
                                   bool verify = false ) const;
 
-    protected:
         bool setup_internal( const JsonObject &/*jo*/ ) override;
         cata::value_ptr<mapgen_value<ter_id>> fill_ter;
 };
@@ -574,10 +540,9 @@ class mapgen_function_json_nested : public mapgen_function_json_base
 
         void nest( const mapgendata &md, const tripoint_rel_ms &offset,
                    const std::string &outer_context ) const;
-    protected:
+
         bool setup_internal( const JsonObject &jo ) override;
 
-    private:
         jmapgen_int rotation;
 };
 
@@ -647,6 +612,13 @@ bool has_update_mapgen_for( const update_mapgen_id & );
 void calculate_mapgen_weights(); // throws
 
 void check_mapgen_definitions();
+
+const std::map<std::string, weighted_int_list<std::shared_ptr<mapgen_function_json_nested>> >
+        &get_all_nested_mapgen();
+const std::map<std::string, std::vector<std::unique_ptr<update_mapgen_function_json>> >
+        &get_all_update_mapgen();
+class mapgen_factory;
+const mapgen_factory &get_all_oter_mapgen();
 
 /// move to building_generation
 enum room_type {

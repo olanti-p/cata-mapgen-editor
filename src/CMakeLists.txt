@@ -13,11 +13,11 @@ if (WIN32)
             OBJECT_DEPENDS "${RSRC_RC_DEP}")
 endif ()
 
-file(GLOB CATACLYSM_DDA_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+file(GLOB CATACLYSM_DDA_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp ${CMAKE_SOURCE_DIR}/tools/format/format.cpp)
 
 list(REMOVE_ITEM CATACLYSM_DDA_SOURCES ${MAIN_CPP} ${MESSAGES_CPP})
 
-file(GLOB CATACLYSM_DDA_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
+file(GLOB CATACLYSM_DDA_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/*.h ${CMAKE_SOURCE_DIR}/tools/format/format.h)
 
 # Get GIT version strings
 add_custom_target(
@@ -36,7 +36,8 @@ if (TILES)
             cataclysm-tiles-common OBJECT
             ${CATACLYSM_DDA_SOURCES}
             ${CATACLYSM_DDA_HEADERS})
-    target_include_directories(cataclysm-tiles-common INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_include_directories(cataclysm-tiles-common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+    target_include_directories(cataclysm-tiles-common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/imgui)
 
     target_link_libraries(cataclysm-tiles-common PUBLIC third-party)
 
@@ -79,6 +80,7 @@ if (TILES)
 
     target_link_libraries(cataclysm-tiles PRIVATE cataclysm-tiles-common)
     target_compile_definitions(cataclysm-tiles-common PUBLIC TILES )
+    target_compile_definitions(cataclysm-tiles-common PUBLIC NO_JSON_FORMAT_MAIN )
     if(NOT "${CMAKE_EXPORT_COMPILE_COMMANDS}")
         target_precompile_headers(cataclysm-tiles-common PUBLIC
             ${CMAKE_SOURCE_DIR}/pch/main-pch.hpp)
@@ -162,6 +164,11 @@ if (TILES)
         target_link_libraries(cataclysm-tiles-common PUBLIC ${ZLIB_LIBRARIES})
     endif()
 
+    add_subdirectory(imgui)
+    add_subdirectory(editor)
+
+    target_link_libraries(cataclysm-tiles PRIVATE imgui)
+    target_link_libraries(cataclysm-tiles PRIVATE editor)
 endif ()
 
 # Build curses version if requested

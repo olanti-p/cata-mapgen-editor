@@ -98,6 +98,7 @@ class worldfactory
         // Generate a world
         WORLD *make_new_world( bool show_prompt = true, const std::string &world_to_copy = "" );
         WORLD *make_new_world( special_game_type special_type );
+        WORLD *make_new_world_bnmt( const std::string &worldname, const std::vector<mod_id> &mods );
         // Used for unit tests - does NOT verify if the mods can be loaded
         WORLD *make_new_world( const std::string &name, const std::vector<mod_id> &mods );
         WORLD *make_new_world( const std::vector<mod_id> &mods );

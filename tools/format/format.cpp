@@ -1,5 +1,6 @@
 #include "format.h"
 #include "json.h"
+#include "format.h"
 
 #include <functional>
 #include <sstream>
@@ -138,3 +139,4 @@ void formatter::format( TextJsonIn &jsin, JsonOut &jsout, int depth, bool force_
         jsin.skip_value(); // this will throw exception with the invalid element
     }
 }
+

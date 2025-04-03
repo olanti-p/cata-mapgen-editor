@@ -40,6 +40,7 @@
 #include "line.h"
 #include "map.h"
 #include "map_extras.h"
+#include "mapgen.h"
 #include "map_iterator.h"
 #include "mapbuffer.h"
 #include "mapgen.h"
@@ -1260,6 +1261,11 @@ void overmap_terrains::reset()
 const std::vector<oter_t> &overmap_terrains::get_all()
 {
     return terrains.get_all();
+}
+
+const std::vector<oter_type_t> &overmap_terrains::get_all_types()
+{
+    return terrain_types.get_all();
 }
 
 static bool is_amongst_locations( const oter_id &oter,

@@ -1345,7 +1345,7 @@ struct itype {
 
         requirement_id template_requirements;
 
-    protected:
+    public:
         itype_id id = itype_id::NULL_ID(); /** unique string identifier for this type */
 
     public:

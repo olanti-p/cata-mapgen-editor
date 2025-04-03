@@ -1,0 +1,11 @@
+[
+  {
+    "type": "MOD_INFO",
+    "id": "me_interface",
+    "name": "Map editor",
+    "authors": [ "Olanti" ],
+    "description": "Needed for the map editor UI to work.",
+    "category": "graphical",
+    "dependencies": [ "bn" ]
+  }
+]
