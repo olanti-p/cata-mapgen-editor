@@ -2,6 +2,8 @@
   {
     "type": "mod_tileset",
     "compatibility": [
+      "UltimateCataclysm",
+      "Chibi_Ultica",
       "UNDEAD_PEOPLE_BASE",
       "UNDEAD_PEOPLE",
       "MshockRealXotto",

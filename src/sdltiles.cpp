@@ -2970,15 +2970,6 @@ static void CheckMessages()
 
     while( SDL_PollEvent( &ev ) ) {
         imclient->process_input( &ev );
-        if( ev.type == SDL_QUIT ) {
-            quit = true;
-            break;
-        }
-        if( editor::process_event( ev ) ) {
-            last_input = input_event();
-            needupdate = true;
-            continue;
-        }
         switch( ev.type ) {
             case SDL_WINDOWEVENT:
                 switch( ev.window.event ) {

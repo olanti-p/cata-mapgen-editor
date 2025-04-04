@@ -19,8 +19,7 @@ MapKeyGenerator::MapKeyGenerator()
 
 void MapKeyGenerator::blacklist( const map_key &opt )
 {
-    auto it = std::remove( opts.begin(), opts.end(), opt );
-    opts.erase(it);
+    std::remove(opts.begin(), opts.end(), opt);
 }
 
 } // namespace editor
