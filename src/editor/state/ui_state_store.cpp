@@ -67,7 +67,7 @@ void MyUserData_ReadLine( ImGuiContext *ctx, ImGuiSettingsHandler *handler, void
         return;
     }
     std::string json_data( line_str.substr( 5 ) );
-    std::stringstream ss(json_data);
+    std::istringstream ss(json_data);
     TextJsonIn jsin = TextJsonIn( ss );
     uistate.deserialize(jsin);
 }
@@ -135,10 +135,8 @@ void OpenPalette::serialize( JsonOut &jsout ) const
     jsout.end_object();
 }
 
-void OpenPalette::deserialize(const TextJsonObject&jsin )
+void OpenPalette::deserialize(const TextJsonObject&jo )
 {
-    JSON_OBJECT jo = jsin;
-
     jo.read( "uuid", uuid );
     jo.read( "open", open );
 }
@@ -152,10 +150,8 @@ void OpenMapping::serialize( JsonOut &jsout ) const
     jsout.end_object();
 }
 
-void OpenMapping::deserialize(const TextJsonObject&jsin )
+void OpenMapping::deserialize(const TextJsonObject&jo )
 {
-    JSON_OBJECT jo = jsin;
-
     jo.read( "uuid", uuid );
     jo.read( "palette", palette );
     jo.read( "open", open );
@@ -169,10 +165,8 @@ void OpenMapgenObject::serialize( JsonOut &jsout ) const
     jsout.end_object();
 }
 
-void OpenMapgenObject::deserialize(const TextJsonObject&jsin )
+void OpenMapgenObject::deserialize(const TextJsonObject&jo )
 {
-    JSON_OBJECT jo = jsin;
-
     jo.read( "uuid", uuid );
     jo.read( "open", open );
 }
