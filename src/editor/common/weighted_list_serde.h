@@ -18,10 +18,10 @@ void serialize( const editor::WeightedList<T> &list, JsonOut &jsout )
 }
 
 template<typename T>
-void deserialize( editor::WeightedList<T> &list, JsonIn &jsin )
+void deserialize( editor::WeightedList<T> &list, const TextJsonValue &jsin )
 {
-    JsonArray ja = jsin.get_array();
-    for( JsonObject jo : ja ) {
+    TextJsonArray ja = jsin.get_array();
+    for( JSON_OBJECT jo : ja ) {
         editor::detail::WeightedListEntry<T> e;
         jo.read( "w", e.weight );
         jo.read( "v", e.val );

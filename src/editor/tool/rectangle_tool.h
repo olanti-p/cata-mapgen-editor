@@ -27,7 +27,7 @@ struct RectangleSettings : public ToolSettings {
     bool filled = false;
 
     void serialize( JsonOut &jsout ) const override;
-    void deserialize( JsonIn &jsin ) override;
+    void deserialize( JSON_IN &jsin ) override;
 
     void show() override;
 };

@@ -34,7 +34,7 @@ const std::vector<std::string> &EditableID<furn_t>::get_all_opts()
 {
     if( all_opts.empty() ) {
         all_opts.reserve( furn_t::get_all().size() );
-        for( const furn_t &it : furn_t::get_all() ) {
+        for( const furn_t &it : furn_t::get_all().get_all() ) {
             all_opts.push_back( it.id.str() );
         }
     }
@@ -84,8 +84,8 @@ template<>
 const std::vector<std::string> &EditableID<MonsterGroup>::get_all_opts()
 {
     if( all_opts.empty() ) {
-        all_opts.reserve( MonsterGroupManager::get_all().size() );
-        for( const auto &it : MonsterGroupManager::get_all() ) {
+        all_opts.reserve( MonsterGroupManager::Get_all_Groups().size() );
+        for( const auto &it : MonsterGroupManager::Get_all_Groups() ) {
             all_opts.push_back( it.first.str() );
         }
     }
@@ -157,7 +157,7 @@ const std::vector<std::string> &EditableID<ter_t>::get_all_opts()
 {
     if( all_opts.empty() ) {
         all_opts.reserve( ter_t::get_all().size() );
-        for( const ter_t &it : ter_t::get_all() ) {
+        for( const ter_t &it : ter_t::get_all().get_all() ) {
             all_opts.push_back( it.id.str() );
         }
     }

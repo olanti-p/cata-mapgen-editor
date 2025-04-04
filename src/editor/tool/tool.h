@@ -36,7 +36,7 @@ struct ToolSettings {
     virtual ~ToolSettings() = default;
 
     virtual void serialize( JsonOut &jsout ) const;
-    virtual void deserialize( JsonIn &jsin );
+    virtual void deserialize( JSON_IN &jsin );
 
     virtual void show() {};
 };

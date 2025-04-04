@@ -2,10 +2,10 @@
 #ifndef CATA_SRC_MAPGEN_MAP_KEY_H
 #define CATA_SRC_MAPGEN_MAP_KEY_H
 
+#include "defs.h"
+
 #include <string>
 #include <utility>
-
-class JsonMember;
 
 // Strong typedef for strings used as map/palette keys
 // Each key should be a UTF-8 string displayed in only one column (i.e.
@@ -17,8 +17,9 @@ class map_key
         map_key( const map_key & ) = default;
         map_key( map_key && ) = default;
         explicit map_key( const std::string & );
-        explicit map_key( const JsonMember & );
         ~map_key() = default;
+
+        void deserialize(const TextJsonValue& jsin);
 
         map_key &operator= ( const map_key & ) = default;
         map_key &operator= ( map_key && ) = default;

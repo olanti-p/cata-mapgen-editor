@@ -23,7 +23,7 @@ struct ToolsState {
         ToolsState &operator=( ToolsState && ) = default;
 
         void serialize( JsonOut &jsout ) const;
-        void deserialize( JsonIn &jsin );
+        void deserialize(const TextJsonObject&jsin );
 
         inline const UUID &get_main_tile() const {
             return selected_tile;

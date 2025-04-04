@@ -16,6 +16,8 @@
 #include <utility>
 #include <vector>
 
+#include "defs.h"
+
 #include "colony.h"
 #include "enum_conversions.h"
 #include "json_error.h"

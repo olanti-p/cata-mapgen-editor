@@ -1129,10 +1129,6 @@ class game
         // scenario is saved in avatar::store
         const scenario *scen = nullptr; // NOLINT(cata-serialize)
 
-        bool enter_editor_on_start = false;
-        std::optional<std::string> load_editor_project_on_start;
-        std::optional<std::string> export_editor_project_on_start;
-
         event_bus &events();
         timed_event_manager &timed_events; // NOLINT(cata-serialize)
         memorial_logger &memorial();
@@ -1140,6 +1136,10 @@ class game
         global_variables global_variables_instance;
         std::unordered_map<std::string, point_abs_om> unique_npcs;
     public:
+        bool enter_editor_on_start = false;
+        std::optional<std::string> load_editor_project_on_start;
+        std::optional<std::string> export_editor_project_on_start;
+
         void update_unique_npc_location( const std::string &id, point_abs_om loc );
         point_abs_om get_unique_npc_location( const std::string &id );
         bool unique_npc_exists( const std::string &id );

@@ -21,7 +21,7 @@ namespace detail
 {
 struct OpenPalette {
     void serialize( JsonOut &jsout ) const;
-    void deserialize( JsonIn &jsin );
+    void deserialize( const TextJsonObject &jsin );
 
     UUID uuid = UUID_INVALID;
     bool open = true;
@@ -29,7 +29,7 @@ struct OpenPalette {
 
 struct OpenMapping {
     void serialize( JsonOut &jsout ) const;
-    void deserialize( JsonIn &jsin );
+    void deserialize(const TextJsonObject&jsin );
 
     UUID palette = UUID_INVALID;
     UUID uuid = UUID_INVALID;
@@ -38,7 +38,7 @@ struct OpenMapping {
 
 struct OpenMapgenObject {
     void serialize( JsonOut &jsout ) const;
-    void deserialize( JsonIn &jsin );
+    void deserialize(const TextJsonObject&jsin );
 
     UUID uuid = UUID_INVALID;
     bool open = true;
@@ -64,7 +64,7 @@ struct UiState {
     UiState &operator=( UiState && );
 
     void serialize( JsonOut &jsout ) const;
-    void deserialize( JsonIn &jsin );
+    void deserialize( JSON_IN &jsin );
 
     bool show_demo_wnd = false;             // Whether to show ImGui Demo window
     bool show_metrics_wnd = false;          // Whether to show ImGui Metrics/Debugger window

@@ -114,7 +114,7 @@ void render_ui()
 
     // Rendering
     ImGui::Render();
-    ImGui_ImplSDLRenderer2_RenderDrawData( ImGui::GetDrawData() );
+    ImGui_ImplSDLRenderer2_RenderDrawData( ImGui::GetDrawData(), renderer );
 }
 
 bool process_event( SDL_Event &event )

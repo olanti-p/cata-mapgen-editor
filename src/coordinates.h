@@ -174,6 +174,10 @@ class coord_point_mut : public coord_point_base<Point>
         void deserialize( const JsonValue &jv ) {
             raw().deserialize( jv );
         }
+
+        void deserialize(const TextJsonValue& jv) {
+            raw().deserialize( jv );
+        }
 };
 
 template<typename Point, origin Origin, scale Scale>

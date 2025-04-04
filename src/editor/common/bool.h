@@ -1,8 +1,10 @@
 #ifndef CATA_SRC_EDITOR_BOOL_H
 #define CATA_SRC_EDITOR_BOOL_H
 
+#include "defs.h"
+
 class JsonOut;
-class JsonIn;
+class JSON_IN;
 
 namespace editor
 {
@@ -32,7 +34,7 @@ struct Bool {
         }
 
         void serialize( JsonOut &jsout ) const;
-        void deserialize( JsonIn &jsin );
+        void deserialize( const TextJsonValue& jsin );
 
     private:
         bool value = false;

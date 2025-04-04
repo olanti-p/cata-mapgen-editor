@@ -949,6 +949,11 @@ size_t ter_t::count()
     return terrain_data.size();
 }
 
+const generic_factory<ter_t>& ter_t::get_all()
+{
+    return terrain_data;
+}
+
 namespace io
 {
 template<>
@@ -1302,6 +1307,11 @@ furn_t::furn_t() : open( furn_str_id::NULL_ID() ), close( furn_str_id::NULL_ID()
 size_t furn_t::count()
 {
     return furniture_data.size();
+}
+
+const generic_factory<furn_t>& furn_t::get_all()
+{
+    return furniture_data;
 }
 
 bool furn_t::is_movable() const

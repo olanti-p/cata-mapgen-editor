@@ -671,6 +671,7 @@ struct ter_t : map_data_common_t {
     ter_t();
 
     static size_t count();
+    static const generic_factory<ter_t>& get_all();
 
     bool is_null() const;
 
@@ -726,6 +727,7 @@ struct furn_t : map_data_common_t {
     furn_t();
 
     static size_t count();
+    static const generic_factory<furn_t>& get_all();
 
     bool is_movable() const;
 

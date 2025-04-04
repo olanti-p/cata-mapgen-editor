@@ -1,13 +1,13 @@
 #ifndef CATA_SRC_EDITOR_EDITABLE_ID_H
 #define CATA_SRC_EDITOR_EDITABLE_ID_H
 
+#include "defs.h"
+
 #include "type_id.h"
 
 #include <string>
 #include <vector>
 
-class JsonOut;
-class JsonIn;
 template<typename T> struct enum_traits;
 
 class npc_template;
@@ -18,7 +18,7 @@ namespace editor
 namespace detail
 {
 void serialize_eid( JsonOut &jsout, const std::string &data );
-void deserialize_eid( JsonIn &jsin, std::string &data );
+void deserialize_eid( const TextJsonValue &jsin, std::string &data );
 } // namespace detail
 
 template<typename T>
@@ -61,7 +61,7 @@ struct EditableID {
         void serialize( JsonOut &jsout ) const {
             detail::serialize_eid( jsout, data );
         }
-        void deserialize( JsonIn &jsin ) {
+        void deserialize( const TextJsonValue &jsin ) {
             detail::deserialize_eid( jsin, data );
         }
 

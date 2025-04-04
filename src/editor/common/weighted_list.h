@@ -1,8 +1,10 @@
 #ifndef CATA_SRC_EDITOR_WEIGHTED_LIST_H
 #define CATA_SRC_EDITOR_WEIGHTED_LIST_H
 
+#include "defs.h"
+
 class JsonOut;
-class JsonIn;
+class JSON_IN;
 
 namespace editor
 {

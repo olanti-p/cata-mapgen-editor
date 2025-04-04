@@ -1,6 +1,5 @@
 #include "save_export_state.h"
 
-#include "fstream_utils.h"
 #include "game.h"
 
 #include "common/timestamp.h"

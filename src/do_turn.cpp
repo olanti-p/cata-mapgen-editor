@@ -588,8 +588,8 @@ bool do_turn()
                     g->queue_screenshot = false;
                 }
 
-                if( enter_editor_on_start ) {
-                    enter_editor_on_start = false;
+                if( g->enter_editor_on_start ) {
+                    g->enter_editor_on_start = false;
                     editor::bnmt_entry_point();
                     continue;
                 }

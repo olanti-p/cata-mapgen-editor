@@ -155,13 +155,13 @@ void SelectionControl::handle_tool_operation( ToolTarget &target )
 
                 point delta;
                 if( ImGui::IsKeyPressed( ImGuiKey_UpArrow ) ) {
-                    delta = point_north;
+                    delta = point(0, -1);
                 } else if( ImGui::IsKeyPressed( ImGuiKey_DownArrow ) ) {
-                    delta = point_south;
+                    delta = point(0, 1);
                 } else if( ImGui::IsKeyPressed( ImGuiKey_LeftArrow ) ) {
-                    delta = point_west;
+                    delta = point(-1, 0);
                 } else {
-                    delta = point_east;
+                    delta = point(-1, 0);
                 }
 
                 snippet->set_pos( snippet->get_pos() + delta );

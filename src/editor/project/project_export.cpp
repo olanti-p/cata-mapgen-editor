@@ -6,7 +6,6 @@
 #include "mapgen/palette.h"
 #include "mapgen/piece_impl.h"
 
-#include "fstream_utils.h"
 #include "json.h"
 #include "../../tools/format/format.h"
 #include "common/weighted_list.h"
@@ -707,9 +706,9 @@ std::string format_string( const std::string &js )
     in << js;
 
     JsonOut jsout( out, true );
-    JsonIn jsin( in );
+    JSON_IN jsin( in );
 
-    format( jsin, jsout );
+    formatter::format( jsin, jsout );
 
     out << std::endl;
 

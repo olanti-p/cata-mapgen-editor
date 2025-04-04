@@ -20,9 +20,9 @@ void UUIDGenerator::serialize( JsonOut &jsout ) const
     jsout.end_object();
 }
 
-void UUIDGenerator::deserialize( JsonIn &jsin )
+void UUIDGenerator::deserialize(const TextJsonValue& jsin)
 {
-    JsonObject jo = jsin.get_object();
+    JSON_OBJECT jo = jsin.get_object();
 
     jo.read( "counter", counter );
 }
@@ -35,9 +35,9 @@ void IntRange::serialize( JsonOut &jsout ) const
     jsout.end_object();
 }
 
-void IntRange::deserialize( JsonIn &jsin )
+void IntRange::deserialize( const TextJsonValue &jsin )
 {
-    JsonObject jo = jsin.get_object();
+    JSON_OBJECT jo = jsin.get_object();
 
     jo.read( "min", min );
     jo.read( "max", max );

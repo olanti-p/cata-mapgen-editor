@@ -10,7 +10,6 @@
 #include "mapgen/palette.h"
 #include "sdl_utils.h"
 #include "sdltiles.h"
-#include "string_utils.h"
 #include <optional>
 
 #ifdef DebugLog
@@ -168,9 +167,9 @@ bool ImageButton( const char *wid, const SpriteRef &img )
 bool ImageButton( const char *wid, const SpriteRef &img, const ImVec2 &size )
 {
     auto uvs = img.make_uvs();
-    ImGui::PushID( wid );
-    bool ret = ImGui::ImageButton( img.get_tex_id(), size, uvs.first, uvs.second );
-    ImGui::PopID();
+    //ImGui::PushID( wid );
+    bool ret = ImGui::ImageButton( wid, img.get_tex_id(), size, uvs.first, uvs.second );
+    //ImGui::PopID();
     return ret;
 }
 

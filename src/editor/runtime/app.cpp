@@ -9,8 +9,6 @@
 #include "state/ui_state.h"
 #include "project/project.h"
 
-#include "fstream_utils.h"
-
 namespace editor
 {
 App::App() = default;
@@ -59,10 +57,10 @@ void update_app_state( App &app )
         } else if( retval.load_existing ) {
             clear_inputs();
             std::unique_ptr<Project> f = std::make_unique<Project>();
-            auto reader = [&]( JsonIn & jsin ) {
-                f->deserialize( jsin );
+            auto reader = [&]( JSON_IN & jsin ) {
+                f->deserialize( jsin.get_value() );
             };
-            if( read_from_file_json( retval.load_path, reader ) ) {
+            if( read_from_file_text_json( cata_path(cata_path::root_path::unknown, retval.load_path), reader ) ) {
                 app.editor_state = std::make_unique<State>( std::move( f ), &retval.load_path );
                 std::string project_uuid = app.editor_state->project().project_uuid;
                 set_project_ini_path( project_uuid );

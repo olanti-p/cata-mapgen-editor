@@ -22,6 +22,7 @@
 
 #include "enums.h"
 
+class TextJsonIn;
 class JsonOut;
 class JsonValue;
 class cata_path;
@@ -350,6 +351,9 @@ bool read_from_file( const std::filesystem::path &path,
 bool read_from_file( const cata_path &path, const std::function<void( std::istream & )> &reader );
 bool read_from_file_json( const cata_path &path,
                           const std::function<void( const JsonValue & )> &reader );
+
+bool read_from_file_text_json(const cata_path& path,
+    const std::function<void(TextJsonIn&)>& reader);
 
 bool read_from_file_optional( const std::string &path,
                               const std::function<void( std::istream & )> &reader );

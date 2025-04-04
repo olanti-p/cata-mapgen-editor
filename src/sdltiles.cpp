@@ -3688,13 +3688,11 @@ static void init_term_size_and_scaling_factor()
 
 static void init_imgui_interface()
 {
-    DebugLog( DL::Info, DC::Main ) << "Initializing IMGUI";
     editor::init_ui( *window.get(), *renderer.get() );
 }
 
 static void deinit_imgui_interface()
 {
-    DebugLog( DL::Info, DC::Main ) << "Deinitializing IMGUI";
     editor::shutdown_ui();
 }
 

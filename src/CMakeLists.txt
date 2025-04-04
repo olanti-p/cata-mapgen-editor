@@ -164,10 +164,8 @@ if (TILES)
         target_link_libraries(cataclysm-tiles-common PUBLIC ${ZLIB_LIBRARIES})
     endif()
 
-    add_subdirectory(imgui)
     add_subdirectory(editor)
 
-    target_link_libraries(cataclysm-tiles PRIVATE imgui)
     target_link_libraries(cataclysm-tiles PRIVATE editor)
 endif ()
 
@@ -282,9 +280,9 @@ if (MINGW AND NOT RELEASE)
         find_library(RuntimeLib_webp  "libwebp-5")
         find_library(RuntimeLib_lzma  "liblzma-5")
         find_library(RuntimeLib_bz2  "libbz2-1")
+        find_library(RuntimeLib_ft  "libfreetype-6")
         find_library(RuntimeLib_hb  "libharfbuzz-0")
         find_library(RuntimeLib_SDL2_TTF  "SDL2_ttf")
-        find_library(RuntimeLib_ft  "libfreetype-6")
         find_library(RuntimeLib_glib  "libglib-2.0-0")
         set(RuntimeLib_SDL
                 ${RuntimeLib_SDL2}

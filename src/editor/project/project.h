@@ -16,7 +16,7 @@ struct Project {
     std::vector<Palette> palettes;
 
     void serialize( JsonOut &jsout ) const;
-    void deserialize( JsonIn &jsin );
+    void deserialize(const TextJsonValue& jsin);
 
     const Mapgen *get_mapgen( const UUID &fid ) const;
     inline Mapgen *get_mapgen( const UUID &fid ) {

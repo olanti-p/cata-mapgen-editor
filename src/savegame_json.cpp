@@ -2725,6 +2725,16 @@ void time_duration::deserialize( const JsonValue &jsin )
     }
 }
 
+void time_duration::deserialize(const TextJsonValue& jsin)
+{
+    if (jsin.test_string()) {
+        *this = read_from_json_string<time_duration>(jsin, time_duration::units);
+    }
+    else {
+        turns_ = jsin.get_int();
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ///// item.h
 
@@ -4146,6 +4156,15 @@ void point::deserialize( const JsonArray &jsin )
     }
 }
 
+void point::deserialize(const TextJsonArray& jsin)
+{
+    x = jsin.get_int(0);
+    y = jsin.get_int(1);
+    if (jsin.size() > 2) {
+        jsin.throw_error("Too many values for tripoint");
+    }
+}
+
 void point::serialize( JsonOut &jsout ) const
 {
     jsout.start_array();
@@ -4161,6 +4180,16 @@ void tripoint::deserialize( const JsonArray &jsin )
     z = jsin.get_int( 2 );
     if( jsin.size() > 3 ) {
         jsin.throw_error( "Too many values for tripoint" );
+    }
+}
+
+void tripoint::deserialize(const TextJsonArray& jsin)
+{
+    x = jsin.get_int(0);
+    y = jsin.get_int(1);
+    z = jsin.get_int(2);
+    if (jsin.size() > 3) {
+        jsin.throw_error("Too many values for tripoint");
     }
 }
 

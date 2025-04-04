@@ -17,9 +17,9 @@ void serialize( const editor::Canvas2D<T> &canvas, JsonOut &jsout )
 }
 
 template<typename T>
-void deserialize( editor::Canvas2D<T> &list, JsonIn &jsin )
+void deserialize( editor::Canvas2D<T> &list, const TextJsonValue &jsin )
 {
-    JsonObject jo = jsin.get_object();
+    JSON_OBJECT jo = jsin.get_object();
 
     point size;
     jo.read( "size", size );

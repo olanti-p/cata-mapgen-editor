@@ -10,7 +10,7 @@ void Bool::serialize( JsonOut &jsout ) const
     jsout.write_bool( value );
 }
 
-void Bool::deserialize( JsonIn &jsin )
+void Bool::deserialize(const TextJsonValue& jsin)
 {
     value = jsin.get_bool();
 }

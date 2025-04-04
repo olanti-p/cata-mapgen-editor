@@ -447,9 +447,16 @@ class mapgen_function_json_base
     public:
         void merge_non_nest_parameters_into( mapgen_parameters &,
                                              const std::string &outer_context ) const;
-        bool check_inbounds( const jmapgen_int &x, const jmapgen_int &y, const JsonObject &jso ) const;
-        size_t calc_index( const point &p ) const;
-        bool has_vehicle_collision( const mapgendata &dat, const point &offset ) const;
+        bool check_inbounds(const jmapgen_int& x, const jmapgen_int& y, const jmapgen_int& z,
+            const JsonObject& jso) const;
+        size_t calc_index(const point_rel_ms& p) const;
+        ret_val<void> has_vehicle_collision(const mapgendata& dat, const tripoint_rel_ms& offset) const;
+
+        void add_placement_coords_to(std::unordered_set<point_rel_ms>&) const;
+
+        const mapgen_parameters& get_parameters() const {
+            return parameters;
+        }
 
         JsonObject jsobj;
         mapgen_function_json_base( const JsonObject &jsobj, const std::string &context );
@@ -612,13 +619,6 @@ bool has_update_mapgen_for( const update_mapgen_id & );
 void calculate_mapgen_weights(); // throws
 
 void check_mapgen_definitions();
-
-const std::map<std::string, weighted_int_list<std::shared_ptr<mapgen_function_json_nested>> >
-        &get_all_nested_mapgen();
-const std::map<std::string, std::vector<std::unique_ptr<update_mapgen_function_json>> >
-        &get_all_update_mapgen();
-class mapgen_factory;
-const mapgen_factory &get_all_oter_mapgen();
 
 /// move to building_generation
 enum room_type {

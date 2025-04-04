@@ -785,7 +785,7 @@ class cata_tiles
         static std::vector<options_manager::id_and_option> build_renderer_list();
         static std::vector<options_manager::id_and_option> build_display_list();
 
-        inline tileset &get_tileset() {
+        inline const tileset &get_tileset() {
             return *tileset_ptr;
         }
 

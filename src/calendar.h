@@ -13,6 +13,7 @@
 
 class JsonOut;
 class JsonValue;
+class TextJsonValue;
 struct rl_vec2d;
 class time_duration;
 class time_point;
@@ -197,6 +198,7 @@ class time_duration
 
         void serialize( JsonOut &jsout ) const;
         void deserialize( const JsonValue &jsin );
+        void deserialize(const TextJsonValue& jsin);
 
         /**
          * Named constructors to get a duration representing a multiple of the named time

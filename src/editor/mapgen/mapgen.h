@@ -1,6 +1,8 @@
 #ifndef CATA_SRC_EDITOR_MAPGEN_H
 #define CATA_SRC_EDITOR_MAPGEN_H
 
+#include "defs.h"
+
 #include "coordinates.h"
 #include "cuboid_rectangle.h"
 #include "game_constants.h"
@@ -16,7 +18,7 @@
 
 struct ImVec4;
 class JsonOut;
-class JsonIn;
+class JSON_IN;
 template<typename T> struct enum_traits;
 
 namespace editor
@@ -33,7 +35,7 @@ struct MapgenBase {
     void remove_usages( const UUID &uuid );
 
     void serialize( JsonOut &jsout ) const;
-    void deserialize( JsonIn &jsin );
+    void deserialize( const TextJsonValue &jsin );
 };
 
 enum class OterMapgenBase {
@@ -55,7 +57,7 @@ struct MapgenOter {
     IntRange rotation;
 
     void serialize( JsonOut &jsout ) const;
-    void deserialize( JsonIn &jsin );
+    void deserialize( const TextJsonValue &jsin );
 };
 
 struct MapgenUpdate {
@@ -63,7 +65,7 @@ struct MapgenUpdate {
     EID::Ter fill_ter = EID::Ter::NULL_ID();
 
     void serialize( JsonOut &jsout ) const;
-    void deserialize( JsonIn &jsin );
+    void deserialize( const TextJsonValue &jsin );
 };
 
 struct MapgenNested {
@@ -72,7 +74,7 @@ struct MapgenNested {
     IntRange rotation;
 
     void serialize( JsonOut &jsout ) const;
-    void deserialize( JsonIn &jsin );
+    void deserialize( const TextJsonValue &jsin );
 };
 
 enum class MapgenType {
@@ -105,7 +107,7 @@ struct Mapgen {
         std::string display_name() const;
 
         void serialize( JsonOut &jsout ) const;
-        void deserialize( JsonIn &jsin );
+        void deserialize( const TextJsonValue &jsin );
 
         inline bool uses_rows() const {
             return mtype == editor::MapgenType::Nested ||

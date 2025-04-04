@@ -1048,40 +1048,6 @@ void check_mapgen_definitions()
     }
 }
 
-const std::map<std::string, weighted_int_list<std::shared_ptr<mapgen_function_json_nested>> >
-        &get_all_nested_mapgen()
-{
-    return nested_mapgen;
-}
-
-const std::map<std::string, std::vector<std::unique_ptr<update_mapgen_function_json>> >
-        &get_all_update_mapgen()
-{
-    return update_mapgen;
-}
-
-const mapgen_factory &get_all_oter_mapgen()
-{
-    return oter_mapgen;
-}
-
-const std::map<std::string, weighted_int_list<std::shared_ptr<mapgen_function_json_nested>> >
-        &get_all_nested_mapgen()
-{
-    return nested_mapgen;
-}
-
-const std::map<std::string, std::vector<std::unique_ptr<update_mapgen_function_json>> >
-        &get_all_update_mapgen()
-{
-    return update_mapgen;
-}
-
-const mapgen_factory &get_all_oter_mapgen()
-{
-    return oter_mapgen;
-}
-
 /////////////////////////////////////////////////////////////////////////////////
 ///// json mapgen functions
 ///// 1 - init():
@@ -1132,7 +1098,7 @@ load_mapgen_function( const JsonObject &jio, const std::string &id_base,
     if( mgtype == "builtin" ) {
         std::string fname = jio.get_string( "name" );
         if( const auto ptr = get_mapgen_cfunction( fname ) ) {
-            auto ret = std::make_shared<mapgen_function_builtin>( ptr, mgweight );
+            auto ret = std::make_shared<mapgen_function_builtin>( ptr, weight );
             ret->fname = fname;
             return ret;
         } else {
@@ -1587,8 +1553,10 @@ map_key::map_key( const std::string &s ) : str( s )
     }
 }
 
-map_key::map_key( const JsonMember &member ) : str( member.name() )
+void map_key::deserialize( const TextJsonValue &member )
 {
+    str = member.get_string();
+
     if( utf8_width( str ) != 1 ) {
         member.throw_error( "format map key must be 1 column" );
     }
@@ -8705,7 +8673,10 @@ bool PieceField::try_import( const jmapgen_piece &piece )
         return false; // TODO: parametric
     }
     ftype = EID::Field( casted->ftype.get_raw_id_source().id() );
-    intensity = casted->intensity;
+    if (casted->intensities.size() != 1) {
+        return false; // TODO: multiple intensities
+    }
+    intensity = casted->intensities[0];
     age = casted->age;
     return true;
 }
@@ -8748,7 +8719,7 @@ bool PieceSign::try_import( const jmapgen_piece &piece )
         return false;
     }
     if( casted->snippet.empty() ) {
-        text = casted->signage;
+        text = casted->signage.raw;
         use_snippet = false;
     } else {
         snippet = casted->snippet;
@@ -8764,7 +8735,7 @@ bool PieceGraffiti::try_import( const jmapgen_piece &piece )
         return false;
     }
     if( casted->snippet.empty() ) {
-        text = casted->text;
+        text = casted->text.raw;
         use_snippet = false;
     } else {
         snippet = casted->snippet;

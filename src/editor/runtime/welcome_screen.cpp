@@ -4,7 +4,7 @@
 #include "game.h"
 #include "runtime/editor_engine.h"
 #include "translations.h"
-#include "ui.h"
+#include "uilist.h"
 #include "options.h"
 #include "ui_manager.h"
 

@@ -7,6 +7,7 @@
 
 class JsonOut;
 class JsonValue;
+class TextJsonValue;
 
 template<typename T>
 class pimpl;
@@ -69,6 +70,9 @@ class pimpl : private std::unique_ptr<T>
         /// Forwards the stream to `T::deserialize`.
         void deserialize( const JsonValue &stream ) {
             operator*().deserialize( stream );
+        }
+        void deserialize(const TextJsonValue& stream) {
+            operator*().deserialize(stream);
         }
         /// Forwards the stream to `T::serialize`.
         void serialize( JsonOut &stream ) const {

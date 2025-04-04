@@ -3,8 +3,10 @@
 
 #include <cstdint>
 
+#include "defs.h"
+
 class JsonOut;
-class JsonIn;
+class JSON_IN;
 
 namespace editor
 {
@@ -23,7 +25,7 @@ struct UUIDGenerator {
         }
 
         void serialize( JsonOut &jsout ) const;
-        void deserialize( JsonIn &jsin );
+        void deserialize(const TextJsonValue& jsin);
 };
 
 } // namespace editor

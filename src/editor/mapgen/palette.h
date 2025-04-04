@@ -1,6 +1,8 @@
 #ifndef CATA_SRC_EDITOR_PALETTE_H
 #define CATA_SRC_EDITOR_PALETTE_H
 
+#include "defs.h"
+
 #include <vector>
 #include <memory>
 
@@ -14,7 +16,7 @@
 struct ImDrawList;
 struct ImVec4;
 class JsonOut;
-class JsonIn;
+class JSON_IN;
 template<typename T> struct enum_traits;
 struct SpriteRef;
 
@@ -35,7 +37,7 @@ struct Mapping {
     Mapping &operator=( Mapping && ) = default;
 
     void serialize( JsonOut &jsout ) const;
-    void deserialize( JsonIn &jsin );
+    void deserialize( const TextJsonValue &jsin );
 
     template<typename T>
     const T *get_first_piece_of_type() const {
@@ -71,7 +73,7 @@ struct PaletteEntry {
     std::string display_name() const;
 
     void serialize( JsonOut &jsout ) const;
-    void deserialize( JsonIn &jsin );
+    void deserialize(const TextJsonValue& jsin);
 };
 
 struct Palette {
@@ -92,7 +94,7 @@ struct Palette {
     std::string display_name() const;
 
     void serialize( JsonOut &jsout ) const;
-    void deserialize( JsonIn &jsin );
+    void deserialize(const TextJsonValue& jsin);
 };
 
 } // namespace editor

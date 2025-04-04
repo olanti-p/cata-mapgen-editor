@@ -1,6 +1,8 @@
 #ifndef CATA_SRC_EDITOR_PIECE_H
 #define CATA_SRC_EDITOR_PIECE_H
 
+#include "defs.h"
+
 #include "calendar.h"
 
 // FIXME: conflicts in include paths
@@ -13,7 +15,7 @@
 #include <string>
 
 class JsonOut;
-class JsonObject;
+class JSON_OBJECT;
 class jmapgen_piece;
 
 #define IMPLEMENT_ME_PIECE(piece_class, piece_type)                     \
@@ -28,7 +30,7 @@ class jmapgen_piece;
         return std::make_unique<piece_class>( *this );                  \
     };                                                                  \
     void serialize( JsonOut &jsout ) const override;                    \
-    void deserialize( JsonObject &jsin ) override;                      \
+    void deserialize( const TextJsonObject &jsin ) override;            \
     void export_func( JsonOut& jo ) const override;                     \
     bool try_import( const jmapgen_piece& piece ) override;             \
     void show_ui( State& state ) override;                              \
@@ -49,7 +51,7 @@ struct Piece {
     virtual std::unique_ptr<Piece> clone() const = 0;
 
     virtual void serialize( JsonOut &jsout ) const = 0;
-    virtual void deserialize( JsonObject &jsin ) = 0;
+    virtual void deserialize( const TextJsonObject &jsin ) = 0;
     virtual void export_func( JsonOut &jo ) const = 0;
     virtual bool try_import( const jmapgen_piece &piece ) = 0;
 

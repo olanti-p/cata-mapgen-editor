@@ -11,6 +11,7 @@
 #include "widget/widgets.h"
 
 #include "translations.h"
+#include "localized_comparator.h"
 
 #include <unordered_set>
 

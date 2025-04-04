@@ -2223,13 +2223,6 @@ static tripoint_abs_omt display()
             debug_menu::prompt_map_reveal( curs );
         } else if( action == "MISSIONS" ) {
             g->list_missions();
-        } else if( action == "RELOAD_TILESET" ) {
-            std::ostringstream ss;
-            g->reload_tileset( [&ss]( const std::string & str ) {
-                ss << str << std::endl;
-            } );
-            add_msg( ss.str() );
-            ui.mark_resize();
         }
 
         std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();

@@ -26,7 +26,7 @@ struct MapObject {
     void set_uuid( const UUID &uuid );
 
     void serialize( JsonOut &jsout ) const;
-    void deserialize( JsonIn &jsin );
+    void deserialize( const TextJsonValue &jsin );
 
     std::unique_ptr<Piece> piece;
     IntRange x;

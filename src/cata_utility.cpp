@@ -572,6 +572,23 @@ bool read_from_file_json( const cata_path &path,
     }
 }
 
+bool read_from_file_text_json(const cata_path& path,
+    const std::function<void(TextJsonIn&)>& reader)
+{
+    try {
+        std::string file_data = read_entire_file(path.generic_u8string());
+        std::stringstream ss(file_data);
+        TextJsonIn jsin(ss);
+        reader(jsin);
+        return true;
+    }
+    catch (const std::exception& err) {
+        debugmsg(_("Failed to read from \"%1$s\": %2$s"), path.generic_u8string().c_str(),
+            err.what());
+        return false;
+    }
+}
+
 bool read_from_file_optional( const std::string &path,
                               const std::function<void( std::istream & )> &reader )
 {

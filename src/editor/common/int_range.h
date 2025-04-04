@@ -1,8 +1,10 @@
 #ifndef CATA_SRC_EDITOR_INT_RANGE_H
 #define CATA_SRC_EDITOR_INT_RANGE_H
 
+#include "defs.h"
+
 class JsonOut;
-class JsonIn;
+class JSON_IN;
 struct jmapgen_int;
 
 namespace editor
@@ -21,7 +23,7 @@ struct IntRange {
     }
 
     void serialize( JsonOut &jsout ) const;
-    void deserialize( JsonIn &jsin );
+    void deserialize( const TextJsonValue &jsin );
 };
 
 } // namespace editor

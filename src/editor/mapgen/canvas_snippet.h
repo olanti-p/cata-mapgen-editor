@@ -51,7 +51,7 @@ struct CanvasSnippet {
         }
 
         void serialize( JsonOut &jsout ) const;
-        void deserialize( JsonIn &jsin );
+        void deserialize( const TextJsonValue &jsin );
 
     private:
         Canvas2D<UUID> data;

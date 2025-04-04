@@ -285,10 +285,6 @@ struct cli_opts {
     std::string world; /** if set try to load first save in this world on startup */
     bool disable_ascii_art = false;
     bool enter_editor_on_start = false;
-    std::string dump;
-    dump_mode dmode = dump_mode::TSV;
-    std::vector<std::string> opts;
-    std::string world; /** if set try to load first save in this world on startup */
     std::optional<std::string> load_editor_project_on_start;
     std::optional<std::string> export_editor_project_on_start;
 };
@@ -451,7 +447,7 @@ cli_opts parse_commandline( int argc, const char **argv )
                 section_default,
                 0,
                 [&]( int, const char ** ) -> int {
-                    enter_editor_on_start = true;
+                    result.enter_editor_on_start = true;
                     return 0;
                 }
             },
@@ -557,11 +553,7 @@ cli_opts parse_commandline( int argc, const char **argv )
                 section_default,
                 1,
                 [&]( int n, const char *params[] ) -> int {
-                    if( n < 1 )
-                    {
-                        return -1;
-                    }
-                    load_editor_project_on_start = params[0];
+                    result.load_editor_project_on_start = params[0];
                     return 1;
                 }
             },
@@ -571,11 +563,7 @@ cli_opts parse_commandline( int argc, const char **argv )
                 section_default,
                 1,
                 [&]( int n, const char *params[] ) -> int {
-                    if( n < 1 )
-                    {
-                        return -1;
-                    }
-                    export_editor_project_on_start = params[0];
+                    result.export_editor_project_on_start = params[0];
                     return 1;
                 }
             }
@@ -892,22 +880,23 @@ int main( int argc, const char *argv[] )
     sigaction( SIGINT, &sigIntHandler, nullptr );
 #endif
 
-    DebugLog( DL::Info, DC::Main ) << "LAPI version: " << cata::get_lapi_version_string();
-    cata::startup_lua_test();
-
-    if( lua_doc_mode ) {
-        init_colors();
-        if( cata::generate_lua_docs() ) {
-            cata_printf( "Lua doc: Done!\n" );
-            return 0;
-        } else {
-            cata_printf( "Lua doc: Failed.\n" );
-            return 1;
-        }
+    if (!assure_essential_dirs_exist()) {
+        exit_handler(-999);
+        return 0;
     }
 
-    prompt_select_lang_on_startup();
+#if defined(LOCALIZE)
+    if (get_option<std::string>("USE_LANG").empty() && !SystemLocale::Language().has_value()) {
+        imclient->new_frame(); // we have to prime the pump, because of reasons
+        imclient->end_frame();
+        const std::string lang = select_language();
+        get_options().get_option("USE_LANG").setValue(lang);
+        set_language_from_options();
+    }
+#endif
     replay_buffered_debugmsg_prompts();
+
+    main_menu::queued_world_to_load = std::move(cli.world);
 
     world_generator->init();
     const std::string bnmt_world_id( "BNMT-world" );
@@ -917,14 +906,14 @@ int main( int argc, const char *argv[] )
         bnmt_modlist = world_generator->get_world( bnmt_world_id )->active_mod_order;
     } else {
         bnmt_modlist = {{
-                mod_management::get_default_core_content_pack(),
+                mod_id("dda"),
                 bnmt_mod_id,
             }
         };
     }
 
     // It's best to recreate world from scratch to avoid side effects
-    const auto &remake_world = [&]() -> WORLDINFO* {
+    const auto &remake_world = [&]() -> WORLD* {
         if( world_generator->has_world( bnmt_world_id ) )
         {
             world_generator->delete_world( bnmt_world_id, true );
@@ -937,8 +926,9 @@ int main( int argc, const char *argv[] )
         if( res.quit_to_desktop ) {
             return 0;
         }
+        /*
         if( res.edit_mods ) {
-            WORLDINFO* world = remake_world();
+            WORLD* world = remake_world();
             world_generator->edit_active_world_mods( world );
             bnmt_modlist = world->active_mod_order;
             // Prevent footguns
@@ -949,9 +939,10 @@ int main( int argc, const char *argv[] )
             }
             continue;
         }
+        */
         if( res.open_editor ) {
             g->enter_editor_on_start = true;
-            WORLDINFO* world = remake_world();
+            WORLD* world = remake_world();
             world_generator->set_active_world( world );
             try {
                 g->setup();
@@ -971,23 +962,23 @@ int main( int argc, const char *argv[] )
             }
         }
         if( res.quit_to_game ) {
-            if( !world.empty() ) {
-                if( !g->load( world ) ) {
-                    break;
-                }
-                world.clear(); // ensure quit returns to opening screen
-
-            } else {
+            while (true) {
                 main_menu menu;
-                if( !menu.opening_screen() ) {
+                if (!menu.opening_screen()) {
                     break;
                 }
+
+                shared_ptr_fast<ui_adaptor> ui = g->create_or_get_main_ui_adaptor();
+                get_event_bus().send<event_type::game_begin>(getVersionString());
+                while (!do_turn()) {}
             }
         }
 
+        /*
         shared_ptr_fast<ui_adaptor> ui = g->create_or_get_main_ui_adaptor();
         get_event_bus().send<event_type::game_begin>( getVersionString() );
         while( !do_turn() ) {}
+        */
     }
 
     exit_handler( -999 );

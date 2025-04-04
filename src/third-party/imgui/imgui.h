@@ -32,6 +32,9 @@
 #define IMGUI_VERSION_NUM   19150
 #define IMGUI_HAS_TABLE
 
+#define IMGUI_DEFINE_MATH_OPERATORS
+#define ImTextureID void*
+
 /*
 
 Index of this file:

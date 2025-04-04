@@ -2,7 +2,6 @@
 
 #include "all_enum_values.h"
 #include "enum_conversions.h"
-#include "fstream_utils.h"
 #include "json.h"
 #include "runtime/editor_engine.h"
 #include "tool/bucket.h"
@@ -68,7 +67,9 @@ void MyUserData_ReadLine( ImGuiContext *ctx, ImGuiSettingsHandler *handler, void
         return;
     }
     std::string json_data( line_str.substr( 5 ) );
-    deserialize( uistate, json_data );
+    std::stringstream ss(json_data);
+    TextJsonIn jsin = TextJsonIn( ss );
+    uistate.deserialize(jsin);
 }
 
 void MyUserData_WriteAll( ImGuiContext *ctx, ImGuiSettingsHandler *handler,
@@ -134,9 +135,9 @@ void OpenPalette::serialize( JsonOut &jsout ) const
     jsout.end_object();
 }
 
-void OpenPalette::deserialize( JsonIn &jsin )
+void OpenPalette::deserialize(const TextJsonObject&jsin )
 {
-    JsonObject jo = jsin.get_object();
+    JSON_OBJECT jo = jsin;
 
     jo.read( "uuid", uuid );
     jo.read( "open", open );
@@ -151,9 +152,9 @@ void OpenMapping::serialize( JsonOut &jsout ) const
     jsout.end_object();
 }
 
-void OpenMapping::deserialize( JsonIn &jsin )
+void OpenMapping::deserialize(const TextJsonObject&jsin )
 {
-    JsonObject jo = jsin.get_object();
+    JSON_OBJECT jo = jsin;
 
     jo.read( "uuid", uuid );
     jo.read( "palette", palette );
@@ -168,9 +169,9 @@ void OpenMapgenObject::serialize( JsonOut &jsout ) const
     jsout.end_object();
 }
 
-void OpenMapgenObject::deserialize( JsonIn &jsin )
+void OpenMapgenObject::deserialize(const TextJsonObject&jsin )
 {
-    JsonObject jo = jsin.get_object();
+    JSON_OBJECT jo = jsin;
 
     jo.read( "uuid", uuid );
     jo.read( "open", open );
@@ -206,9 +207,9 @@ void UiState::serialize( JsonOut &jsout ) const
     jsout.end_object();
 }
 
-void UiState::deserialize( JsonIn &jsin )
+void UiState::deserialize( JSON_IN &jsin )
 {
-    JsonObject jo = jsin.get_object();
+    JSON_OBJECT jo = jsin.get_object();
 
     jo.read( "show_demo_wnd", show_demo_wnd );
     jo.read( "show_metrics_wnd", show_metrics_wnd );
@@ -244,9 +245,9 @@ void Camera::serialize( JsonOut &jsout ) const
     jsout.end_object();
 }
 
-void Camera::deserialize( JsonIn &jsin )
+void Camera::deserialize(const TextJsonValue& jsin )
 {
-    JsonObject jo = jsin.get_object();
+    JSON_OBJECT jo = jsin.get_object();
 
     jo.read( "pos", pos );
     jo.read( "scale", scale );
@@ -268,17 +269,17 @@ void ToolsState::serialize( JsonOut &jsout ) const
     jsout.end_object();
 }
 
-void ToolsState::deserialize( JsonIn &jsin )
+void ToolsState::deserialize(const TextJsonObject&jsin )
 {
-    JsonObject jo = jsin.get_object();
+    JSON_OBJECT jo = jsin;
 
     jo.read( "tool", tool );
     jo.read( "brush", selected_tile );
-    JsonObject joset = jo.get_object( "tool_settings" );
+    JSON_OBJECT joset = jo.get_object( "tool_settings" );
     for( tools::ToolKind kind : all_enum_values<tools::ToolKind>() ) {
         std::string key = io::enum_to_string( kind );
         if( joset.has_object( key ) ) {
-            JsonIn *raw = joset.get_raw( key );
+            JSON_IN *raw = joset.get_raw( key );
             tool_settings[kind] = tools::get_tool_definition( kind ).make_settings();
             tool_settings[kind]->deserialize( *raw );
         }
@@ -295,9 +296,9 @@ void ToolSettings::serialize( JsonOut &jsout ) const
     jsout.end_object();
 }
 
-void ToolSettings::deserialize( JsonIn &jsin )
+void ToolSettings::deserialize( JSON_IN &jsin )
 {
-    JsonObject jo = jsin.get_object();
+    JSON_OBJECT jo = jsin.get_object();
     // ...and do nothing with it
 }
 
@@ -309,9 +310,9 @@ void BucketSettings::serialize( JsonOut &jsout ) const
     jsout.end_object();
 }
 
-void BucketSettings::deserialize( JsonIn &jsin )
+void BucketSettings::deserialize( JSON_IN &jsin )
 {
-    JsonObject jo = jsin.get_object();
+    JSON_OBJECT jo = jsin.get_object();
 
     jo.read( "global", global );
     jo.read( "in_selection", in_selection );
@@ -324,9 +325,9 @@ void RectangleSettings::serialize( JsonOut &jsout ) const
     jsout.end_object();
 }
 
-void RectangleSettings::deserialize( JsonIn &jsin )
+void RectangleSettings::deserialize( JSON_IN &jsin )
 {
-    JsonObject jo = jsin.get_object();
+    JSON_OBJECT jo = jsin.get_object();
 
     jo.read( "filled", filled );
 }
@@ -338,9 +339,9 @@ void SelectionSettings::serialize( JsonOut &jsout ) const
     jsout.end_object();
 }
 
-void SelectionSettings::deserialize( JsonIn &jsin )
+void SelectionSettings::deserialize( JSON_IN &jsin )
 {
-    JsonObject jo = jsin.get_object();
+    JSON_OBJECT jo = jsin.get_object();
 
     // TODO: modes
 }

@@ -15,6 +15,7 @@
 #include <vector>
 
 class JsonArray;
+class TextJsonArray;
 class JsonOut;
 struct ImVec2;
 
@@ -115,6 +116,7 @@ struct point {
 
     void serialize( JsonOut &jsout ) const;
     void deserialize( const JsonArray &jsin );
+    void deserialize(const TextJsonArray& jsin);
 
     friend inline constexpr bool operator<( const point &a, const point &b ) {
         return a.x < b.x || ( a.x == b.x && a.y < b.y );
@@ -129,6 +131,8 @@ struct point {
     friend std::ostream &operator<<( std::ostream &, const point & );
     friend std::istream &operator>>( std::istream &, point & );
 };
+
+static const point point_zero = point::zero;
 
 inline int divide_round_to_minus_infinity( int n, int d )
 {
@@ -281,6 +285,7 @@ struct tripoint {
 
     void serialize( JsonOut &jsout ) const;
     void deserialize( const JsonArray &jsin );
+    void deserialize(const TextJsonArray& jsin);
 
     friend std::ostream &operator<<( std::ostream &, const tripoint & );
     friend std::istream &operator>>( std::istream &, tripoint & );

@@ -1279,6 +1279,18 @@ T read_from_json_string( const JsonValue &jv, const std::vector<std::pair<std::s
 }
 
 template<typename T>
+T read_from_json_string(const TextJsonValue& jv, const std::vector<std::pair<std::string, T>>& units)
+{
+    const auto error = [&](const char* const msg, size_t offset) {
+        jv.throw_error(offset, msg);
+        };
+
+    const std::string s = jv;
+
+    return detail::read_from_json_string_common<T>(s, units, error);
+}
+
+template<typename T>
 void dump_to_json_string( T t, JsonOut &jsout,
                           const std::vector<std::pair<std::string, T>> &units )
 {

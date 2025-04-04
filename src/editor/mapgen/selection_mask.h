@@ -56,7 +56,7 @@ struct SelectionMask {
         }
 
         void serialize( JsonOut &jsout ) const;
-        void deserialize( JsonIn &jsin );
+        void deserialize( const TextJsonValue &jsin );
 
     private:
         inline void refresh_num_selected() {

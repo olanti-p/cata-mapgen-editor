@@ -38,7 +38,7 @@ struct SelectionControl : public ToolControl {
 
 struct SelectionSettings : public ToolSettings {
     void serialize( JsonOut &jsout ) const override;
-    void deserialize( JsonIn &jsin ) override;
+    void deserialize( JSON_IN &jsin ) override;
 
     void show() override;
 };
