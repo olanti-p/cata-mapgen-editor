@@ -325,10 +325,12 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
             }
             ImGui::SameLine();
             ImGui::BeginDisabled();
+            ImGui::PushID("ter");
             ImGui::Button(
                 text ? text->c_str() : "-",
                 ImVec2( ImGui::GetFrameHeight() * 8.0f, 0.0f )
             );
+            ImGui::PopID();
             ImGui::EndDisabled();
         }
         {
@@ -339,10 +341,12 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
             }
             ImGui::SameLine();
             ImGui::BeginDisabled();
+            ImGui::PushID("furn");
             ImGui::Button(
                 text ? text->c_str() : "-",
                 ImVec2( ImGui::GetFrameHeight() * 8.0f, 0.0f )
             );
+            ImGui::PopID();
             ImGui::EndDisabled();
         }
         ImGui::SameLine();
