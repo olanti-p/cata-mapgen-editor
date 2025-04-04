@@ -1553,12 +1553,17 @@ map_key::map_key( const std::string &s ) : str( s )
     }
 }
 
-void map_key::deserialize( const TextJsonValue &member )
+map_key::map_key( const JsonMember &member ) : str( member.name() )
 {
-    str = member.get_string();
-
     if( utf8_width( str ) != 1 ) {
         member.throw_error( "format map key must be 1 column" );
+    }
+}
+
+map_key::map_key(const TextJsonMember& member) : str(member.name())
+{
+    if (utf8_width(str) != 1) {
+        member.throw_error("format map key must be 1 column");
     }
 }
 

@@ -42,14 +42,12 @@ void serialize( const map_key &mk, JsonOut &jsout )
     jsout.end_object();
 }
 
-/*
 void deserialize( map_key &mk, const TextJsonValue &jsin )
 {
     JSON_OBJECT jo = jsin.get_object();
 
     jo.read( "str", mk.str );
 }
-*/
 
 void serialize( const ImVec4 &v, JsonOut &jsout )
 {

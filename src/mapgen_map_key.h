@@ -7,6 +7,9 @@
 #include <string>
 #include <utility>
 
+class JsonMember;
+class TextJsonMember;
+
 // Strong typedef for strings used as map/palette keys
 // Each key should be a UTF-8 string displayed in only one column (i.e.
 // utf8_width of 1) but can contain multiple Unicode code points.
@@ -17,9 +20,9 @@ class map_key
         map_key( const map_key & ) = default;
         map_key( map_key && ) = default;
         explicit map_key( const std::string & );
+        explicit map_key( const JsonMember & );
+		explicit map_key(const TextJsonMember&);
         ~map_key() = default;
-
-        void deserialize(const TextJsonValue& jsin);
 
         map_key &operator= ( const map_key & ) = default;
         map_key &operator= ( map_key && ) = default;

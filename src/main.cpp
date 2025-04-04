@@ -926,8 +926,8 @@ int main( int argc, const char *argv[] )
         if( res.quit_to_desktop ) {
             return 0;
         }
-        /*
         if( res.edit_mods ) {
+            /*
             WORLD* world = remake_world();
             world_generator->edit_active_world_mods( world );
             bnmt_modlist = world->active_mod_order;
@@ -937,9 +937,9 @@ int main( int argc, const char *argv[] )
                 world->active_mod_order = bnmt_modlist;
                 world->save();
             }
+            */
             continue;
         }
-        */
         if( res.open_editor ) {
             g->enter_editor_on_start = true;
             WORLD* world = remake_world();
@@ -962,23 +962,15 @@ int main( int argc, const char *argv[] )
             }
         }
         if( res.quit_to_game ) {
-            while (true) {
-                main_menu menu;
-                if (!menu.opening_screen()) {
-                    break;
-                }
-
-                shared_ptr_fast<ui_adaptor> ui = g->create_or_get_main_ui_adaptor();
-                get_event_bus().send<event_type::game_begin>(getVersionString());
-                while (!do_turn()) {}
+            main_menu menu;
+            if (!menu.opening_screen()) {
+                break;
             }
         }
 
-        /*
         shared_ptr_fast<ui_adaptor> ui = g->create_or_get_main_ui_adaptor();
         get_event_bus().send<event_type::game_begin>( getVersionString() );
         while( !do_turn() ) {}
-        */
     }
 
     exit_handler( -999 );
