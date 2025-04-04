@@ -442,11 +442,11 @@ cli_opts parse_commandline( int argc, const char **argv )
                 }
             },
             {
-                "--editor", nullptr,
+                "--editor", {},
                 "If set, will enter Advanced Map Editor on first world load",
                 section_default,
                 0,
-                [&]( int, const char ** ) -> int {
+                [&result]( int, const char ** ) -> int {
                     result.enter_editor_on_start = true;
                     return 0;
                 }
@@ -550,9 +550,9 @@ cli_opts parse_commandline( int argc, const char **argv )
             {
                 "--project", "<path>",
                 "Load editor project",
-                section_default,
+                {},
                 1,
-                [&]( int n, const char *params[] ) -> int {
+                [&]( int, const char **params ) -> int {
                     result.load_editor_project_on_start = params[0];
                     return 1;
                 }
@@ -560,9 +560,9 @@ cli_opts parse_commandline( int argc, const char **argv )
             {
                 "--export", "<path>",
                 "Export editor project",
-                section_default,
+                {},
                 1,
-                [&]( int n, const char *params[] ) -> int {
+                [&]( int, const char **params ) -> int {
                     result.export_editor_project_on_start = params[0];
                     return 1;
                 }
