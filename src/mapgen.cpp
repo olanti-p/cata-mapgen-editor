@@ -103,8 +103,6 @@
 
 #include "mapgen_map_key.h"
 
-#include "mapgen_map_key.h"
-
 static const field_type_str_id field_fd_blood( "fd_blood" );
 static const field_type_str_id field_fd_fire( "fd_fire" );
 
