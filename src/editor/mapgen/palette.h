@@ -84,7 +84,7 @@ public:
     std::vector<PaletteEntry> entries;
     std::optional<UUID> inherits_from;
 
-    const std::string &display_key_from_uuid( const map_key &uuid ) const;
+    const std::string *display_key_from_uuid( const map_key &uuid ) const;
     const ImVec4 &color_from_uuid( const map_key &uuid ) const;
     const SpriteRef *sprite_from_uuid( const map_key &uuid ) const;
 

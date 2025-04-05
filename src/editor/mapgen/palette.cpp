@@ -30,15 +30,14 @@ bool Mapping::has_piece_of_type( PieceType pt ) const
     return false;
 }
 
-const std::string &Palette::display_key_from_uuid( const map_key &uuid ) const
+const std::string *Palette::display_key_from_uuid( const map_key &uuid ) const
 {
     const PaletteEntry *entry = find_entry( uuid );
     if( entry ) {
-        return entry->key.str;
+        return &entry->key.str;
     }
 
-    static const std::string fallback_string( "<?>" );
-    return fallback_string;
+    return nullptr;
 }
 
 const ImVec4 &Palette::color_from_uuid( const map_key &uuid ) const

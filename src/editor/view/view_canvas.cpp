@@ -313,14 +313,26 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
         for( int x = 0; x < mapgen.mapgensize().x(); x++ ) {
             for( int y = 0; y < mapgen.mapgensize().y(); y++ ) {
                 point_abs_etile p( x, y );
-                const std::string &mk = pal.display_key_from_uuid( get_uuid_at_pos( p.raw() ) );
+                const std::string *mk = pal.display_key_from_uuid( get_uuid_at_pos( p.raw() ) );
+                bool using_fallback = false;
+                if (!mk) {
+                    static std::string fallback = "#";
+                    mk = &fallback;
+                    using_fallback = true;
+                }
                 point_abs_epos center = coords::project_combine( p,
                                         point_etile_epos( ETILE_SIZE / 2, ETILE_SIZE / 2 ) );
                 point_abs_screen text_center = cam.world_to_screen( center );
-                point_rel_screen text_size( ImGui::CalcTextSize( mk.c_str() ) );
+                point_rel_screen text_size( ImGui::CalcTextSize( mk->c_str() ) );
                 point_abs_screen text_pos = text_center - text_size.raw() / 2;
                 ImGui::SetCursorPos( text_pos.raw() );
-                ImGui::Text( "%s", mk.c_str() );
+                if (using_fallback) {
+                    ImGui::PushStyleColor(ImGuiCol_Text, col_missing_palette_text);
+                }
+                ImGui::Text( "%s", mk->c_str() );
+                if (using_fallback) {
+                    ImGui::PopStyleColor();
+                }
             }
         }
     }
