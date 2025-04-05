@@ -79,6 +79,7 @@ struct Palette {
 public:
     UUID uuid;
     bool imported = false;
+    bool standalone = true;
     EID::Palette imported_id;
     std::string created_id;
     std::string name;

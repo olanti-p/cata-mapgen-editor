@@ -415,13 +415,37 @@ void show_palette_verbose( State &state, Palette &p, bool &show )
     ImGui::PushID( p.uuid );
 
     if (p.imported) {
-        ImGui::Text( "IMPORTED id: %s - ALL CHANGES WILL BE DISCARDED ON EXPORT", p.imported_id.data.c_str() );
+        ImGui::Text( "ID: %s", p.imported_id.data.c_str() );
+        ImGui::HelpPopup("ID from which the palette was imported.");
+        ImGui::Text( "IMPORTED PALETTE, ALL CHANGES WILL BE DISCARDED ON EXPORT" );
     }
     else {
         if (ImGui::InputText("ID", &p.created_id)) {
             state.mark_changed("palette-created-id");
         }
         ImGui::HelpPopup("ID with which to save this palette.");
+        if (ImGui::Checkbox("Standalone", &p.standalone)) {
+            state.mark_changed("palette-standalone");
+        }
+        ImGui::HelpPopup("Standalone palettes will be saved with unique id.\nEmbedded palettes will be copied into each mapgen that uses them, and can't be depended on.");
+        if (p.standalone) {
+            EID::Palette pal_id(p.created_id);
+            bool collision = pal_id.is_valid();
+            if (!collision) {
+                for (const Palette& pal : state.project().palettes) {
+                    if (&pal != &p && pal.standalone && pal.created_id == p.created_id) {
+                        collision = true;
+                        break;
+                    }
+                }
+            }
+            if (collision) {
+                ImGui::SameLine();
+                ImGui::PushStyleColor(ImGuiCol_Text, col_error_text);
+                ImGui::Text("ERROR: ID already exists");
+                ImGui::PopStyleColor();
+            }
+        }
     }
     if( p.inherits_from ) {
         std::string label = string_format( "Inherits from: %s",

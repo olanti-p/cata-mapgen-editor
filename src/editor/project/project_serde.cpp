@@ -599,6 +599,7 @@ void Palette::serialize( JsonOut &jsout ) const
     jsout.start_object();
     jsout.member( "uuid", uuid );
     jsout.member( "imported", imported );
+    jsout.member( "standalone", standalone );
     jsout.member( "imported_id", imported_id );
     jsout.member( "created_id", created_id );
     jsout.member( "name", name );
@@ -613,6 +614,7 @@ void Palette::deserialize( const TextJsonValue &jsin )
 
     jo.read( "uuid", uuid );
     jo.read( "imported", imported );
+    jo.read( "standalone", standalone );
     jo.read( "imported_id", imported_id );
     jo.read( "created_id", created_id );
     jo.read( "name", name );

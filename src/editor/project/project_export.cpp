@@ -672,6 +672,11 @@ static void emit_mapgen_contents( JsonOut &jo, const editor::Project &project,
                     emit_val(jo, pal.imported_id);
                 });
             }
+            else if (pal.standalone) {
+                emit_array(jo, "palettes", [&]() {
+                    emit_val(jo, pal.created_id);
+                });
+            }
             else {
                 emit_palette_entries(jo, pal);
             }
@@ -717,7 +722,7 @@ std::string to_string( const editor::Project &project )
     return serialize_wrapper( [&]( JsonOut & jo ) {
         emit_array( jo, [&]() {
             for (const editor::Palette& palette : project.palettes) {
-                if (palette.imported) {
+                if (palette.imported || !palette.standalone) {
                     continue;
                 }
                 emit_object(jo, [&]() {

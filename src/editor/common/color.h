@@ -19,6 +19,7 @@ const ImVec4 col_mapgensize_border = ImVec4( 0.7f, 0.7f, 0.7f, 1.0f );
 const ImVec4 col_highlighted_palette_entry = ImVec4( 0.8f, 0.4f, 0.0f, 1.0f );
 const ImVec4 col_selected_palette_entry = ImVec4( 0.9f, 0.9f, 0.1f, 1.0f );
 const ImVec4 col_missing_palette_text = ImVec4(0.9f, 0.1f, 0.1f, 1.0f);
+const ImVec4 col_error_text = ImVec4(0.9f, 0.1f, 0.1f, 1.0f);
 
 } // namespace editor
 
