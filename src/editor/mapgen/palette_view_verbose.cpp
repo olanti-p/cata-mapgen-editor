@@ -423,10 +423,13 @@ void show_palette_verbose( State &state, Palette &p, bool &show )
         ImGui::Text( "<No inheritance>" );
     }
 
-    if( ImGui::InputText( "Name", &p.name ) ) {
-        state.mark_changed( "palette-name" );
+    if (false) {
+        // FIXME: implement display name
+        if (ImGui::InputText("Name", &p.name)) {
+            state.mark_changed("palette-name");
+        }
+        ImGui::HelpPopup("Display name.  Has no effect, just for convenience.");
     }
-    ImGui::HelpPopup( "Display name.  Has no effect, just for convenience." );
 
     if( ImGui::Button( "Toggle simple palette" ) ) {
         state.ui->toggle_show_palette_simple( p.uuid );

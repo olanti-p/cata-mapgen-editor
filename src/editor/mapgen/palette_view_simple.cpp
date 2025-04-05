@@ -160,7 +160,10 @@ void show_palette_simple( State &state, Palette &p, bool &show )
         return;
     }
     ImGui::PushID( p.uuid );
-    ImGui::Text( "%s", name.c_str() );
+    if (false) {
+        // FIXME: implement display names
+        ImGui::Text( "%s", name.c_str() );
+    }
     if( ImGui::Button( "Toggle verbose mode" ) ) {
         state.ui->toggle_show_palette_verbose( p.uuid );
     }
