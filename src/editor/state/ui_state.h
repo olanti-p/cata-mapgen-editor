@@ -76,6 +76,9 @@ struct UiState {
     bool show_autosave_params = true;       // Whether to show autosave settings
 
     bool show_omt_grid = false;             // Whether to show omt grid on canvas
+    bool show_canvas_symbols = false;       // Whether to show symbols on canvas
+    bool show_canvas_sprites = false;       // Whether to show sprites on canvas
+    float canvas_sprite_opacity = 0.4f;     // Opacity for sprites on canvas
 
     bool autosave_enabled = true;
     int autosave_interval = 10;             // Seconds

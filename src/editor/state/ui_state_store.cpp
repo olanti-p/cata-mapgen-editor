@@ -189,6 +189,9 @@ void UiState::serialize( JsonOut &jsout ) const
     jsout.member( "show_toolbar", show_toolbar );
     jsout.member( "show_autosave_params", show_autosave_params );
     jsout.member( "show_omt_grid", show_omt_grid );
+    jsout.member( "show_canvas_symbols", show_canvas_symbols );
+    jsout.member( "show_canvas_sprites", show_canvas_sprites );
+    jsout.member( "canvas_sprite_opacity", canvas_sprite_opacity );
     jsout.member( "autosave_enabled", autosave_enabled );
     jsout.member( "autosave_interval", autosave_interval );
     jsout.member( "autosave_limit", autosave_limit );
@@ -218,6 +221,9 @@ void UiState::deserialize( JSON_IN &jsin )
     jo.read( "show_toolbar", show_toolbar );
     jo.read( "show_autosave_params", show_autosave_params );
     jo.read( "show_omt_grid", show_omt_grid );
+    jo.read( "show_canvas_symbols", show_canvas_symbols );
+    jo.read( "show_canvas_sprites", show_canvas_sprites );
+    jo.read( "canvas_sprite_opacity", canvas_sprite_opacity );
     jo.read( "autosave_enabled", autosave_enabled );
     jo.read( "autosave_interval", autosave_interval );
     jo.read( "autosave_limit", autosave_limit );
