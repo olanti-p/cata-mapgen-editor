@@ -281,24 +281,10 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
         list.erase( std::next( list.cbegin(), idx ) );
     } )
     .with_for_each( [&]( size_t idx ) {
-        if( list[idx].key == tools.get_main_tile() ) {
-            ImGui::PushStyleColor( ImGuiCol_Button, col_selected_palette_entry );
-            ImGui::PushStyleColor( ImGuiCol_ButtonHovered, col_selected_palette_entry );
-            ImGui::PushStyleColor( ImGuiCol_ButtonActive, col_selected_palette_entry );
-            if( ImGui::ImageButton( "unpick", "me_clear_rows_brush" ) ) {
-                tools.set_main_tile( map_key() );
-            }
-            ImGui::PopStyleColor( 3 );
-            ImGui::HelpPopup( "Unselect (turns brush into eraser)." );
-        } else {
-            if( ImGui::ImageButton( "pick", "me_set_rows_brush" ) ) {
-                tools.set_main_tile( list[idx].key );
-            }
-            ImGui::HelpPopup( "Select as active for brush." );
-        }
-        ImGui::SameLine();
+        bool selected = list[idx].key == tools.get_main_tile();
 
         if (false) {
+            // FIXME: implement colors
             if (ImGui::ColorEdit4("MyColor##3", (float*)&list[idx].color,
                 ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel)) {
                 state.mark_changed("palette-entry-color");
@@ -321,6 +307,28 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
         if( is_dupe_symbol ) {
             ImGui::EndErrorArea();
         }
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 0));
+        if (selected) {
+            // Highlight entry
+            ImVec4 c = col_selected_palette_entry;
+            c.w *= 0.6f;
+            ImGui::PushStyleColor(ImGuiCol_Button, c);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, c);
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, c);
+        }
+        else {
+            // Use dim colors so it's not distracting
+            ImVec4 c = ImGui::GetStyleColorVec4(ImGuiCol_Button);
+            c.w *= 0.6f;
+            ImGui::PushStyleColor(ImGuiCol_Button, c);
+            c = ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered);
+            c.w *= 0.6f;
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, c);
+            c = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
+            c.w *= 0.6f;
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, c);
+        }
+        bool clicked = false;
         {
             std::optional<std::string> text;
             PieceAltTerrain *ptr = list[idx].mapping.get_first_piece_of_type<PieceAltTerrain>();
@@ -328,14 +336,12 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
                 text = ptr->fmt_data_summary();
             }
             ImGui::SameLine();
-            ImGui::BeginDisabled();
             ImGui::PushID("ter");
-            ImGui::Button(
+            clicked = ImGui::Button(
                 text ? text->c_str() : "-",
                 ImVec2( ImGui::GetFrameHeight() * 8.0f, 0.0f )
             );
             ImGui::PopID();
-            ImGui::EndDisabled();
         }
         {
             std::optional<std::string> text;
@@ -344,14 +350,22 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
                 text = ptr->fmt_data_summary();
             }
             ImGui::SameLine();
-            ImGui::BeginDisabled();
             ImGui::PushID("furn");
-            ImGui::Button(
+            clicked = ImGui::Button(
                 text ? text->c_str() : "-",
                 ImVec2( ImGui::GetFrameHeight() * 8.0f, 0.0f )
-            );
+            ) || clicked;
             ImGui::PopID();
-            ImGui::EndDisabled();
+        }
+        ImGui::PopStyleColor(3);
+        ImGui::PopStyleVar();
+        if (clicked) {
+            if (selected) {
+                tools.set_main_tile(map_key());
+            }
+            else {
+                tools.set_main_tile(list[idx].key);
+            }
         }
         ImGui::SameLine();
         if( ImGui::ArrowButton( "##mapping", ImGuiDir_Right ) ) {
