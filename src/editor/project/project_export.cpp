@@ -633,7 +633,7 @@ static void emit_mapgen_contents( JsonOut &jo, const editor::Project &project,
         if( mapgen.mtype == editor::MapgenType::Oter ) {
             if( mapgen.oter.mapgen_base == editor::OterMapgenBase::PredecessorMapgen ) {
                 emit( jo, "predecessor_mapgen", mapgen.oter.predecessor_mapgen );
-            } else {
+            } else if( !mapgen.oter.fill_ter.is_null() ) {
                 emit( jo, "fill_ter", mapgen.oter.fill_ter );
             }
             if( mapgen.oter.rotation ) {
