@@ -3684,7 +3684,8 @@ static void init_imgui_interface()
 
 static void deinit_imgui_interface()
 {
-    editor::shutdown_ui();
+    // FIXME: clean up startup and shutdown
+    //editor::shutdown_ui();
 }
 
 //Basic Init, create the font, backbuffer, etc
