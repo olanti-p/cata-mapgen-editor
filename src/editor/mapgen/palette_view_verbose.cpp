@@ -402,22 +402,16 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
     }
 }
 
-void show_palette_verbose( State &state, Palette &p, bool &show )
+static void show_palette_header_info(State& state, Palette& p)
 {
-    ImGui::SetNextWindowSize( ImVec2( 670.0f, 120.0f ), ImGuiCond_FirstUseEver );
-    ImGui::SetNextWindowPos( ImVec2( 50.0f, 50.0f ), ImGuiCond_FirstUseEver );
-
-    std::string wnd_id = string_format( "Palette###palette-%d-verbose", p.uuid );
-    if( !ImGui::Begin( wnd_id.c_str(), &show ) ) {
-        ImGui::End();
-        return;
+    if (ImGui::InputText("Display name", &p.name)) {
+        state.mark_changed("palette-name");
     }
-    ImGui::PushID( p.uuid );
-
+    ImGui::HelpPopup("Only used inside the editor.");
     if (p.imported) {
-        ImGui::Text( "ID: %s", p.imported_id.data.c_str() );
+        ImGui::Text("ID: %s", p.imported_id.data.c_str());
         ImGui::HelpPopup("ID from which the palette was imported.");
-        ImGui::Text( "IMPORTED PALETTE, ALL CHANGES WILL BE DISCARDED ON EXPORT" );
+        ImGui::Text("IMPORTED PALETTE, ALL CHANGES WILL BE DISCARDED ON EXPORT");
     }
     else {
         if (ImGui::InputText("ID", &p.created_id)) {
@@ -447,27 +441,56 @@ void show_palette_verbose( State &state, Palette &p, bool &show )
             }
         }
     }
-    if( p.inherits_from ) {
-        std::string label = string_format( "Inherits from: %s",
-                                           state.project().get_palette( *p.inherits_from )->display_name() );
-        ImGui::Text( "%s", label.c_str() );
-    } else {
-        ImGui::Text( "<No inheritance>" );
+    if (p.inherits_from) {
+        std::string label = string_format("Inherits from: %s",
+            state.project().get_palette(*p.inherits_from)->display_name());
+        ImGui::Text("%s", label.c_str());
     }
-
-    if (false) {
-        // FIXME: implement display name
-        if (ImGui::InputText("Name", &p.name)) {
-            state.mark_changed("palette-name");
-        }
-        ImGui::HelpPopup("Display name.  Has no effect, just for convenience.");
+    else {
+        ImGui::Text("<No inheritance>");
     }
+}
 
-    if( ImGui::Button( "Toggle simple palette" ) ) {
-        state.ui->toggle_show_palette_simple( p.uuid );
+void show_active_palette_details( State &state, Palette &p, bool &show )
+{
+    ImGui::SetNextWindowSize( ImVec2( 620.0f, 500.0f ), ImGuiCond_FirstUseEver );
+    ImGui::SetNextWindowPos( ImVec2( 50.0f, 50.0f ), ImGuiCond_FirstUseEver );
+
+    if( !ImGui::Begin("Active palette details", &show ) ) {
+        ImGui::End();
+        return;
     }
-
+    ImGui::PushID( p.uuid );
+    
+    show_palette_header_info( state, p );
+    // Align position so the entries list stays in one place when switching palettes
+    ImGui::SetCursorPosY(ImGui::GetFrameHeight() * 6.0f);
+    ImGui::Separator();
     show_palette_entries_verbose( state, p );
+
+    ImGui::PopID();
+    ImGui::End();
+}
+
+void show_palette_preview( State& state, Palette& p, bool& show )
+{
+    ImGui::SetNextWindowSize(ImVec2(620.0f, 500.0f), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(50.0f, 50.0f), ImGuiCond_FirstUseEver);
+
+    std::string name = p.display_name();
+    std::string wnd_id = string_format("Preview for %s###palette-%d-preview", name, p.uuid);
+    if (!ImGui::Begin(wnd_id.c_str(), &show)) {
+        ImGui::End();
+        return;
+    }
+    ImGui::PushID(p.uuid);
+
+    show_palette_header_info(state, p);
+    ImGui::Separator();
+    show_palette_entries_verbose(state, p);
+
+    ImGui::Separator();
+    show_palette_entries_simple(state, p);
 
     ImGui::PopID();
     ImGui::End();

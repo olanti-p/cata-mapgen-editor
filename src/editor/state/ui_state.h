@@ -70,6 +70,8 @@ struct UiState {
     bool show_metrics_wnd = false;          // Whether to show ImGui Metrics/Debugger window
     bool show_project_overview = true;      // Whether to show project overview window
     bool show_mapgen_info = true;           // Whether to show mapgen info
+    bool show_mapgen_palette_simple = true; // Whether to show mapgen palette (simple)
+    bool show_mapgen_palette_verbose = true;// Whether to show mapgen palette (verbose)
     bool show_history = true;               // Whether to show undo/redo history
     bool show_camera_controls = true;       // Whether to show camera controls
     bool show_toolbar = true;               // Whether to show canvas toolbar
@@ -86,8 +88,7 @@ struct UiState {
 
     std::optional<UUID> active_mapgen_id;   // UUID of active mapgen
 
-    std::vector<detail::OpenPalette> open_palettes_verbose; // List of open palettes (verbose)
-    std::vector<detail::OpenPalette> open_palettes_simple; // List of open palettes (simple)
+    std::vector<detail::OpenPalette> open_palette_previews; // List of open palettes (verbose)
     std::vector<detail::OpenMapping> open_mappings; // List of open mappings
     std::vector<detail::OpenMapgenObject> open_mapgenobjects; // List of open mapgenobjects
 
@@ -102,8 +103,7 @@ struct UiState {
 
     std::optional<std::string> project_export_path;
 
-    void toggle_show_palette_verbose( UUID uuid );
-    void toggle_show_palette_simple( UUID uuid );
+    void toggle_show_palette_preview( UUID uuid );
     void toggle_show_mapping( UUID palette, map_key uuid );
     void toggle_show_mapobjects( UUID uuid );
 };

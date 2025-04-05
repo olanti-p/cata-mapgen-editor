@@ -27,28 +27,16 @@ UiState::UiState( UiState && ) = default;
 UiState::~UiState() = default;
 UiState &UiState::operator=( UiState && ) = default;
 
-void UiState::toggle_show_palette_verbose( UUID uuid )
+void UiState::toggle_show_palette_preview( UUID uuid )
 {
-    for( auto &it : open_palettes_verbose ) {
+    for( auto &it : open_palette_previews ) {
         if( it.uuid == uuid ) {
             it.open = false;
             return;
         }
     }
-    open_palettes_verbose.emplace_back();
-    open_palettes_verbose.back().uuid = uuid;
-}
-
-void UiState::toggle_show_palette_simple( UUID uuid )
-{
-    for( auto &it : open_palettes_simple ) {
-        if( it.uuid == uuid ) {
-            it.open = false;
-            return;
-        }
-    }
-    open_palettes_simple.emplace_back();
-    open_palettes_simple.back().uuid = uuid;
+    open_palette_previews.emplace_back();
+    open_palette_previews.back().uuid = uuid;
 }
 
 void UiState::toggle_show_mapping( UUID palette, map_key uuid )
@@ -153,6 +141,24 @@ void run_ui_for_state( State &state )
     if( uistate.show_mapgen_info && active_mapgen ) {
         show_mapgen_info( state, *active_mapgen, uistate.show_mapgen_info );
     }
+    if( uistate.show_mapgen_palette_simple && active_mapgen ) {
+        Palette* pal = proj.get_palette(active_mapgen->base.palette);
+        if (pal) {
+            show_active_palette_simple(state, *pal, uistate.show_mapgen_palette_simple);
+        }
+        else {
+            uistate.show_mapgen_palette_simple = false;
+        }
+    }
+    if( uistate.show_mapgen_palette_verbose && active_mapgen ) {
+        Palette* pal = proj.get_palette(active_mapgen->base.palette);
+        if (pal) {
+            show_active_palette_details(state, *pal, uistate.show_mapgen_palette_verbose);
+        }
+        else {
+            uistate.show_mapgen_palette_verbose = false;
+        }
+    }
     if( uistate.show_project_overview ) {
         show_project_overview_ui( state, proj, uistate.show_project_overview );
     }
@@ -179,24 +185,13 @@ void run_ui_for_state( State &state )
         }
     }
 
-    for( auto &it : uistate.open_palettes_verbose ) {
+    for( auto &it : uistate.open_palette_previews ) {
         if( !it.open ) {
             continue;
         }
         Palette *pal = proj.get_palette( it.uuid );
         if( pal ) {
-            show_palette_verbose( state, *pal, it.open );
-        } else {
-            it.open = false;
-        }
-    }
-    for( auto &it : uistate.open_palettes_simple ) {
-        if( !it.open ) {
-            continue;
-        }
-        Palette *pal = proj.get_palette( it.uuid );
-        if( pal ) {
-            show_palette_simple( state, *pal, it.open );
+            show_palette_preview( state, *pal, it.open );
         } else {
             it.open = false;
         }
@@ -229,8 +224,8 @@ void run_ui_for_state( State &state )
         }
     }
     for(
-        auto it = uistate.open_palettes_verbose.cbegin();
-        it != uistate.open_palettes_verbose.cend();
+        auto it = uistate.open_palette_previews.cbegin();
+        it != uistate.open_palette_previews.cend();
     ) {
         if( !it->open ) {
             for( auto &mit : uistate.open_mappings ) {
@@ -238,22 +233,7 @@ void run_ui_for_state( State &state )
                     mit.open = false;
                 }
             }
-            it = uistate.open_palettes_verbose.erase( it );
-        } else {
-            it++;
-        }
-    }
-    for(
-        auto it = uistate.open_palettes_simple.cbegin();
-        it != uistate.open_palettes_simple.cend();
-    ) {
-        if( !it->open ) {
-            for( auto &mit : uistate.open_mappings ) {
-                if( mit.palette == it->uuid ) {
-                    mit.open = false;
-                }
-            }
-            it = uistate.open_palettes_simple.erase( it );
+            it = uistate.open_palette_previews.erase( it );
         } else {
             it++;
         }

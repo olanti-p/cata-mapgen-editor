@@ -18,8 +18,10 @@ struct PaletteEntryDragState {
 };
 
 void show_mapping( State &state, Palette &p, PaletteEntry &entry, bool &show );
-void show_palette_verbose( State &state, Palette &p, bool &show );
-void show_palette_simple( State &state, Palette &p, bool &show );
+void show_active_palette_details( State &state, Palette &p, bool &show );
+void show_active_palette_simple( State &state, Palette &p, bool &show );
+void show_palette_preview(State& state, Palette& p, bool& show );
+void show_palette_entries_simple( State& state, Palette& palette );
 void show_palette_entry_tooltip( const PaletteEntry &entry );
 bool handle_palette_entry_drag_and_drop( Project &project, Palette &palette, int idx );
 

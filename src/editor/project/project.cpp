@@ -49,14 +49,10 @@ void show_project_overview_ui( State &state, Project &project, bool &show )
     bool changed_palettes = ImGui::VectorWidget()
     .with_for_each( [&]( size_t idx ) {
         Palette &palette = project.palettes[idx];
-        if( ImGui::ImageButton( "toggle_palette", "me_palette" ) ) {
-            state.ui->toggle_show_palette_simple( palette.uuid );
-        }
-        ImGui::HelpPopup( "Show/hide palette." );
-        ImGui::SameLine();
         if( ImGui::Selectable( palette.display_name().c_str() ) ) {
-            state.ui->toggle_show_palette_verbose( palette.uuid );
+            state.ui->toggle_show_palette_preview( palette.uuid );
         }
+        ImGui::HelpPopup( "Click to show/hide palette preview." );
     } )
     .with_add( [&]()->bool {
         if (ImGui::Button( "Import palette..." ) )
@@ -108,9 +104,9 @@ void show_project_overview_ui( State &state, Project &project, bool &show )
         .with_for_each([&](size_t idx) {
         Mapgen& mapgen = project.mapgens[idx];
         if (ImGui::ImageButton("toggle_palette", "me_palette")) {
-            state.ui->toggle_show_palette_simple(mapgen.base.palette);
+            state.ui->toggle_show_palette_preview(mapgen.base.palette);
         }
-        ImGui::HelpPopup("Show/hide palette for this mapgen.");
+        ImGui::HelpPopup("Preview palette for this mapgen.");
         ImGui::SameLine();
         if (ImGui::ImageButton("toggle_mapobjects", "me_mapobject")) {
             state.ui->toggle_show_mapobjects(mapgen.uuid);
@@ -123,6 +119,7 @@ void show_project_overview_ui( State &state, Project &project, bool &show )
             ) {
             state.ui->active_mapgen_id = mapgen.uuid;
         }
+        ImGui::HelpPopup("Click to switch to this mapgen.");
             })
         .with_add([&]()->bool {
         if (ImGui::Button("New mapgen"))

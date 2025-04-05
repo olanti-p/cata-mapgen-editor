@@ -83,7 +83,7 @@ bool handle_palette_entry_drag_and_drop( Project &project, Palette &palette, int
     return ret;
 }
 
-static void show_palette_entries_simple( State &state, Palette &palette )
+void show_palette_entries_simple( State &state, Palette &palette )
 {
     const map_key &selected = state.ui->tools->get_main_tile();
     ImGuiStyle &style = ImGui::GetStyle();
@@ -148,25 +148,16 @@ static void show_palette_entries_simple( State &state, Palette &palette )
     }
 }
 
-void show_palette_simple( State &state, Palette &p, bool &show )
+void show_active_palette_simple( State &state, Palette &p, bool &show )
 {
-    ImGui::SetNextWindowSize( ImVec2( 670.0f, 120.0f ), ImGuiCond_FirstUseEver );
+    ImGui::SetNextWindowSize( ImVec2( 620.0f, 240.0f ), ImGuiCond_FirstUseEver );
     ImGui::SetNextWindowPos( ImVec2( 50.0f, 50.0f ), ImGuiCond_FirstUseEver );
 
-    std::string name = p.display_name();
-    std::string wnd_id = string_format( "Palette %s###palette-%d-simple", name, p.uuid );
-    if( !ImGui::Begin( wnd_id.c_str(), &show ) ) {
+    if( !ImGui::Begin("Active palette", &show ) ) {
         ImGui::End();
         return;
     }
     ImGui::PushID( p.uuid );
-    if (false) {
-        // FIXME: implement display names
-        ImGui::Text( "%s", name.c_str() );
-    }
-    if( ImGui::Button( "Toggle verbose mode" ) ) {
-        state.ui->toggle_show_palette_verbose( p.uuid );
-    }
 
     show_palette_entries_simple( state, p );
 

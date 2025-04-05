@@ -35,16 +35,13 @@ void show_mapgen_info( State &state, Mapgen &mapgen, bool &show )
     }
     ImGui::PushID( mapgen.uuid );
 
-    if( ImGui::InputText( "Name", &mapgen.name ) ) {
+    if( ImGui::InputText( "Display Name", &mapgen.name ) ) {
         state.mark_changed( "mapgen-name" );
     }
-    ImGui::HelpPopup( "Display name.  Has no effect, just for convenience." );
+    ImGui::HelpPopup( "Only used inside the editor." );
 
     if (ImGui::PaletteSelector("Palette", mapgen.base.palette, state.project().palettes)) {
         state.mark_changed("mapgen-palette");
-    }
-    if( ImGui::Button( "Show/hide palette" ) ) {
-        state.ui->toggle_show_palette_simple( mapgen.base.palette );
     }
     ImGui::Separator();
 
