@@ -18,9 +18,9 @@ static void show_titlescreen_window( TitleScreen &state )
                   ImGuiWindowFlags_NoDecoration |
                   ImGuiWindowFlags_NoMove
                 );
-
-    ImGui::TextCentered( "Bright Nights" );
-    ImGui::TextCentered( "Mapping  Tool" );
+    ImGui::TextCentered( "Welcome to" );
+    ImGui::TextCentered( "Mapgen Editor" );
+    ImGui::Text(" ");
     ImGui::Separator();
 
     // Controls

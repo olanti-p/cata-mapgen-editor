@@ -34,14 +34,10 @@ WelcomeResult show_welcome_screen()
         menu.border_color = c_blue;
         menu.hotkey_color = c_dark_gray;
         menu.text_color = c_white;
-        menu.settext( _(
-                          "+--=== B N M T ===--+\n"
-                          "|   Bright Nights   |\n"
-                          "|   Mapping  Tool   |\n"
-                          "+-------------------+\n"
-                      ) );
+        menu.settext( _( "Mapgen Editor" ) );
         menu.addentry( Command::OpenEditor, true, 'e', _( "Open Editor" ) );
-        menu.addentry( Command::EditMods, true, 'm', _( "Specify Mod List" ) );
+        // TODO: implement mod selection
+        //menu.addentry( Command::EditMods, true, 'm', _( "Specify Mod List" ) );
         menu.addentry( Command::GameOptions, true, 'o', _( "Game Options" ) );
         menu.addentry( Command::QuitToGame, true, 'g', _( "Quit To Game" ) );
         menu.addentry( Command::QuitToDesktop, true, 'q', _( "Quit To Desktop" ) );
