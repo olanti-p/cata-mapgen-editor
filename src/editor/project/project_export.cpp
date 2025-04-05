@@ -536,6 +536,55 @@ std::string get_object_category( editor::PieceType data )
  * ============= HIGH-LEVEL FUNCTIONS =============
  */
 
+static void emit_palette_entries(JsonOut& jo, const editor::Palette& pal)
+{
+    for (const auto& it : editor::get_piece_templates()) {
+        editor::PieceType pt = it->get_type();
+
+        std::string palette_cat = get_palette_category(pt);
+
+        std::unordered_map<map_key, std::vector<const editor::Piece*>> matching_pieces;
+
+        for (const editor::PaletteEntry& it : pal.entries) {
+            for (const auto& pc : it.mapping.pieces) {
+                if (pc->get_type() == pt) {
+                    matching_pieces[it.key].push_back(pc.get());
+                }
+            }
+        }
+
+        if (matching_pieces.empty()) {
+            // Nothing to do
+            continue;
+        }
+
+        if (editor::is_alt_piece(pt)) {
+            emit_object(jo, palette_cat, [&]() {
+                for (const auto& it : matching_pieces) {
+                    // Alt pieces are also exclusive pieces
+                    assert(it.second.size() == 1);
+                    emit(jo, it.first.str, it.second[0]);
+                }
+                });
+        }
+        else {
+            if (palette_cat.empty()) {
+                std::cerr << string_format(
+                    "Tried to export piece of type %s as a mapping.",
+                    io::enum_to_string(pt)
+                );
+                std::abort();
+            }
+
+            emit_object(jo, palette_cat, [&]() {
+                for (const auto& it : matching_pieces) {
+                    emit_single_or_array(jo, it.first.str, it.second);
+                }
+                });
+        }
+    }
+}
+
 static void emit_mapgen_contents( JsonOut &jo, const editor::Project &project,
                                   const editor::Mapgen &mapgen )
 {
@@ -603,49 +652,13 @@ static void emit_mapgen_contents( JsonOut &jo, const editor::Project &project,
                 }
             } );
 
-            for( const auto &it : editor::get_piece_templates() ) {
-                editor::PieceType pt = it->get_type();
-
-                std::string palette_cat = get_palette_category( pt );
-
-                std::unordered_map<map_key, std::vector<const editor::Piece *>> matching_pieces;
-
-                for( const editor::PaletteEntry &it : pal.entries ) {
-                    for( const auto &pc : it.mapping.pieces ) {
-                        if( pc->get_type() == pt ) {
-                            matching_pieces[it.key].push_back( pc.get() );
-                        }
-                    }
-                }
-
-                if( matching_pieces.empty() ) {
-                    // Nothing to do
-                    continue;
-                }
-
-                if( editor::is_alt_piece( pt ) ) {
-                    emit_object( jo, palette_cat, [&]() {
-                        for( const auto &it : matching_pieces ) {
-                            // Alt pieces are also exclusive pieces
-                            assert( it.second.size() == 1 );
-                            emit( jo, it.first.str, it.second[0] );
-                        }
-                    } );
-                } else {
-                    if( palette_cat.empty() ) {
-                        std::cerr << string_format(
-                                      "Tried to export piece of type %s as a mapping.",
-                                      io::enum_to_string( pt )
-                                  );
-                        std::abort();
-                    }
-
-                    emit_object( jo, palette_cat, [&]() {
-                        for( const auto &it : matching_pieces ) {
-                            emit_single_or_array( jo, it.first.str, it.second );
-                        }
-                    } );
-                }
+            if (pal.imported) {
+                emit_array(jo, "palettes", [&]() {
+                    emit_val(jo, pal.id);
+                });
+            }
+            else {
+                emit_palette_entries(jo, pal);
             }
         }
 
