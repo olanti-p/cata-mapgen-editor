@@ -71,6 +71,9 @@ const SpriteRef *Palette::sprite_from_uuid( const map_key &uuid ) const
 
 PaletteEntry *Palette::find_entry( const map_key&uuid )
 {
+    if (uuid.str.empty()) {
+        return nullptr;
+    }
     if (entries.size() != entries_cache.size()) {
         rebuild_cache();
     }
@@ -90,6 +93,9 @@ PaletteEntry *Palette::find_entry( const map_key&uuid )
 
 const PaletteEntry *Palette::find_entry( const map_key&uuid ) const
 {
+    if (uuid.str.empty()) {
+        return nullptr;
+    }
     if (entries.size() != entries_cache.size()) {
         rebuild_cache();
     }

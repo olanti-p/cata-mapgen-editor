@@ -219,6 +219,7 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
     const PaletteEntry *tooltip_entry = nullptr;
     map_key tooltip_entry_uuid;
     bool tooltip_entry_error = false;
+    std::string tooltip_error_msg;
     point_abs_etile tooltip_pos;
 
     const CanvasSnippet *snippet = snippets.get_snippet( mapgen.uuid );
@@ -248,6 +249,14 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                                     mapgen.base.palette )->find_entry( uuid );
                 tooltip_entry_uuid = uuid;
                 tooltip_entry_error = !tooltip_entry;
+                if (tooltip_entry_error) {
+                    if (uuid.str.empty()) {
+                        tooltip_error_msg = "No symbol assigned here";
+                    }
+                    else {
+                        tooltip_error_msg = "Symbol not present in palette";
+                    }
+                }
             }
         }
 
@@ -320,11 +329,20 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
             for (int x = 0; x < mapgen.mapgensize().x(); x++) {
                 for (int y = 0; y < mapgen.mapgensize().y(); y++) {
                     point_abs_etile p(x, y);
-                    const std::string* mk = pal.display_key_from_uuid(get_uuid_at_pos(p.raw()));
+                    map_key uuid = get_uuid_at_pos(p.raw());
+                    std::string tmp;
+                    const std::string* mk = pal.display_key_from_uuid(uuid);
                     bool using_fallback = false;
                     if (!mk) {
-                        static std::string fallback = "#";
-                        mk = &fallback;
+                        if (uuid.str.empty()) {
+                            static std::string fallback = "#";
+                            mk = &fallback;
+                        }
+                        else {
+                            // FIXME: this may cause lag!
+                            tmp = "<" + uuid.str + ">";
+                            mk = &tmp;
+                        }
                         using_fallback = true;
                     }
                     point_abs_epos center = coords::project_combine(p,
@@ -498,7 +516,8 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                 show_palette_entry_tooltip( *tooltip_entry );
             }
             if( tooltip_entry_error ) {
-                ImGui::Text( "ERROR: Tile not present in palette!" );
+                std::string text = "ERROR: " + tooltip_error_msg;
+                ImGui::Text( text.c_str() );
             }
             for( const MapObject *obj : objects ) {
                 ImGui::TextDisabled( "OBJ" );
