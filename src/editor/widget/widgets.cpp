@@ -578,7 +578,7 @@ bool VectorWidget::run_internal( size_t num )
                     move_to = i;
                 }
             } else {
-                dd_handled = f_drag_drop( i );
+                dd_handled = f_drag_drop( i ) || dd_handled;
             }
             ImGui::HelpPopup( "Drag to reorder elements." );
             ImGui::SameLine();
