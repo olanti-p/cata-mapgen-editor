@@ -6,6 +6,7 @@
 #include "mapgen_map_key.h"
 #include "type_id.h"
 #include "widget/editable_id.h"
+#include "project/project.h"
 
 // FIXME: conflicts in include path
 #include "../../mapgen.h"
@@ -50,12 +51,12 @@ PaletteImportReport import_palette_data( Project &project, Palette &palette,
                         }
                     }
                     report.num_total += 1;
-                    if( new_piece ) {
-                        mapping.pieces.emplace_back( std::move( new_piece ) );
-                    } else {
+                    if( !new_piece ) {
                         report.num_failed += 1;
-                        mapping.pieces.emplace_back(make_new_piece(PieceType::Unknown));
+                        new_piece = make_new_piece(PieceType::Unknown);
                     }
+                    new_piece->uuid = project.uuid_generator();
+                    mapping.pieces.emplace_back(std::move(new_piece));
                 }
             }
         }
