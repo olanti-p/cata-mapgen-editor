@@ -51,7 +51,7 @@ struct MapgenOter {
     Canvas2D<EID::OterType> om_terrain_matrix =
         Canvas2D<EID::OterType>( point( 1, 1 ), EID::OterType::NULL_ID() );
     int weight = 100;
-    OterMapgenBase mapgen_base = OterMapgenBase::FillTer;
+    OterMapgenBase mapgen_base = OterMapgenBase::Rows;
     EID::Ter fill_ter = EID::Ter::NULL_ID();
     EID::OterType predecessor_mapgen;
     IntRange rotation;
