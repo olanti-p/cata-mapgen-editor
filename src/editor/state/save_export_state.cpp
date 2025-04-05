@@ -139,7 +139,7 @@ void handle_project_exporting( State &state )
         return;
     }
 
-    if( control.want_export && !ui.project_export_path ) {
+    if( control.want_export && (!ui.project_export_path || ui.project_export_path->empty() ) ) {
         control.want_export = false;
         control.want_export_as = true;
     }
