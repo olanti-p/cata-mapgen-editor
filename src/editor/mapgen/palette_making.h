@@ -16,6 +16,8 @@ Mapping make_mapping( const EID::Ter *ter, const EID::Furn *furn );
 
 PaletteImportReport import_palette_data( Project &project, Palette &palette,
         const EID::Palette &source_id );
+void import_palette_data_and_report(State& state, Palette& destination, EID::Palette source);
+void reimport_palette(State& state, Palette& p);
 
 } // namespace editor
 

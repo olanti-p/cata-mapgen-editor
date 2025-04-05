@@ -5,7 +5,6 @@
 #include "mapgen/palette_making.h"
 #include "mapgen/palette.h"
 #include "project.h"
-#include "state/control_state.h"
 #include "state/state.h"
 #include "state/ui_state.h"
 #include "widget/widgets.h"
@@ -67,28 +66,8 @@ void add_palette( State &state, NewPaletteState &palette )
         new_palette.inherits_from = palette.inherits_from;
     }
     if( palette.kind == NewPaletteKind::Imported ) {
-        PaletteImportReport rep = import_palette_data( state.project(), new_palette, palette.import_from );
-        bool is_ok = true;
-        std::string error_text;
-        if (rep.num_failed != 0) {
-            is_ok = false;
-            error_text += string_format(
-                "%d out of %d mappings couldn't be resolved.\n\n",
-                rep.num_failed, rep.num_total
-            );
-        }
-        if (rep.num_values_folded) {
-            is_ok = false;
-            error_text += string_format(
-                "%d mapgen_values have been collapsed to plain ids.\n\n",
-                rep.num_values_folded
-            );
-        }
-
-        if (!is_ok) {
-            std::string text = "Palette has been loaded with issues.\n\n" + error_text;
-            state.control->show_warning_popup( text );
-        }
+        import_palette_data_and_report(state, new_palette, palette.import_from);
+        palette.name = palette.import_from.data;
     }
     new_palette.name = palette.name;
 }

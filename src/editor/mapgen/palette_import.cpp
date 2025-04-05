@@ -7,6 +7,8 @@
 #include "type_id.h"
 #include "widget/editable_id.h"
 #include "project/project.h"
+#include "state/state.h"
+#include "state/control_state.h"
 
 // FIXME: conflicts in include path
 #include "../../mapgen.h"
@@ -22,7 +24,6 @@ PaletteImportReport import_palette_data( Project &project, Palette &palette,
 {
     palette_id id( source_id.data );
     const mapgen_palette &source = *id;
-    palette.name = id.str();
     palette.imported_id = id;
     palette.imported = true;
 
@@ -66,6 +67,39 @@ PaletteImportReport import_palette_data( Project &project, Palette &palette,
     }
 
     return report;
+}
+
+
+void import_palette_data_and_report(State& state, Palette& destination, EID::Palette source)
+{
+    PaletteImportReport rep = import_palette_data(state.project(), destination, source);
+    bool is_ok = true;
+    std::string error_text;
+    if (rep.num_failed != 0) {
+        is_ok = false;
+        error_text += string_format(
+            "%d out of %d mappings couldn't be resolved.\n\n",
+            rep.num_failed, rep.num_total
+        );
+    }
+    if (rep.num_values_folded) {
+        is_ok = false;
+        error_text += string_format(
+            "%d mapgen_values have been collapsed to plain ids.\n\n",
+            rep.num_values_folded
+        );
+    }
+
+    if (!is_ok) {
+        std::string text = "Palette has been loaded with issues.\n\n" + error_text;
+        state.control->show_warning_popup(text);
+    }
+}
+
+void reimport_palette(State& state, Palette& p)
+{
+    p.entries.clear();
+    import_palette_data_and_report(state, p, p.imported_id);
 }
 
 } // namespace editor

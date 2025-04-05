@@ -411,6 +411,12 @@ static void show_palette_header_info(State& state, Palette& p)
     if (p.imported) {
         ImGui::Text("ID: %s", p.imported_id.data.c_str());
         ImGui::HelpPopup("ID from which the palette was imported.");
+        ImGui::SameLine();
+        if (ImGui::Button("Reimport")) {
+            reimport_palette(state, p);
+            state.mark_changed("palette-reimported");
+        }
+        ImGui::HelpPopup("Discard all changes and re-import the palette from same id.");
         ImGui::Text("IMPORTED PALETTE, ALL CHANGES WILL BE DISCARDED ON EXPORT");
     }
     else {
