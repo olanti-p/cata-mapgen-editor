@@ -671,4 +671,14 @@ std::string PieceAltTerrain::fmt_data_summary() const
     return ret;
 }
 
+void PieceUnknown::show_ui(State& state)
+{
+    ImGui::Text("Unknown piece. Import failed.");
+}
+
+std::string PieceUnknown::fmt_data_summary() const
+{
+    return "unknown";
+}
+
 } // namespace editor

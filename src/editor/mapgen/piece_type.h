@@ -35,6 +35,7 @@ enum class PieceType : int {
     AltTrap,
     AltFurniture,
     AltTerrain,
+    Unknown,
 
     NumJmTypes
 };

@@ -169,6 +169,7 @@ std::string enum_to_string<editor::PieceType>( editor::PieceType data )
         case editor::PieceType::AltTrap: return "AltTrap";
         case editor::PieceType::AltFurniture: return "AltFurniture";
         case editor::PieceType::AltTerrain: return "AltTerrain";
+        case editor::PieceType::Unknown: return "Unknown";
         // *INDENT-ON*
         default:
             break;
@@ -530,6 +531,15 @@ void PieceAltTerrain::deserialize( const JSON_OBJECT &jsin )
     jsin.read( "list", list );
 }
 
+void PieceUnknown::serialize(JsonOut& jsout) const
+{
+
+}
+
+void PieceUnknown::deserialize(const JSON_OBJECT& jsin)
+{
+
+}
 
 namespace detail
 {

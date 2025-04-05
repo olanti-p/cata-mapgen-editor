@@ -239,6 +239,10 @@ struct PieceAltTerrain : public Piece {
     WeightedList<EID::Ter> list;
 };
 
+struct PieceUnknown : public Piece {
+    IMPLEMENT_ME_PIECE(PieceUnknown, PieceType::Unknown)
+};
+
 } // namespace editor
 
 template<>

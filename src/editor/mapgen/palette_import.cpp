@@ -54,6 +54,7 @@ PaletteImportReport import_palette_data( Project &project, Palette &palette,
                         mapping.pieces.emplace_back( std::move( new_piece ) );
                     } else {
                         report.num_failed += 1;
+                        mapping.pieces.emplace_back(make_new_piece(PieceType::Unknown));
                     }
                 }
             }

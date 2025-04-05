@@ -441,6 +441,11 @@ void PieceAltTerrain::export_func( JsonOut &jo ) const
     ee::emit_val( jo, list );
 }
 
+void PieceUnknown::export_func(JsonOut& jo) const
+{
+    // TODO: print some error or something
+}
+
 } // namespace editor
 
 namespace editor_export
@@ -475,6 +480,7 @@ std::string get_palette_category( editor::PieceType data )
         case editor::PieceType::AltFurniture: return "furniture";
         case editor::PieceType::AltTerrain: return "terrain";
         // These cannot exist as mappings
+        case editor::PieceType::Unknown:
         case editor::PieceType::Loot:
         case editor::PieceType::Trap:
         case editor::PieceType::Furniture:
@@ -518,6 +524,7 @@ std::string get_object_category( editor::PieceType data )
         case editor::PieceType::Zone: return "place_zones";
         case editor::PieceType::Nested: return "place_nested";
         // These cannot exist as objects
+        case editor::PieceType::Unknown:
         case editor::PieceType::SealedItem:
         case editor::PieceType::AltTrap:
         case editor::PieceType::AltFurniture:

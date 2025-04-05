@@ -44,6 +44,7 @@ const std::vector<std::unique_ptr<Piece>> &get_piece_templates()
         REG_PIECE( PieceAltTrap );
         REG_PIECE( PieceAltFurniture );
         REG_PIECE( PieceAltTerrain );
+        REG_PIECE( PieceUnknown );
     }
     return ret;
 }
@@ -74,6 +75,7 @@ bool is_piece_exclusive( PieceType pt )
 bool is_available_as_mapping( PieceType pt )
 {
     return !(
+               pt == editor::PieceType::Unknown ||
                pt == editor::PieceType::Terrain ||
                pt == editor::PieceType::Furniture ||
                pt == editor::PieceType::Trap ||
@@ -84,6 +86,7 @@ bool is_available_as_mapping( PieceType pt )
 bool is_available_as_mapobject( PieceType pt )
 {
     return !(
+               pt == editor::PieceType::Unknown ||
                pt == editor::PieceType::AltTerrain ||
                pt == editor::PieceType::AltFurniture ||
                pt == editor::PieceType::AltTrap ||
