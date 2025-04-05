@@ -153,12 +153,15 @@ void HistoryState::mark_changed( const char *id )
 {
     std::string new_widget_changed_str = id ? id : "<nullptr>";
     if( project_has_changes ) {
+        // FIXME: this gets truggered when pressing Ctrl+Z while editing text.
+        // Very common occurance, must fix
         std::cerr << string_format(
                       R"(Tried to invoke mark_changed( "%s" ), but the project has already been marked as changed with id "%s".)",
                       new_widget_changed_str,
                       current_widget_changed_str
                   ) << std::endl;
-        std::abort();
+        //std::abort();
+        // Shouldn't happen, but we proceed anyway as a temporary workaround
     }
     current_widget_changed_str = new_widget_changed_str;
     if( id ) {
