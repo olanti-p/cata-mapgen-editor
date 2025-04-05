@@ -76,6 +76,7 @@ struct PaletteEntry {
 };
 
 struct Palette {
+public:
     UUID uuid;
     bool imported = false;
     EID::Palette id;
@@ -94,6 +95,10 @@ struct Palette {
 
     void serialize( JsonOut &jsout ) const;
     void deserialize(const TextJsonValue& jsin);
+
+private:
+    mutable std::unordered_map<map_key, size_t> entries_cache;
+    void rebuild_cache() const;
 };
 
 } // namespace editor

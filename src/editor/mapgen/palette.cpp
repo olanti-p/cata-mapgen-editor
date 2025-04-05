@@ -72,24 +72,40 @@ const SpriteRef *Palette::sprite_from_uuid( const map_key &uuid ) const
 
 PaletteEntry *Palette::find_entry( const map_key&uuid )
 {
-    // TODO: optimize
-    for( auto &it : entries ) {
-        if( it.key == uuid ) {
-            return &it;
+    if (entries.size() != entries_cache.size()) {
+        rebuild_cache();
+    }
+    auto it = entries_cache.find(uuid);
+    if (it == entries_cache.end()) {
+        return nullptr;
+    }
+    if (entries[it->second].key != uuid) {
+        rebuild_cache();
+        auto it = entries_cache.find(uuid);
+        if (it == entries_cache.end()) {
+            return nullptr;
         }
     }
-    return nullptr;
+    return &entries[it->second];
 }
 
 const PaletteEntry *Palette::find_entry( const map_key&uuid ) const
 {
-    // TODO: optimize
-    for( const auto &it : entries ) {
-        if( it.key == uuid ) {
-            return &it;
+    if (entries.size() != entries_cache.size()) {
+        rebuild_cache();
+    }
+    auto it = entries_cache.find(uuid);
+    if (it == entries_cache.end()) {
+        return nullptr;
+    }
+    if (entries[it->second].key != uuid) {
+        rebuild_cache();
+        auto it = entries_cache.find(uuid);
+        if (it == entries_cache.end()) {
+            return nullptr;
         }
     }
-    return nullptr;
+    return &entries[it->second];
 }
 
 std::string Palette::display_name() const
@@ -100,6 +116,13 @@ std::string Palette::display_name() const
         return id.data;
     } else {
         return string_format( "[uuid=%d]", uuid );
+    }
+}
+
+void Palette::rebuild_cache() const {
+    entries_cache.clear();
+    for (size_t i = 0; i < entries.size(); i++) {
+        entries_cache[entries[i].key] = i;
     }
 }
 
