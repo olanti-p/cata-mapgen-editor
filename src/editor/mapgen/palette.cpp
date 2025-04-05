@@ -109,10 +109,13 @@ const PaletteEntry *Palette::find_entry( const map_key&uuid ) const
 
 std::string Palette::display_name() const
 {
-    if( !name.empty() ) {
+    if (!name.empty()) {
         return name;
-    } else if( !id.data.empty() ) {
-        return id.data;
+    }
+    else if (imported && !imported_id.data.empty()) {
+        return imported_id.data;
+    } else if (!imported && !created_id.empty()) {
+        return created_id;
     } else {
         return string_format( "[uuid=%d]", uuid );
     }

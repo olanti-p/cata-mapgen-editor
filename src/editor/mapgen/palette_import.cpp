@@ -22,7 +22,7 @@ PaletteImportReport import_palette_data( Project &project, Palette &palette,
     palette_id id( source_id.data );
     const mapgen_palette &source = *id;
     palette.name = id.str();
-    palette.id = id;
+    palette.imported_id = id;
     palette.imported = true;
 
     int num_total = 0;

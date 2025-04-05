@@ -79,10 +79,11 @@ struct Palette {
 public:
     UUID uuid;
     bool imported = false;
-    EID::Palette id;
+    EID::Palette imported_id;
+    std::string created_id;
     std::string name;
-    std::vector<PaletteEntry> entries;
     std::optional<UUID> inherits_from;
+    std::vector<PaletteEntry> entries;
 
     const std::string *display_key_from_uuid( const map_key &uuid ) const;
     const ImVec4 &color_from_uuid( const map_key &uuid ) const;

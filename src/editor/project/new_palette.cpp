@@ -18,32 +18,13 @@ namespace editor
 bool show_new_palette_window( State &state, NewPaletteState &palette )
 {
     bool keep_open = true;
-    ImGui::Begin( "New Palette", &keep_open );
+    ImGui::SetNextWindowSize(ImVec2(300, 100), ImGuiCond_Appearing);
+    ImGui::Begin( "Import Palette", &keep_open );
     if( !keep_open ) {
         palette.cancelled = true;
     }
 
-    ImGui::InputText( "Name", &palette.name );
-    ImGui::HelpPopup( "Display name.  Has no effect, just for convenience." );
-
-    if( ImGui::RadioButton( "Create New", palette.kind == NewPaletteKind::BrandNew ) ) {
-        palette.kind = NewPaletteKind::BrandNew;
-    }
-    if( ImGui::RadioButton( "Import", palette.kind == NewPaletteKind::Imported ) ) {
-        palette.kind = NewPaletteKind::Imported;
-    }
-
-    if( palette.kind == NewPaletteKind::Imported ) {
-        ImGui::InputId( "Source", palette.import_from );
-    } else {
-        ImGui::Text( "-- TODO: inheriting palettes --" );
-        /*
-        ImGui::Checkbox( "Create inheriting palette", &palette.inherits );
-        ImGui::BeginDisabled( !palette.inherits );
-        ImGui::PaletteSelector( "Inherit from", palette.inherits_from, state.project().palettes );
-        ImGui::EndDisabled();
-        */
-    }
+    ImGui::InputId( "Source", palette.import_from );
 
     bool input_ok = true;
     if( palette.kind == NewPaletteKind::BrandNew && palette.inherits &&
@@ -80,6 +61,7 @@ void add_palette( State &state, NewPaletteState &palette )
     project.palettes.emplace_back();
     Palette &new_palette = project.palettes.back();
     new_palette.uuid = new_palette_uuid;
+    new_palette.imported = palette.kind == NewPaletteKind::Imported;
 
     if( palette.inherits ) {
         new_palette.inherits_from = palette.inherits_from;

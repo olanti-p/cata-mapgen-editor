@@ -588,10 +588,11 @@ void Palette::serialize( JsonOut &jsout ) const
 {
     jsout.start_object();
     jsout.member( "uuid", uuid );
-    jsout.member( "id", id );
     jsout.member( "imported", imported );
-    jsout.member( "inherits_from", inherits_from );
+    jsout.member( "imported_id", imported_id );
+    jsout.member( "created_id", created_id );
     jsout.member( "name", name );
+    jsout.member( "inherits_from", inherits_from );
     jsout.member( "entries", entries );
     jsout.end_object();
 }
@@ -601,10 +602,11 @@ void Palette::deserialize( const TextJsonValue &jsin )
     JSON_OBJECT jo = jsin.get_object();
 
     jo.read( "uuid", uuid );
-    jo.read( "id", id );
     jo.read( "imported", imported );
-    jo.read( "inherits_from", inherits_from );
+    jo.read( "imported_id", imported_id );
+    jo.read( "created_id", created_id );
     jo.read( "name", name );
+    jo.read( "inherits_from", inherits_from );
     jo.read( "entries", entries );
 }
 

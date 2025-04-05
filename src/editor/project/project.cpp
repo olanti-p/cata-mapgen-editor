@@ -44,7 +44,7 @@ void show_project_overview_ui( State &state, Project &project, bool &show )
     ImGui::Begin( "Project Overview", &show );
 
     ImGui::PushID( "palettes" );
-    ImGui::Text( "Palettes:" );
+    ImGui::Text( "Active Palettes:" );
 
     bool changed_palettes = ImGui::VectorWidget()
     .with_for_each( [&]( size_t idx ) {
@@ -59,9 +59,19 @@ void show_project_overview_ui( State &state, Project &project, bool &show )
         }
     } )
     .with_add( [&]()->bool {
-        if( ImGui::Button( "New palette" ) )
+        if (ImGui::Button( "Import palette..." ) )
         {
             state.ui->new_palette_window = std::make_unique<NewPaletteState>();
+        }
+        ImGui::SameLine();
+        if( ImGui::Button( "New palette" ) )
+        {
+            NewPaletteState new_pal;
+            new_pal.kind = NewPaletteKind::BrandNew;
+            // FIXME: implement display names for palettes
+            //new_pal.name = "New palette";
+            add_palette(state, new_pal);
+            return true;
         }
         return false;
     } )
@@ -77,11 +87,14 @@ void show_project_overview_ui( State &state, Project &project, bool &show )
     .with_delete( [&]( size_t idx ) {
         project.palettes.erase( std::next( project.palettes.cbegin(), idx ) );
     } )
+    /*
+    * FIXME: implement palette duplication
     .with_duplicate( [&]( size_t idx ) {
         Palette copy = project.palettes[ idx ];
         copy.uuid = project.uuid_generator();
         project.palettes.insert( std::next( project.palettes.cbegin(), idx + 1 ), std::move( copy ) );
     } )
+    */
     .with_default_move()
     .with_default_drag_drop()
     .run( project.palettes );
@@ -89,7 +102,7 @@ void show_project_overview_ui( State &state, Project &project, bool &show )
     ImGui::PopID();
     ImGui::Separator();
     ImGui::PushID("mapgens");
-    ImGui::Text("Mapgens:");
+    ImGui::Text("Active Mapgens:");
 
     bool changed_mapgens = ImGui::VectorWidget()
         .with_for_each([&](size_t idx) {

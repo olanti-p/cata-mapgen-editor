@@ -272,9 +272,11 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
     } )
     .with_delete( [&]( size_t idx ) {
         const map_key &uuid = list[ idx ].key;
+        /*
         for( Mapgen &mapgen : proj.mapgens ) {
             mapgen.base.remove_usages( uuid );
         }
+        */
         if( tools.get_main_tile() == uuid ) {
             tools.set_main_tile( map_key() );
         }
@@ -413,7 +415,13 @@ void show_palette_verbose( State &state, Palette &p, bool &show )
     ImGui::PushID( p.uuid );
 
     if (p.imported) {
-        ImGui::Text( "IMPORTED id: %s - ALL CHANGES WILL BE DISCARDED ON EXPORT", p.id.data.c_str() );
+        ImGui::Text( "IMPORTED id: %s - ALL CHANGES WILL BE DISCARDED ON EXPORT", p.imported_id.data.c_str() );
+    }
+    else {
+        if (ImGui::InputText("ID", &p.created_id)) {
+            state.mark_changed("palette-created-id");
+        }
+        ImGui::HelpPopup("ID with which to save this palette.");
     }
     if( p.inherits_from ) {
         std::string label = string_format( "Inherits from: %s",

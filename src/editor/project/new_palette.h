@@ -19,7 +19,7 @@ enum class NewPaletteKind {
 
 struct NewPaletteState {
     std::string name;
-    NewPaletteKind kind = NewPaletteKind::BrandNew;
+    NewPaletteKind kind = NewPaletteKind::Imported;
     EID::Palette import_from;
     bool inherits = false;
     UUID inherits_from = UUID_INVALID;
@@ -28,6 +28,7 @@ struct NewPaletteState {
     bool cancelled = false;
 };
 
+// FIXME: remove palette creation code from this and leave only import
 bool show_new_palette_window( State &state, NewPaletteState &palette );
 void add_palette( State &state, NewPaletteState &palette );
 
