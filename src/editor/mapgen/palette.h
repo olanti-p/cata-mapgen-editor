@@ -78,6 +78,7 @@ struct PaletteEntry {
 
 struct Palette {
     UUID uuid;
+    bool imported = false;
     EID::Palette id;
     std::string name;
     std::vector<PaletteEntry> entries;

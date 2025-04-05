@@ -80,7 +80,6 @@ void add_palette( State &state, NewPaletteState &palette )
     project.palettes.emplace_back();
     Palette &new_palette = project.palettes.back();
     new_palette.uuid = new_palette_uuid;
-    new_palette.name = palette.name;
 
     if( palette.inherits ) {
         new_palette.inherits_from = palette.inherits_from;
@@ -97,6 +96,7 @@ void add_palette( State &state, NewPaletteState &palette )
             state.control->show_warning_popup( text );
         }
     }
+    new_palette.name = palette.name;
 }
 
 } // namespace editor

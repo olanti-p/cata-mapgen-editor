@@ -394,7 +394,9 @@ void show_palette_verbose( State &state, Palette &p, bool &show )
     }
     ImGui::PushID( p.uuid );
 
-    ImGui::Text( "id: %s", p.id.data.c_str() );
+    if (p.imported) {
+        ImGui::Text( "IMPORTED id: %s", p.id.data.c_str() );
+    }
     if( p.inherits_from ) {
         std::string label = string_format( "Inherits from: %s",
                                            state.project().get_palette( *p.inherits_from )->display_name() );
