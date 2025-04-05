@@ -299,11 +299,13 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
         }
         ImGui::SameLine();
 
-        if( ImGui::ColorEdit4( "MyColor##3", ( float * )&list[idx].color,
-                               ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel ) ) {
-            state.mark_changed( "palette-entry-color" );
+        if (false) {
+            if (ImGui::ColorEdit4("MyColor##3", (float*)&list[idx].color,
+                ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel)) {
+                state.mark_changed("palette-entry-color");
+            }
+            ImGui::SameLine();
         }
-        ImGui::SameLine();
 
         ImGui::SetNextItemWidth( ImGui::GetFrameHeight() );
         bool is_dupe_symbol = dupe_symbols.count( list[idx].key ) > 0;
