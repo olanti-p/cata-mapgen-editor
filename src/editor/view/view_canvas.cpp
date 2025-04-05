@@ -286,7 +286,11 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
     }
 
     if( mapgen.uses_rows() ) {
-        if (state.ui->show_canvas_sprites) {
+        float canvas_sprite_opacity = state.ui->canvas_sprite_opacity;
+        bool show_canvas_sprites = state.ui->show_canvas_sprites && canvas_sprite_opacity > 0.01f;
+        bool show_canvas_symbols = state.ui->show_canvas_symbols;
+
+        if (show_canvas_sprites) {
             for (int x = 0; x < mapgen.mapgensize().x(); x++) {
                 for (int y = 0; y < mapgen.mapgensize().y(); y++) {
                     point_abs_etile p(x, y);
@@ -304,15 +308,15 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                 point_abs_etile p( x, y );
                 const map_key &uuid = get_uuid_at_pos( p.raw() );
                 ImVec4 col = pal.color_from_uuid( uuid );
-                const SpriteRef *img = state.ui->show_canvas_sprites ? pal.sprite_from_uuid( uuid ) : nullptr;
+                const SpriteRef *img = show_canvas_sprites ? pal.sprite_from_uuid( uuid ) : nullptr;
                 if( img ) {
-                    col.w *= (1.0f - state.ui->canvas_sprite_opacity);
+                    col.w *= (1.0f - canvas_sprite_opacity);
                 }
                 fill_tile( draw_list, cam, p, col );
             }
         }
 
-        if (state.ui->show_canvas_symbols) {
+        if (show_canvas_symbols) {
             for (int x = 0; x < mapgen.mapgensize().x(); x++) {
                 for (int y = 0; y < mapgen.mapgensize().y(); y++) {
                     point_abs_etile p(x, y);
