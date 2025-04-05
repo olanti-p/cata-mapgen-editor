@@ -312,9 +312,12 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
         if( is_dupe_symbol ) {
             ImGui::BeginErrorArea();
         }
+        ImGui::BeginDisabled();
         if( ImGui::InputSymbol( "##key", list[idx].key.str, default_map_key.str.c_str() ) ) {
+            // FIXME: ensure unique keys
             state.mark_changed( "palette-entry-key" );
         }
+        ImGui::EndDisabled();
         ImGui::HelpPopup( "Symbol to use on canvas." );
         if( is_dupe_symbol ) {
             ImGui::EndErrorArea();
