@@ -21,6 +21,10 @@
 
 #include "imgui_internal.h"
 
+// FIXME: move to some header
+void serialize(const map_key& mk, JsonOut& jsout);
+void deserialize(map_key& mk, const TextJsonValue& jsin);
+
 namespace editor
 {
 // TODO: Simplify this, there can only be a single instance of ui state alive in each project file.

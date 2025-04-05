@@ -60,7 +60,6 @@ struct Mapping {
 };
 
 struct PaletteEntry {
-    UUID uuid;
     map_key key;
     ImVec4 color;
     std::string name;
@@ -84,13 +83,12 @@ struct Palette {
     std::vector<PaletteEntry> entries;
     std::optional<UUID> inherits_from;
 
-    const map_key &key_from_uuid( const UUID &uuid ) const;
-    const std::string &display_key_from_uuid( const UUID &uuid ) const;
-    const ImVec4 &color_from_uuid( const UUID &uuid ) const;
-    const SpriteRef *sprite_from_uuid( const UUID &uuid ) const;
+    const std::string &display_key_from_uuid( const map_key &uuid ) const;
+    const ImVec4 &color_from_uuid( const map_key &uuid ) const;
+    const SpriteRef *sprite_from_uuid( const map_key &uuid ) const;
 
-    PaletteEntry *find_entry( const UUID &uuid );
-    const PaletteEntry *find_entry( const UUID &uuid ) const;
+    PaletteEntry *find_entry( const map_key &uuid );
+    const PaletteEntry *find_entry( const map_key &uuid ) const;
 
     std::string display_name() const;
 

@@ -567,7 +567,6 @@ void Mapping::deserialize( const TextJsonValue &jsin )
 void PaletteEntry::serialize( JsonOut &jsout ) const
 {
     jsout.start_object();
-    jsout.member( "uuid", uuid );
     jsout.member( "key", key );
     jsout.member( "color", color );
     jsout.member( "name", name );
@@ -579,7 +578,6 @@ void PaletteEntry::deserialize( const TextJsonValue &jsin )
 {
     JSON_OBJECT jo = jsin.get_object();
 
-    jo.read( "uuid", uuid );
     jo.read( "key", key );
     jo.read( "color", color );
     jo.read( "name", name );

@@ -32,9 +32,9 @@ void BucketControl::handle_tool_operation( ToolTarget &target )
         return;
     }
     if( ImGui::IsMouseClicked( ImGuiMouseButton_Left ) ) {
-        Canvas2D<UUID> &canvas = target.mapgen.base.canvas;
+        Canvas2D<map_key> &canvas = target.mapgen.base.canvas;
         point pos = target.cursor_tile_pos.raw();
-        UUID new_value = target.main_tile;
+        map_key new_value = target.main_tile;
         BucketSettings *settings = dynamic_cast<BucketSettings *>( target.settings );
         std::vector<point> affected =
             find_affected_tiles( *settings, canvas, *target.selection, pos, new_value );
@@ -48,21 +48,21 @@ void BucketControl::handle_tool_operation( ToolTarget &target )
 std::vector<point>
 BucketControl::find_affected_tiles(
     BucketSettings &settings,
-    Canvas2D<UUID> &canvas,
+    Canvas2D<map_key> &canvas,
     SelectionMask &selection,
     point pos,
-    UUID new_value
+    map_key new_value
 ) const
 {
     std::vector<point> ret;
 
-    UUID old_value = canvas.get( pos );
+    map_key old_value = canvas.get( pos );
     if( old_value == new_value ) {
         return ret;
     }
     bool in_selection = settings.in_selection;
 
-    const auto predicate = [ = ]( point p, const UUID & t ) {
+    const auto predicate = [ = ]( point p, const map_key& t ) {
         if( in_selection && !selection.get( p ) ) {
             return false;
         }
@@ -76,7 +76,7 @@ BucketControl::find_affected_tiles(
     return ret;
 }
 
-void BucketControl::apply( Canvas2D<UUID> &canvas, const std::vector<point> &tiles, UUID new_value )
+void BucketControl::apply( Canvas2D<map_key> &canvas, const std::vector<point> &tiles, map_key new_value )
 {
     for( point p : tiles ) {
         canvas.set( p, new_value );

@@ -1,6 +1,7 @@
 #ifndef CATA_SRC_EDITOR_PALETTE_VIEW_H
 #define CATA_SRC_EDITOR_PALETTE_VIEW_H
 
+#include "mapgen_map_key.h"
 #include "common/uuid.h"
 
 namespace editor
@@ -13,7 +14,7 @@ struct PaletteEntry;
 
 struct PaletteEntryDragState {
     UUID palette = UUID_INVALID;
-    UUID entry = UUID_INVALID;
+    map_key entry;
 };
 
 void show_mapping( State &state, Palette &p, PaletteEntry &entry, bool &show );

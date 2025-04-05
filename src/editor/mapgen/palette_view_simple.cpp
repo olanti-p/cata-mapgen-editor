@@ -14,10 +14,10 @@
 
 namespace editor
 {
-static int find_dragged_idx( const Palette &palette, UUID uuid )
+static int find_dragged_idx( const Palette &palette, map_key uuid )
 {
     for( size_t i = 0; i < palette.entries.size(); i++ ) {
-        if( palette.entries[i].uuid == uuid ) {
+        if( palette.entries[i].key == uuid ) {
             return i;
         }
     }
@@ -37,7 +37,7 @@ bool handle_palette_entry_drag_and_drop( Project &project, Palette &palette, int
         if( ImGui::BeginDragDropSource() ) {
             PaletteEntryDragState dd;
             dd.palette = palette.uuid;
-            dd.entry = entries[idx].uuid;
+            dd.entry = entries[idx].key;
             ImGui::SetDragDropPayload( payload_id, &dd, sizeof( dd ) );
             ImGui::Text( "Drag to reorder elements." );
             ImGui::EndDragDropSource();
@@ -85,7 +85,7 @@ bool handle_palette_entry_drag_and_drop( Project &project, Palette &palette, int
 
 static void show_palette_entries_simple( State &state, Palette &palette )
 {
-    UUID selected = state.ui->tools->get_main_tile();
+    const map_key &selected = state.ui->tools->get_main_tile();
     ImGuiStyle &style = ImGui::GetStyle();
     int buttons_count = palette.entries.size();
     float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
@@ -105,10 +105,10 @@ static void show_palette_entries_simple( State &state, Palette &palette )
             continue;
         }
         const PaletteEntry &entry = palette.entries[idx];
-        const SpriteRef *img = palette.sprite_from_uuid( entry.uuid );
+        const SpriteRef *img = palette.sprite_from_uuid( entry.key );
         ImGui::PushID( idx );
-        bool is_selected = selected == entry.uuid;
-        bool is_highlighted = state.control->highlight_entry_in_palette == entry.uuid;
+        bool is_selected = selected == entry.key;
+        bool is_highlighted = state.control->highlight_entry_in_palette == entry.key;
         if( is_highlighted ) {
             ImGui::PushStyleColor( ImGuiCol_Button, col_highlighted_palette_entry );
             ImGui::PushStyleColor( ImGuiCol_ButtonHovered, col_highlighted_palette_entry );
@@ -132,7 +132,7 @@ static void show_palette_entries_simple( State &state, Palette &palette )
             state.mark_changed();
         }
         if( btn_result && !is_selected ) {
-            state.ui->tools->set_main_tile( entry.uuid );
+            state.ui->tools->set_main_tile( entry.key );
         }
         if( ImGui::IsItemHovered( ImGuiHoveredFlags_DelayShort ) ) {
             ImGui::BeginTooltip();

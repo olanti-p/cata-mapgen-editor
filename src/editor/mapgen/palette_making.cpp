@@ -19,7 +19,6 @@ map_key pick_available_key( const Palette &pal )
 PaletteEntry make_simple_entry( Project &project, Palette &palette, Mapping &&mapping )
 {
     return PaletteEntry{
-        project.uuid_generator(),
         pick_available_key( palette ),
         col_default_piece_color,
         "",

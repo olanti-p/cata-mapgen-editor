@@ -1,6 +1,7 @@
 #ifndef CATA_SRC_EDITOR_TOOL_H
 #define CATA_SRC_EDITOR_TOOL_H
 
+#include "mapgen_map_key.h"
 #include "common/uuid.h"
 #include "coordinates.h"
 #include "enum_traits.h"
@@ -84,7 +85,7 @@ struct ToolTarget {
     point_abs_epos cursor_view_pos;
     Mapgen &mapgen;
     ToolSettings *settings;
-    UUID main_tile = UUID_INVALID;
+    map_key main_tile;
     ToolHighlight &highlight;
     SelectionMask *selection = nullptr;
     SnippetsState &snippets;

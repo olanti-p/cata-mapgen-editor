@@ -35,14 +35,14 @@ static void collapse_piece( State &state, const UUID &piece_id )
 void show_mapping( State &state, editor::Palette &p, editor::PaletteEntry &entry,
                    bool &show )
 {
-    std::string wnd_id = string_format( "Mappings##wnd-mappings-%d-%d", p.uuid, entry.uuid );
+    std::string wnd_id = string_format( "Mappings##wnd-mappings-%d-%s", p.uuid, entry.key.str );
     ImGui::SetNextWindowSize( ImVec2( 450.0f, 300.0f ), ImGuiCond_FirstUseEver );
     ImGui::SetNextWindowPos( ImVec2( 50.0f, 50.0f ), ImGuiCond_FirstUseEver );
     if( !ImGui::Begin( wnd_id.c_str(), &show ) ) {
         ImGui::End();
         return;
     }
-    ImGui::PushID( entry.uuid );
+    ImGui::PushID( entry.key );
 
     if( ImGui::InputText( "Name", &entry.name ) ) {
         state.mark_changed( "entry-name" );
@@ -262,7 +262,6 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
     .with_duplicate( [&]( size_t idx ) {
         const PaletteEntry &src = list[ idx ];
         list.insert( std::next( list.cbegin(), idx + 1 ), PaletteEntry{
-            proj.uuid_generator(),
             pick_available_key( palette ),
             src.color,
             src.name,
@@ -272,28 +271,28 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
         } );
     } )
     .with_delete( [&]( size_t idx ) {
-        const UUID &uuid = list[ idx ].uuid;
+        const map_key &uuid = list[ idx ].key;
         for( Mapgen &mapgen : proj.mapgens ) {
             mapgen.base.remove_usages( uuid );
         }
         if( tools.get_main_tile() == uuid ) {
-            tools.set_main_tile( UUID_INVALID );
+            tools.set_main_tile( map_key() );
         }
         list.erase( std::next( list.cbegin(), idx ) );
     } )
     .with_for_each( [&]( size_t idx ) {
-        if( list[idx].uuid == tools.get_main_tile() ) {
+        if( list[idx].key == tools.get_main_tile() ) {
             ImGui::PushStyleColor( ImGuiCol_Button, col_selected_palette_entry );
             ImGui::PushStyleColor( ImGuiCol_ButtonHovered, col_selected_palette_entry );
             ImGui::PushStyleColor( ImGuiCol_ButtonActive, col_selected_palette_entry );
             if( ImGui::ImageButton( "unpick", "me_clear_rows_brush" ) ) {
-                tools.set_main_tile( UUID_INVALID );
+                tools.set_main_tile( map_key() );
             }
             ImGui::PopStyleColor( 3 );
             ImGui::HelpPopup( "Unselect (turns brush into eraser)." );
         } else {
             if( ImGui::ImageButton( "pick", "me_set_rows_brush" ) ) {
-                tools.set_main_tile( list[idx].uuid );
+                tools.set_main_tile( list[idx].key );
             }
             ImGui::HelpPopup( "Select as active for brush." );
         }
@@ -356,7 +355,7 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
         }
         ImGui::SameLine();
         if( ImGui::ArrowButton( "##mapping", ImGuiDir_Right ) ) {
-            state.ui->toggle_show_mapping( palette.uuid, list[idx].uuid );
+            state.ui->toggle_show_mapping( palette.uuid, list[idx].key );
         }
         ImGui::HelpPopup( "Show/hide mappings\nassociated with this symbol." );
 

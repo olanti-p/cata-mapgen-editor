@@ -7,15 +7,15 @@
 namespace editor
 {
 
-std::vector<point> find_tiles_via_global( const Canvas2D<UUID> &canvas,
-        std::function<bool( point p, const UUID & )> predicate )
+std::vector<point> find_tiles_via_global( const Canvas2D<map_key> &canvas,
+        std::function<bool( point p, const map_key& )> predicate )
 {
     std::vector<point> ret;
 
     for( int x = 0; x < canvas.get_size().x; x++ ) {
         for( int y = 0; y < canvas.get_size().y; y++ ) {
             point p( x, y );
-            const UUID &t = canvas.get( p );
+            const map_key&t = canvas.get( p );
             if( predicate( p, t ) ) {
                 ret.push_back( p );
             }
@@ -25,9 +25,9 @@ std::vector<point> find_tiles_via_global( const Canvas2D<UUID> &canvas,
     return ret;
 }
 
-std::vector<point> find_tiles_via_floodfill( const Canvas2D<UUID> &canvas,
+std::vector<point> find_tiles_via_floodfill( const Canvas2D<map_key> &canvas,
         const point &initial_pos,
-        std::function<bool( point p, const UUID & )> predicate )
+        std::function<bool( point p, const map_key& )> predicate )
 {
     std::vector<point> ret;
 

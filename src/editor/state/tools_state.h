@@ -1,6 +1,7 @@
 #ifndef CATA_SRC_EDITOR_TOOLS_STATE_H
 #define CATA_SRC_EDITOR_TOOLS_STATE_H
 
+#include "mapgen_map_key.h"
 #include "common/uuid.h"
 #include "tool/tool.h"
 
@@ -25,10 +26,10 @@ struct ToolsState {
         void serialize( JsonOut &jsout ) const;
         void deserialize(const TextJsonObject&jsin );
 
-        inline const UUID &get_main_tile() const {
+        inline const map_key &get_main_tile() const {
             return selected_tile;
         }
-        void set_main_tile( const UUID &uuid );
+        void set_main_tile( const map_key &uuid );
 
         inline tools::ToolKind get_tool() const {
             return tool;
@@ -40,7 +41,7 @@ struct ToolsState {
     private:
         std::unordered_map<tools::ToolKind, std::unique_ptr<tools::ToolSettings>> tool_settings;
         tools::ToolKind tool = tools::ToolKind::Cursor;
-        UUID selected_tile = UUID_INVALID;
+        map_key selected_tile;
 };
 
 } // namespace editor

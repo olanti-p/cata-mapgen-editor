@@ -20,6 +20,7 @@ struct MapKeyGenerator {
 
         inline map_key operator()() {
             if( opts.empty() ) {
+                // TODO: return from unicode ranges
                 return default_map_key;
             } else {
                 return opts[0];

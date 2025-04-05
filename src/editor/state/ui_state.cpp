@@ -51,7 +51,7 @@ void UiState::toggle_show_palette_simple( UUID uuid )
     open_palettes_simple.back().uuid = uuid;
 }
 
-void UiState::toggle_show_mapping( UUID palette, UUID uuid )
+void UiState::toggle_show_mapping( UUID palette, map_key uuid )
 {
     for( auto &it : open_mappings ) {
         if( it.uuid == uuid && it.palette == palette ) {

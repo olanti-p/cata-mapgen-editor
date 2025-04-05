@@ -11,7 +11,7 @@ namespace editor
 ToolsState::ToolsState() = default;
 ToolsState::~ToolsState() = default;
 
-void ToolsState::set_main_tile( const UUID &uuid )
+void ToolsState::set_main_tile( const map_key &uuid )
 {
     selected_tile = uuid;
 }

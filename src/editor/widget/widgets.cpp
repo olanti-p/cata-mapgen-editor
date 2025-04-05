@@ -256,7 +256,7 @@ bool InputSymbol( const char *label, std::string &input, const char *fallback )
             input = fallback;
         } else {
             // TODO: optionally forbid wide characters
-            // TODO: accept combining characters
+            // TODO: accept combining characters (or remove combining chars support from map_key)
             std::u32string s32 = utf8_to_utf32( input );
             input = utf32_to_utf8( s32[0] );
         }
@@ -532,6 +532,11 @@ void HelpMarkerInline( const char *desc )
 void HelpPopup( const char *desc )
 {
     help_popup_common( desc, ImGuiHoveredFlags_DelayNormal );
+}
+
+void PushID(const map_key& mk)
+{
+    PushID(mk.str.c_str());
 }
 
 static void handle_drag_drop_source( size_t idx, const char *payload_id )

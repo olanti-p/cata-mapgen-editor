@@ -17,6 +17,7 @@
 
 #include "calendar.h"
 
+class map_key;
 class nc_color;
 struct jmapgen_int;
 class jmapgen_place;
@@ -110,6 +111,8 @@ void EndErrorArea();
 void HelpMarker( const char *desc );
 void HelpMarkerInline( const char *desc );
 void HelpPopup( const char *desc );
+
+void PushID(const map_key& mk);
 
 bool PaletteSelector( const char *label, editor::UUID &current_item,
                       std::vector<editor::Palette> &options );

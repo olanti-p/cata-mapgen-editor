@@ -31,7 +31,7 @@ void BrushControl::handle_tool_operation( ToolTarget &target )
         if( !is_stroke_active ) {
             start_stroke();
         }
-        Canvas2D<UUID> &canvas = target.mapgen.base.canvas;
+        Canvas2D<map_key> &canvas = target.mapgen.base.canvas;
         apply( canvas, target.cursor_tile_pos.raw(), target.main_tile );
     } else if( is_stroke_active ) {
         end_stroke( target );
@@ -52,7 +52,7 @@ void BrushControl::end_stroke( ToolTarget &target )
     target.made_changes = stroke_changed_data;
 }
 
-void BrushControl::apply( Canvas2D<UUID> &canvas, point pos, UUID new_value )
+void BrushControl::apply( Canvas2D<map_key> &canvas, point pos, map_key new_value )
 {
     canvas.set( pos, new_value );
     stroke_changed_data = true;

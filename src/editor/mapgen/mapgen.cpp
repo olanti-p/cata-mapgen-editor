@@ -233,7 +233,7 @@ point_rel_etile Mapgen::mapgensize() const
 
 void Mapgen::set_canvas_size( point new_size )
 {
-    base.canvas.set_size( new_size, UUID_INVALID );
+    base.canvas.set_size( new_size, map_key() );
     selection_mask = SelectionMask( new_size );
 }
 
@@ -259,7 +259,7 @@ void Mapgen::erase_selected( const SelectionMask &mask )
         for( int x = 0; x < mask.get_size().x; x++ ) {
             point pos( x, y );
             if( mask.get( pos ) ) {
-                base.canvas.set( pos, UUID_INVALID );
+                base.canvas.set( pos, map_key() );
             }
         }
     }
@@ -267,11 +267,11 @@ void Mapgen::erase_selected( const SelectionMask &mask )
 
 MapgenBase::~MapgenBase() = default;
 
-void MapgenBase::remove_usages( const UUID &uuid )
+void MapgenBase::remove_usages( const map_key &uuid )
 {
-    for( UUID &cell : canvas.get_data() ) {
+    for( map_key &cell : canvas.get_data() ) {
         if( cell == uuid ) {
-            cell = UUID_INVALID;
+            cell = map_key();
         }
     }
 }
@@ -280,12 +280,12 @@ void Mapgen::apply_snippet( const CanvasSnippet &snippet )
 {
     assert( uses_rows() );
 
-    Canvas2D<UUID> &canvas = base.canvas;
+    Canvas2D<map_key> &canvas = base.canvas;
 
     for( int y = 0; y < snippet.get_size().y; y++ ) {
         for( int x = 0; x < snippet.get_size().x; x++ ) {
             point p_src( x, y );
-            std::optional<UUID> data = snippet.get_data_at( p_src );
+            std::optional<map_key> data = snippet.get_data_at( p_src );
             if( data ) {
                 point p_dest = snippet.get_pos() + p_src;
                 if( canvas.get_bounds().contains( p_dest ) ) {

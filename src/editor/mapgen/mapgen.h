@@ -26,13 +26,13 @@ namespace editor
 struct State;
 
 struct MapgenBase {
-    MapgenBase() : canvas( point( SEEX * 2, SEEY * 2 ), UUID_INVALID ) { }
+    MapgenBase() : canvas( point( SEEX * 2, SEEY * 2 ), map_key() ) { }
     ~MapgenBase();
 
-    Canvas2D<UUID> canvas;
+    Canvas2D<map_key> canvas;
     UUID palette = UUID_INVALID;
 
-    void remove_usages( const UUID &uuid );
+    void remove_usages( const map_key &uuid );
 
     void serialize( JsonOut &jsout ) const;
     void deserialize( const TextJsonValue &jsin );

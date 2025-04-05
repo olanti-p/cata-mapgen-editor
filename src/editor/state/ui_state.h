@@ -32,7 +32,7 @@ struct OpenMapping {
     void deserialize(const TextJsonObject&jsin );
 
     UUID palette = UUID_INVALID;
-    UUID uuid = UUID_INVALID;
+    map_key uuid;
     bool open = true;
 };
 
@@ -101,7 +101,7 @@ struct UiState {
 
     void toggle_show_palette_verbose( UUID uuid );
     void toggle_show_palette_simple( UUID uuid );
-    void toggle_show_mapping( UUID palette, UUID uuid );
+    void toggle_show_mapping( UUID palette, map_key uuid );
     void toggle_show_mapobjects( UUID uuid );
 };
 

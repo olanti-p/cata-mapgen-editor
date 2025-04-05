@@ -30,54 +30,30 @@ bool Mapping::has_piece_of_type( PieceType pt ) const
     return false;
 }
 
-const map_key &Palette::key_from_uuid( const UUID &uuid ) const
+const std::string &Palette::display_key_from_uuid( const map_key &uuid ) const
 {
-    if( uuid == UUID_INVALID ) {
-        return default_map_key;
-    }
-    const PaletteEntry *entry = find_entry( uuid );
-    if( entry ) {
-        return entry->key;
-    }
-
-    // Entry not found in palette
-    return default_map_key;
-}
-
-const std::string &Palette::display_key_from_uuid( const UUID &uuid ) const
-{
-    if( uuid == UUID_INVALID ) {
-        return default_map_key.str;
-    }
     const PaletteEntry *entry = find_entry( uuid );
     if( entry ) {
         return entry->key.str;
     }
 
-    // Entry not found in palette
-    static const std::string error_string( "<?>" );
-    return error_string;
+    static const std::string fallback_string( "<?>" );
+    return fallback_string;
 }
 
-const ImVec4 &Palette::color_from_uuid( const UUID &uuid ) const
+const ImVec4 &Palette::color_from_uuid( const map_key &uuid ) const
 {
-    if( uuid != UUID_INVALID ) {
-        const PaletteEntry *entry = find_entry( uuid );
-        if( entry ) {
-            return entry->color;
-        }
+    const PaletteEntry *entry = find_entry( uuid );
+    if( entry ) {
+        return entry->color;
     }
 
-    // Entry not found in palette
     static ImVec4 default_color = ImVec4();
     return default_color;
 }
 
-const SpriteRef *Palette::sprite_from_uuid( const UUID &uuid ) const
+const SpriteRef *Palette::sprite_from_uuid( const map_key &uuid ) const
 {
-    if( uuid == UUID_INVALID ) {
-        return nullptr;
-    }
     const PaletteEntry *entry = find_entry( uuid );
     if( entry ) {
         if( !entry->sprite_cache_valid ) {
@@ -94,26 +70,22 @@ const SpriteRef *Palette::sprite_from_uuid( const UUID &uuid ) const
     return nullptr;
 }
 
-PaletteEntry *Palette::find_entry( const UUID &uuid )
+PaletteEntry *Palette::find_entry( const map_key&uuid )
 {
-    if( uuid == UUID_INVALID ) {
-        return nullptr;
-    }
+    // TODO: optimize
     for( auto &it : entries ) {
-        if( it.uuid == uuid ) {
+        if( it.key == uuid ) {
             return &it;
         }
     }
     return nullptr;
 }
 
-const PaletteEntry *Palette::find_entry( const UUID &uuid ) const
+const PaletteEntry *Palette::find_entry( const map_key&uuid ) const
 {
-    if( uuid == UUID_INVALID ) {
-        return nullptr;
-    }
+    // TODO: optimize
     for( const auto &it : entries ) {
-        if( it.uuid == uuid ) {
+        if( it.key == uuid ) {
             return &it;
         }
     }

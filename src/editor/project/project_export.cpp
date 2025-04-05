@@ -592,12 +592,11 @@ static void emit_mapgen_contents( JsonOut &jo, const editor::Project &project,
         if( mapgen.uses_rows() ) {
             const editor::Palette &pal = *project.get_palette( mapgen.base.palette );
             emit_array( jo, "rows", [&]() {
-                const editor::Canvas2D<editor::UUID> &canvas = mapgen.base.canvas;
+                const editor::Canvas2D<map_key> &canvas = mapgen.base.canvas;
                 for( int y = 0; y < canvas.get_size().y; y++ ) {
                     std::string s;
                     for( int x = 0; x < canvas.get_size().x; x++ ) {
-                        editor::UUID uuid = canvas.get( point( x, y ) );
-                        const map_key &mk = pal.key_from_uuid( uuid );
+                        const map_key &mk = canvas.get( point( x, y ) );
                         s += mk.str;
                     }
                     emit_val( jo, s );
