@@ -677,7 +677,7 @@ bool VectorWidget::run_internal( size_t num )
                 move_to = num - 1;
             }
         } else {
-            dd_handled = f_drag_drop( num );
+            dd_handled = f_drag_drop( num ) || dd_handled;
         }
     }
     bool ret = false;
