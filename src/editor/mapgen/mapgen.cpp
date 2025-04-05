@@ -1,5 +1,10 @@
 #include "mapgen.h"
 
+#include <cassert>
+#include <cfloat>
+#include <climits>
+#include <vector>
+
 #include "common/canvas_2d.h"
 #include "common/uuid.h"
 #include "imgui.h"
@@ -12,10 +17,7 @@
 #include "string_formatter.h"
 #include "widget/editable_id.h"
 #include "widget/widgets.h"
-#include <cassert>
-#include <cfloat>
-#include <climits>
-#include <vector>
+#include "project/project.h"
 
 namespace editor
 {
@@ -38,6 +40,9 @@ void show_mapgen_info( State &state, Mapgen &mapgen, bool &show )
     }
     ImGui::HelpPopup( "Display name.  Has no effect, just for convenience." );
 
+    if (ImGui::PaletteSelector("Palette", mapgen.base.palette, state.project().palettes)) {
+        state.mark_changed("mapgen-palette");
+    }
     if( ImGui::Button( "Show/hide palette" ) ) {
         state.ui->toggle_show_palette_simple( mapgen.base.palette );
     }

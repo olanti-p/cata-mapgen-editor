@@ -54,20 +54,14 @@ bool show_new_mapgen_window( State &state, NewMapgenState &mapgen )
 
     ImGui::Separator();
 
-    ImGui::Checkbox( "Create new palette", &mapgen.create_new_palette );
-    ImGui::BeginDisabled( mapgen.create_new_palette );
-    ImGui::PaletteSelector( "Use palette", mapgen.palette, state.project().palettes );
-    ImGui::EndDisabled();
+    ImGui::PaletteSelector( "Palette", mapgen.palette, state.project().palettes );
 
     ImGui::Separator();
 
     ImGui::InputText( "Name", &mapgen.name );
     ImGui::HelpPopup( "Display name.  Has no effect, just for convenience." );
 
-    bool input_ok = true;
-    if( !mapgen.create_new_palette && !state.project().get_palette( mapgen.palette ) ) {
-        input_ok = false;
-    }
+    bool input_ok = (state.project().get_palette(mapgen.palette) != nullptr);
 
     ImGui::BeginDisabled( !input_ok );
     if( ImGui::Button( "Confirm" ) ) {
@@ -97,16 +91,7 @@ void add_mapgen( State &state, NewMapgenState &mapgen )
     new_mapgen.uuid = new_mapgen_uuid;
     new_mapgen.mtype = mapgen.mtype;
     new_mapgen.name = mapgen.name;
-
-    if( mapgen.create_new_palette ) {
-        UUID new_palette_uuid = project.uuid_generator();
-        new_mapgen.base.palette = new_palette_uuid;
-        project.palettes.emplace_back();
-        Palette &new_palette = project.palettes.back();
-        new_palette.uuid = new_palette_uuid;
-    } else {
-        new_mapgen.base.palette = mapgen.palette;
-    }
+    new_mapgen.base.palette = mapgen.palette;
 }
 
 } // namespace editor
