@@ -68,14 +68,25 @@ void add_palette( State &state, NewPaletteState &palette )
     }
     if( palette.kind == NewPaletteKind::Imported ) {
         PaletteImportReport rep = import_palette_data( state.project(), new_palette, palette.import_from );
-        if( rep.num_failed != 0 ) {
-            std::string text = string_format(
-                                   "Palette has been imported only partially.\n\n"
-                                   "%d out of %d mappings have failed to load.\n\n"
-                                   "%d mapgen_values have been collapsed.\n\n"
-                                   "-- TODO: Implement import of all mappings. --",
-                                   rep.num_failed, rep.num_total, rep.num_values_folded
-                               );
+        bool is_ok = true;
+        std::string error_text;
+        if (rep.num_failed != 0) {
+            is_ok = false;
+            error_text += string_format(
+                "%d out of %d mappings couldn't be resolved.\n\n",
+                rep.num_failed, rep.num_total
+            );
+        }
+        if (rep.num_values_folded) {
+            is_ok = false;
+            error_text += string_format(
+                "%d mapgen_values have been collapsed to plain ids.\n\n",
+                rep.num_values_folded
+            );
+        }
+
+        if (!is_ok) {
+            std::string text = "Palette has been loaded with issues.\n\n" + error_text;
             state.control->show_warning_popup( text );
         }
     }
