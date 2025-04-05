@@ -519,7 +519,9 @@ static void help_popup_common( const char *desc, ImGuiHoveredFlags flags )
 
 void HelpMarker( const char *desc )
 {
-    ImGui::TextDisabled( "(?)" );
+    // FIXME: find out why ? glyph renders black instead of custom color (suspecting custom fonts)
+    //        After, make this render with custom color.
+    ImGui::Text( "(?)" );
     help_popup_common( desc, ImGuiHoveredFlags_DelayShort );
 }
 
