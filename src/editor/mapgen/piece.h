@@ -32,13 +32,14 @@ class jmapgen_piece;
     void serialize( JsonOut &jsout ) const override;                    \
     void deserialize( const TextJsonObject &jsin ) override;            \
     void export_func( JsonOut& jo ) const override;                     \
-    bool try_import( const jmapgen_piece& piece ) override;             \
+    bool try_import( const jmapgen_piece& piece, PaletteImportReport& report ) override; \
     void show_ui( State& state ) override;                              \
     std::string fmt_data_summary() const override;
 
 namespace editor
 {
 struct State;
+struct PaletteImportReport;
 
 struct Piece {
     Piece() = default;
@@ -53,7 +54,7 @@ struct Piece {
     virtual void serialize( JsonOut &jsout ) const = 0;
     virtual void deserialize( const TextJsonObject &jsin ) = 0;
     virtual void export_func( JsonOut &jo ) const = 0;
-    virtual bool try_import( const jmapgen_piece &piece ) = 0;
+    virtual bool try_import( const jmapgen_piece &piece, PaletteImportReport& report) = 0;
 
     virtual void show_ui( State &state ) = 0;
 

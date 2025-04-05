@@ -71,9 +71,10 @@ void add_palette( State &state, NewPaletteState &palette )
         if( rep.num_failed != 0 ) {
             std::string text = string_format(
                                    "Palette has been imported only partially.\n\n"
-                                   "%d out of %d mappings have been skipped.\n\n"
+                                   "%d out of %d mappings have failed to load.\n\n"
+                                   "%d mapgen_values have been collapsed.\n\n"
                                    "-- TODO: Implement import of all mappings. --",
-                                   rep.num_failed, rep.num_total
+                                   rep.num_failed, rep.num_total, rep.num_values_folded
                                );
             state.control->show_warning_popup( text );
         }

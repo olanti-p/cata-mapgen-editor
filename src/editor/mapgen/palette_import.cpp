@@ -25,8 +25,7 @@ PaletteImportReport import_palette_data( Project &project, Palette &palette,
     palette.imported_id = id;
     palette.imported = true;
 
-    int num_total = 0;
-    int num_failed = 0;
+    PaletteImportReport report;
 
     std::unordered_set<map_key> all_keys;
 
@@ -44,17 +43,17 @@ PaletteImportReport import_palette_data( Project &project, Palette &palette,
                     // TODO: this is inefficient O(n^2)
                     for( const PieceType &type : all_enum_values<PieceType>() ) {
                         new_piece = make_new_piece( type );
-                        if( new_piece->try_import( piece ) ) {
+                        if( new_piece->try_import( piece, report ) ) {
                             break;
                         } else {
                             new_piece.reset();
                         }
                     }
-                    num_total += 1;
+                    report.num_total += 1;
                     if( new_piece ) {
                         mapping.pieces.emplace_back( std::move( new_piece ) );
                     } else {
-                        num_failed += 1;
+                        report.num_failed += 1;
                     }
                 }
             }
@@ -64,7 +63,7 @@ PaletteImportReport import_palette_data( Project &project, Palette &palette,
         palette.entries.emplace_back( std::move( entry ) );
     }
 
-    return PaletteImportReport{ num_total, num_failed };
+    return report;
 }
 
 } // namespace editor
