@@ -30,6 +30,9 @@ class map_key
         friend bool operator==( const map_key &l, const map_key &r ) {
             return l.str == r.str;
         }
+        friend bool operator!=(const map_key& l, const map_key& r) {
+            return l.str != r.str;
+        }
 
         std::string str;
 };

@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "coords_fwd.h"
-#include "mapgen.h"
+#include "mapgen_int_range.h"
 #include "memory_fast.h"
 #include "rng.h"
 #include "type_id.h"
