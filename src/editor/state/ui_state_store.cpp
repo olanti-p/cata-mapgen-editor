@@ -275,10 +275,8 @@ void ToolsState::serialize( JsonOut &jsout ) const
     jsout.end_object();
 }
 
-void ToolsState::deserialize(const TextJsonObject&jsin )
+void ToolsState::deserialize(const TextJsonObject&jo )
 {
-    JSON_OBJECT jo = jsin;
-
     jo.read( "tool", tool );
     jo.read( "brush", selected_tile );
     JSON_OBJECT joset = jo.get_object( "tool_settings" );
