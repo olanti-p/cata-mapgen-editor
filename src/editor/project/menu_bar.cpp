@@ -60,6 +60,7 @@ void show_main_menu_bar( State &state )
             if( ImGui::MenuItem( "Autosave..." ) ) {
                 state.ui->show_autosave_params = true;
             }
+            ImGui::MenuItem( "Warn on import issues", nullptr, &state.ui->warn_on_import_issues);
             ImGui::MenuItem( "Show OMT grid", nullptr, &state.ui->show_omt_grid );
             ImGui::MenuItem( "Show symbols on cavas", nullptr, &state.ui->show_canvas_symbols );
             ImGui::MenuItem( "Show sprites on cavas", nullptr, &state.ui->show_canvas_sprites );

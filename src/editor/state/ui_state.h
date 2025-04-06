@@ -77,6 +77,7 @@ struct UiState {
     bool show_toolbar = true;               // Whether to show canvas toolbar
     bool show_autosave_params = true;       // Whether to show autosave settings
 
+    bool warn_on_import_issues = true;      // Whether to warn when import concludes with issues
     bool show_omt_grid = false;             // Whether to show omt grid on canvas
     bool show_canvas_symbols = false;       // Whether to show symbols on canvas
     bool show_canvas_sprites = false;       // Whether to show sprites on canvas

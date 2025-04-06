@@ -190,6 +190,7 @@ void UiState::serialize( JsonOut &jsout ) const
     jsout.member( "show_camera_controls", show_camera_controls );
     jsout.member( "show_toolbar", show_toolbar );
     jsout.member( "show_autosave_params", show_autosave_params );
+    jsout.member( "warn_on_import_issues", warn_on_import_issues );
     jsout.member( "show_omt_grid", show_omt_grid );
     jsout.member( "show_canvas_symbols", show_canvas_symbols );
     jsout.member( "show_canvas_sprites", show_canvas_sprites );
@@ -223,6 +224,7 @@ void UiState::deserialize( JSON_IN &jsin )
     jo.read( "show_camera_controls", show_camera_controls );
     jo.read( "show_toolbar", show_toolbar );
     jo.read( "show_autosave_params", show_autosave_params );
+    jo.read( "warn_on_import_issues", warn_on_import_issues);
     jo.read( "show_omt_grid", show_omt_grid );
     jo.read( "show_canvas_symbols", show_canvas_symbols );
     jo.read( "show_canvas_sprites", show_canvas_sprites );

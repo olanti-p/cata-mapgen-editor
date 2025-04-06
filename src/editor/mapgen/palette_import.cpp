@@ -90,7 +90,7 @@ void import_palette_data_and_report(State& state, Palette& destination, EID::Pal
         );
     }
 
-    if (!is_ok) {
+    if (!is_ok && state.ui->warn_on_import_issues) {
         std::string text = "Palette has been loaded with issues.\n\n" + error_text;
         state.control->show_warning_popup(text);
     }
