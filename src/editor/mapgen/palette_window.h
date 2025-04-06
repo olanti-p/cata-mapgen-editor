@@ -1,5 +1,5 @@
-#ifndef CATA_SRC_EDITOR_PALETTE_VIEW_H
-#define CATA_SRC_EDITOR_PALETTE_VIEW_H
+#ifndef CATA_SRC_EDITOR_PALETTE_WINDOW_H
+#define CATA_SRC_EDITOR_PALETTE_WINDOW_H
 
 #include "mapgen_map_key.h"
 #include "common/uuid.h"
@@ -27,4 +27,4 @@ bool handle_palette_entry_drag_and_drop( Project &project, Palette &palette, int
 
 } // namespace editor
 
-#endif // CATA_SRC_EDITOR_PALETTE_VIEW_H
+#endif // CATA_SRC_EDITOR_PALETTE_WINDOW_H

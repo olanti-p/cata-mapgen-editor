@@ -1,4 +1,4 @@
-#include "palette_view.h"
+#include "palette_window.h"
 
 #include "mapgen/palette.h"
 

@@ -13,7 +13,7 @@
 #include "mapgen/canvas_snippet.h"
 #include "mapgen/mapgen.h"
 #include "mapgen/palette.h"
-#include "mapgen/palette_view.h"
+#include "mapgen/palette_window.h"
 #include "mouse.h"
 #include "project/project.h"
 #include "state/control_state.h"

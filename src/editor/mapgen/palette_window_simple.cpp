@@ -7,7 +7,7 @@
 #include "state/state.h"
 #include "state/ui_state.h"
 #include "widget/widgets.h"
-#include "mapgen/palette_view.h"
+#include "mapgen/palette_window.h"
 
 #include <algorithm>
 #include <vector>

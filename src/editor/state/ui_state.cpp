@@ -7,7 +7,7 @@
 #include "history_state.h"
 #include "imgui.h"
 #include "mapgen/palette.h"
-#include "mapgen/palette_view.h"
+#include "mapgen/palette_window.h"
 #include "mapgen/mapgen.h"
 #include "project/menu_bar.h"
 #include "project/project.h"

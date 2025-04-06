@@ -1,4 +1,4 @@
-#include "mapgen/palette_view.h"
+#include "mapgen/palette_window.h"
 #include "palette.h"
 
 #include "common/color.h"
