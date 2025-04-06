@@ -23,6 +23,7 @@ struct SpriteRef;
 
 namespace editor
 {
+struct PieceConstrained;
 struct Mapgen;
 struct Project;
 
@@ -46,6 +47,13 @@ struct Mapping {
             T *ptr = dynamic_cast<T *>( piece.get() );
             if( ptr ) {
                 return ptr;
+            }
+            PieceConstrained* cons = dynamic_cast<PieceConstrained*>(piece.get());
+            if (cons) {
+                ptr = dynamic_cast<T *>(cons->data.get());
+                if (ptr) {
+                    return ptr;
+                }
             }
         }
         return nullptr;
