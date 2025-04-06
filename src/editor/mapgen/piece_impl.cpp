@@ -671,6 +671,48 @@ std::string PieceAltTerrain::fmt_data_summary() const
     return ret;
 }
 
+void PieceRemoveAll::show_ui(State& state)
+{
+    ImGui::Text("No data fields.");
+    ImGui::Text("TODO: Fill in the description.");
+}
+
+std::string PieceRemoveAll::fmt_data_summary() const
+{
+    return "";
+}
+
+PieceConstrained::PieceConstrained()
+{
+    data = std::make_unique<PieceUnknown>();
+}
+
+PieceConstrained::PieceConstrained(const PieceConstrained& rhs)
+{
+    data = rhs.data->clone();
+}
+
+void PieceConstrained::init_new()
+{
+    data = std::make_unique<PieceUnknown>();
+}
+
+std::string PieceConstrained::fmt_summary() const
+{
+    return "$ " + data->fmt_summary();
+}
+
+void PieceConstrained::show_ui(State& state)
+{
+    ImGui::SeparatorText("CONSTRAINED PIECE");
+    data->show_ui(state);
+}
+
+std::string PieceConstrained::fmt_data_summary() const
+{
+    return "? " + data->fmt_data_summary();
+}
+
 void PieceUnknown::show_ui(State& state)
 {
     ImGui::Text("Unknown piece. Import failed.");

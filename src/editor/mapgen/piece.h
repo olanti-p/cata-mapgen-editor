@@ -18,9 +18,7 @@ class JsonOut;
 class JSON_OBJECT;
 class jmapgen_piece;
 
-#define IMPLEMENT_ME_PIECE(piece_class, piece_type)                     \
-    piece_class() = default;                                            \
-    piece_class( const piece_class& ) = default;                        \
+#define IMPLEMENT_ME_PIECE_NOCOPY(piece_class, piece_type)              \
     piece_class( piece_class&&) = default;                              \
     ~piece_class() = default;                                           \
     PieceType get_type() const override {                               \
@@ -35,6 +33,13 @@ class jmapgen_piece;
     bool try_import( const jmapgen_piece& piece, PaletteImportReport& report ) override; \
     void show_ui( State& state ) override;                              \
     std::string fmt_data_summary() const override;
+
+
+#define IMPLEMENT_ME_PIECE(piece_class, piece_type)                     \
+    piece_class() = default;                                            \
+    piece_class( const piece_class& ) = default;                        \
+    IMPLEMENT_ME_PIECE_NOCOPY(piece_class, piece_type)
+
 
 namespace editor
 {
@@ -63,7 +68,7 @@ struct Piece {
     /**
      * Returns "Type: data" summary string
     */
-    std::string fmt_summary() const;
+    virtual std::string fmt_summary() const;
 
     /**
      * Returns data summary string;
@@ -73,6 +78,7 @@ struct Piece {
 
 const std::vector<std::unique_ptr<Piece>> &get_piece_templates();
 std::unique_ptr<Piece> make_new_piece( PieceType pt );
+std::unique_ptr<Piece> wrap_in_constrained(std::unique_ptr<Piece> &&piece);
 
 bool is_alt_piece( PieceType pt );
 bool is_piece_exclusive( PieceType pt );

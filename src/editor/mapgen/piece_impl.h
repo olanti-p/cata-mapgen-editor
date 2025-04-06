@@ -239,6 +239,22 @@ struct PieceAltTerrain : public Piece {
     WeightedList<EID::Ter> list;
 };
 
+struct PieceRemoveAll : public Piece {
+    IMPLEMENT_ME_PIECE(PieceRemoveAll, PieceType::RemoveAll)
+};
+
+struct PieceConstrained : public Piece {
+    IMPLEMENT_ME_PIECE_NOCOPY( PieceConstrained, PieceType::Constrained )
+
+    PieceConstrained();
+    PieceConstrained(const PieceConstrained& rhs);
+    
+    void init_new() override;
+    std::string fmt_summary() const override;
+
+    std::unique_ptr<Piece> data;
+};
+
 struct PieceUnknown : public Piece {
     IMPLEMENT_ME_PIECE(PieceUnknown, PieceType::Unknown)
 };

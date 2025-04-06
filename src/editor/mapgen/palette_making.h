@@ -22,6 +22,7 @@ calc_palette_ancestors(const mapgen_palette& source);
 void import_palette_data_and_report(State& state, Palette& destination, EID::Palette source);
 void reimport_palette(State& state, Palette& p);
 void quick_import_palette(State& state, EID::Palette p);
+void quick_import_temp_palette(State& state, EID::TempPalette p);
 Palette& quick_create_palette(State& state);
 
 } // namespace editor

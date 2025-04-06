@@ -23,9 +23,16 @@ bool show_new_palette_window( State &state, NewPaletteState &palette )
         palette.cancelled = true;
     }
 
-    ImGui::InputId( "Source", palette.import_from );
+    ImGui::Checkbox("Use temp mapgen palettes", &palette.import_temp);
 
-    bool input_ok = palette.import_from.is_valid();
+    if (palette.import_temp) {
+        ImGui::InputId( "Source", palette.import_temp_from );
+    }
+    else {
+        ImGui::InputId( "Source", palette.import_from );
+    }
+
+    bool input_ok = palette.import_temp ? palette.import_temp_from.is_valid() : palette.import_from.is_valid();
 
     ImGui::BeginDisabled( !input_ok );
     if( ImGui::Button( "Confirm" ) ) {
@@ -39,7 +46,12 @@ bool show_new_palette_window( State &state, NewPaletteState &palette )
         return false;
     }
     if( palette.confirmed ) {
-        quick_import_palette( state, palette.import_from );
+        if (palette.import_temp) {
+            quick_import_temp_palette( state, palette.import_temp_from );
+        }
+        else {
+            quick_import_palette( state, palette.import_from );
+        }
         state.mark_changed();
         return false;
     }

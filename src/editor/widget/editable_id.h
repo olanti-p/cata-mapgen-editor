@@ -76,6 +76,7 @@ std::vector<std::string> EditableID<T>::all_opts;
 struct snippet_category_tag {};
 struct liquid_item_tag {};
 struct item_group_tag {};
+struct temp_palette_tag {};
 
 // EditableID specified for types
 namespace EID
@@ -91,6 +92,7 @@ using NPCTemplate = EditableID<npc_template>;
 using Oter = EditableID<oter_t>;
 using OterType = EditableID<oter_type_t>;
 using Palette = EditableID<mapgen_palette>;
+using TempPalette = EditableID<temp_palette_tag>;
 using SnippetCategory = EditableID<snippet_category_tag>;
 using Ter = EditableID<ter_t>;
 using Trait = EditableID<mutation_branch>;

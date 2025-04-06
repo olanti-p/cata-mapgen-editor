@@ -244,6 +244,7 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
     std::unordered_set<map_key> checked;
     std::unordered_set<map_key> dupe_symbols;
 
+    // FIXME: this dupe check is not relevant anymore after UUID -> map_key migration
     for( const editor::PaletteEntry &entry : list ) {
         if( checked.count( entry.key ) > 0 ) {
             dupe_symbols.insert( entry.key );
@@ -251,6 +252,9 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
             checked.insert( entry.key );
         }
     }
+
+    ImGui::Text("%d symbols", list.size());
+    ImGui::Separator();
 
     Project &proj = state.project();
     ToolsState &tools = *state.ui->tools;

@@ -227,6 +227,13 @@ class jmapgen_piece
                 const tripoint_rel_ms &/*offset*/ ) const {
             return ret_val<void>::make_success();
         }
+
+        virtual bool is_constrained() const {
+            return false;
+        }
+        virtual const jmapgen_piece* get_constrained_inner() const {
+            return nullptr;
+        }
 };
 
 class jmapgen_piece_with_has_vehicle_collision : public jmapgen_piece
@@ -636,6 +643,8 @@ void circle( map *m, const ter_id &type, const point_bub_ms &, int rad );
 void circle_furn( map *m, const furn_id &type, const point_bub_ms &, int rad );
 void add_corpse( map *m, const point_bub_ms & );
 
+const std::map<std::string, mapgen_palette>& get_temp_mapgen_palettes();
+const mapgen_palette& get_temp_mapgen_palette(const std::string& key);
 extern std::map<nested_mapgen_id, nested_mapgen> nested_mapgens;
 extern std::map<update_mapgen_id, update_mapgen> update_mapgens;
 

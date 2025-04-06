@@ -44,6 +44,8 @@ const std::vector<std::unique_ptr<Piece>> &get_piece_templates()
         REG_PIECE( PieceAltTrap );
         REG_PIECE( PieceAltFurniture );
         REG_PIECE( PieceAltTerrain );
+        REG_PIECE( PieceRemoveAll );
+        REG_PIECE( PieceConstrained );
         REG_PIECE( PieceUnknown );
     }
     return ret;
@@ -58,6 +60,14 @@ std::unique_ptr<Piece> make_new_piece( PieceType pt )
     }
     std::cerr << "Failed to generate piece with type " << static_cast<int>( pt ) << std::endl;
     std::abort();
+}
+
+std::unique_ptr<Piece> wrap_in_constrained(std::unique_ptr<Piece>&& piece)
+{
+    std::unique_ptr<Piece> ret = make_new_piece(PieceType::Constrained);
+    PieceConstrained* retp = dynamic_cast<PieceConstrained*>(ret.get());
+    retp->data = std::move(piece);
+    return ret;
 }
 
 bool is_alt_piece( PieceType pt )
@@ -75,6 +85,7 @@ bool is_piece_exclusive( PieceType pt )
 bool is_available_as_mapping( PieceType pt )
 {
     return !(
+               pt == editor::PieceType::Constrained ||
                pt == editor::PieceType::Unknown ||
                pt == editor::PieceType::Terrain ||
                pt == editor::PieceType::Furniture ||
@@ -86,6 +97,8 @@ bool is_available_as_mapping( PieceType pt )
 bool is_available_as_mapobject( PieceType pt )
 {
     return !(
+               pt == editor::PieceType::RemoveAll ||
+               pt == editor::PieceType::Constrained ||
                pt == editor::PieceType::Unknown ||
                pt == editor::PieceType::AltTerrain ||
                pt == editor::PieceType::AltFurniture ||

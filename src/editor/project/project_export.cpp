@@ -441,6 +441,16 @@ void PieceAltTerrain::export_func( JsonOut &jo ) const
     ee::emit_val( jo, list );
 }
 
+void PieceRemoveAll::export_func(JsonOut& jo) const
+{
+    // Empty object
+}
+
+void PieceConstrained::export_func(JsonOut& jo) const
+{
+    // TODO: print some error or something
+}
+
 void PieceUnknown::export_func(JsonOut& jo) const
 {
     // TODO: print some error or something
@@ -479,7 +489,9 @@ std::string get_palette_category( editor::PieceType data )
         case editor::PieceType::AltTrap: return "trap";
         case editor::PieceType::AltFurniture: return "furniture";
         case editor::PieceType::AltTerrain: return "terrain";
+        case editor::PieceType::RemoveAll: return "remove_all";
         // These cannot exist as mappings
+        case editor::PieceType::Constrained:
         case editor::PieceType::Unknown:
         case editor::PieceType::Loot:
         case editor::PieceType::Trap:
@@ -524,6 +536,8 @@ std::string get_object_category( editor::PieceType data )
         case editor::PieceType::Zone: return "place_zones";
         case editor::PieceType::Nested: return "place_nested";
         // These cannot exist as objects
+        case editor::PieceType::RemoveAll:
+        case editor::PieceType::Constrained:
         case editor::PieceType::Unknown:
         case editor::PieceType::SealedItem:
         case editor::PieceType::AltTrap:

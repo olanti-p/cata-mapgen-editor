@@ -169,6 +169,8 @@ std::string enum_to_string<editor::PieceType>( editor::PieceType data )
         case editor::PieceType::AltTrap: return "AltTrap";
         case editor::PieceType::AltFurniture: return "AltFurniture";
         case editor::PieceType::AltTerrain: return "AltTerrain";
+        case editor::PieceType::RemoveAll: return "RemoveAll";
+        case editor::PieceType::Constrained: return "Constrained";
         case editor::PieceType::Unknown: return "Unknown";
         // *INDENT-ON*
         default:
@@ -529,6 +531,26 @@ void PieceAltTerrain::serialize( JsonOut &jsout ) const
 void PieceAltTerrain::deserialize( const JSON_OBJECT &jsin )
 {
     jsin.read( "list", list );
+}
+
+void PieceRemoveAll::serialize(JsonOut& jsout) const
+{
+    // No data
+}
+
+void PieceRemoveAll::deserialize(const JSON_OBJECT& jsin)
+{
+    // No data
+}
+
+void PieceConstrained::serialize(JsonOut& jsout) const
+{
+    jsout.member( "data", data );
+}
+
+void PieceConstrained::deserialize(const JSON_OBJECT& jsin)
+{
+    jsin.read( "data", data );
 }
 
 void PieceUnknown::serialize(JsonOut& jsout) const

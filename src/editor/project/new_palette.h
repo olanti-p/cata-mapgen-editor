@@ -13,7 +13,9 @@ struct Project;
 struct State;
 
 struct NewPaletteState {
+    bool import_temp;
     EID::Palette import_from;
+    EID::TempPalette import_temp_from;
 
     bool confirmed = false;
     bool cancelled = false;

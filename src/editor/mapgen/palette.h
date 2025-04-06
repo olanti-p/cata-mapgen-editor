@@ -8,6 +8,7 @@
 
 #include "imgui.h"
 #include "mapgen_map_key.h"
+#include "palette_import_report.h"
 
 #include "piece.h"
 #include "common/uuid.h"
@@ -98,6 +99,7 @@ public:
     // Cached ancestors tree
     PaletteAncestorList ancestors;
     std::vector<PaletteEntry> entries;
+    PaletteImportReport import_report;
 
     const std::string *display_key_from_uuid( const map_key &uuid ) const;
     const ImVec4 &color_from_uuid( const map_key &uuid ) const;

@@ -20,12 +20,45 @@
 namespace editor
 {
 
-static void import_palette_data( Project &project, Palette &palette,
-        const EID::Palette &source_id, PaletteImportReport &report )
+static std::unique_ptr<Piece> try_import_recursive(Project& project, const jmapgen_piece& piece, PaletteImportReport& report) {
+    if (piece.is_constrained()) {
+        const jmapgen_piece* inner = piece.get_constrained_inner();
+        if (inner->is_constrained()) {
+            // TODO: Can constrained pieces can be multiple levels deep?
+            std::abort();
+        }
+        report.num_constrained++;
+        std::unique_ptr<Piece> inner_imported = try_import_recursive(project, *inner, report);
+        std::unique_ptr<Piece> wrapper = wrap_in_constrained(std::move(inner_imported));
+        wrapper->uuid = project.uuid_generator();
+        return wrapper;
+    }
+    else {
+        std::unique_ptr<Piece> new_piece;
+        // TODO: optimize
+        for (const PieceType& type : all_enum_values<PieceType>()) {
+            new_piece = make_new_piece(type);
+            if (new_piece->try_import(piece, report)) {
+                break;
+            }
+            else {
+                new_piece.reset();
+            }
+        }
+        report.num_pieces_total += 1;
+
+        if (!new_piece) {
+            report.num_pieces_failed += 1;
+            new_piece = make_new_piece(PieceType::Unknown);
+        }
+        new_piece->uuid = project.uuid_generator();
+        return new_piece;
+    }
+}
+
+static void import_palette_data_internal( Project &project, Palette &palette,
+    const mapgen_palette& source, PaletteImportReport &report )
 {
-    palette_id id( source_id.data );
-    const mapgen_palette &source = *id;
-    palette.imported_id = id;
     palette.imported = true;
 
     auto anc_data = calc_palette_ancestors(source);
@@ -48,23 +81,7 @@ static void import_palette_data( Project &project, Palette &palette,
             auto it = source.format_placings.find( key );
             if( it != source.format_placings.end() ) {
                 for( const auto &piece_ptr : it->second ) {
-                    const jmapgen_piece &piece = *piece_ptr;
-                    std::unique_ptr<Piece> new_piece;
-                    // TODO: this is inefficient O(n^2)
-                    for( const PieceType &type : all_enum_values<PieceType>() ) {
-                        new_piece = make_new_piece( type );
-                        if( new_piece->try_import( piece, report ) ) {
-                            break;
-                        } else {
-                            new_piece.reset();
-                        }
-                    }
-                    report.num_total += 1;
-                    if( !new_piece ) {
-                        report.num_failed += 1;
-                        new_piece = make_new_piece(PieceType::Unknown);
-                    }
-                    new_piece->uuid = project.uuid_generator();
+                    std::unique_ptr<Piece> new_piece = try_import_recursive(project, *piece_ptr, report);
                     mapping.pieces.emplace_back(std::move(new_piece));
                 }
             }
@@ -72,22 +89,30 @@ static void import_palette_data( Project &project, Palette &palette,
         editor::PaletteEntry entry = make_simple_entry( project, palette, std::move( mapping ) );
         entry.key = key;
         palette.entries.emplace_back( std::move( entry ) );
+        report.num_mappings++;
     }
 }
 
-
-void import_palette_data_and_report(State& state, Palette& destination, EID::Palette source)
+static void import_palette_data(Project& project, Palette& palette,
+    const EID::Palette& source_id, PaletteImportReport& report)
 {
-    PaletteImportReport rep;
-    import_palette_data(state.project(), destination, source, rep);
+    palette_id id(source_id.data);
+    const mapgen_palette& source = *id;
+    palette.imported_id = id;
 
+    import_palette_data_internal(project, palette, source, report);
+}
+
+
+void show_report(State& state, const PaletteImportReport& rep)
+{
     bool is_ok = true;
     std::string error_text;
-    if (rep.num_failed != 0) {
+    if (rep.num_pieces_failed != 0) {
         is_ok = false;
         error_text += string_format(
-            "%d out of %d mappings couldn't be resolved.\n\n",
-            rep.num_failed, rep.num_total
+            "%d out of %d pieces couldn't be resolved.\n\n",
+            rep.num_pieces_failed, rep.num_pieces_total
         );
     }
     if (rep.num_values_folded) {
@@ -98,9 +123,30 @@ void import_palette_data_and_report(State& state, Palette& destination, EID::Pal
         );
     }
 
-    if (!is_ok && state.ui->warn_on_import_issues) {
+    if (!is_ok) {
         std::string text = "Palette has been loaded with issues.\n\n" + error_text;
         state.control->show_warning_popup(text);
+    }
+}
+
+
+void import_palette_data_and_report(State& state, Palette& destination, EID::Palette source)
+{
+    PaletteImportReport rep;
+    import_palette_data(state.project(), destination, source, rep);
+    destination.import_report = rep;
+    if (state.ui->warn_on_import_issues) {
+        show_report(state, rep);
+    }
+}
+
+void import_temp_palette_data_and_report(State& state, Palette& destination, const mapgen_palette& source)
+{
+    PaletteImportReport rep;
+    import_palette_data_internal(state.project(), destination, source, rep);
+    destination.import_report = rep;
+    if (state.ui->warn_on_import_issues) {
+        show_report(state, rep);
     }
 }
 
@@ -108,7 +154,15 @@ void reimport_palette(State& state, Palette& p)
 {
     p.entries.clear();
     p.ancestors.clear();
-    import_palette_data_and_report(state, p, p.imported_id);
+
+    EID::TempPalette tmp_id(p.imported_id.data);
+    if (tmp_id.is_valid()) {
+        const mapgen_palette& p_obj = get_temp_mapgen_palette(tmp_id.data);
+        import_temp_palette_data_and_report(state, p, p_obj);
+    }
+    else {
+        import_palette_data_and_report(state, p, p.imported_id);
+    }
 }
 
 void quick_import_palette(State& state, EID::Palette p)
@@ -117,6 +171,17 @@ void quick_import_palette(State& state, EID::Palette p)
 
     import_palette_data_and_report(state, new_palette, p);
     new_palette.name = p.data;
+}
+
+void quick_import_temp_palette(State& state, EID::TempPalette p)
+{
+    Palette& new_palette = quick_create_palette(state);
+
+    const mapgen_palette &p_obj = get_temp_mapgen_palette(p.data);
+
+    import_temp_palette_data_and_report(state, new_palette, p_obj);
+    new_palette.imported_id = p.data;
+    new_palette.name = new_palette.imported_id.data;
 }
 
 Palette& quick_create_palette(State& state)

@@ -2323,6 +2323,14 @@ class jmapgen_constrained : public jmapgen_piece
             }
             underlying_piece->apply( dat, x, y, z, context );
         }
+
+        virtual bool is_constrained() const {
+            return true;
+        }
+
+        virtual const jmapgen_piece* get_constrained_inner() const {
+            return underlying_piece.get();
+        }
 };
 
 /**
@@ -5093,6 +5101,18 @@ void mapgen_function_json_base::setup_common()
     }
 }
 
+std::map<std::string, mapgen_palette> temp_mapgen_palettes;
+
+const std::map<std::string, mapgen_palette>& get_temp_mapgen_palettes()
+{
+    return temp_mapgen_palettes;
+}
+
+const mapgen_palette& get_temp_mapgen_palette(const std::string& key)
+{
+    return temp_mapgen_palettes[key];
+}
+
 bool mapgen_function_json_base::setup_common( const JsonObject &jo )
 {
     bool fallback_terrain_exists = setup_internal( jo );
@@ -5128,11 +5148,30 @@ bool mapgen_function_json_base::setup_common( const JsonObject &jo )
     auto &keys_with_terrain = palette.keys_with_terrain;
     mapgen_palette::placing_map &format_placings = palette.format_placings;
 
+    bool ret_early = false;
     if( palette.keys_with_terrain.empty() && !fallback_terrain_exists ) {
-        return false;
+        ret_early = true;
+    }
+    else {
+        parameters = palette.get_parameters();
     }
 
-    parameters = palette.get_parameters();
+    // Ensure ids are unique
+    std::string temp_id = context_;
+    std::string combined_id = temp_id;
+    int id_counter = 0;
+    while (true) {
+        if (temp_mapgen_palettes.count(combined_id) == 0) {
+            temp_mapgen_palettes[combined_id] = palette;
+            break;
+        }
+        id_counter++;
+        combined_id = string_format("%s _%d", temp_id, id_counter);
+    }
+
+    if (ret_early) {
+        return false;
+    }
 
     for( int c = m_offset.y(); c < expected_dim.y(); c++ ) {
         const std::string row = default_rows ? default_row : parray.get_string( c );
@@ -8927,7 +8966,11 @@ bool PieceMGroup::try_import( const jmapgen_piece& piece, PaletteImportReport& r
 
 bool PieceMonster::try_import( const jmapgen_piece& piece, PaletteImportReport& report )
 {
-    return false; // TODO
+    const jmapgen_monster* casted = dynamic_cast<const jmapgen_monster*>(&piece);
+    if (!casted) {
+        return false;
+    }
+    return true; // TODO
 }
 
 bool PieceVehicle::try_import( const jmapgen_piece& piece, PaletteImportReport& report )
@@ -8937,7 +8980,11 @@ bool PieceVehicle::try_import( const jmapgen_piece& piece, PaletteImportReport& 
 
 bool PieceItem::try_import( const jmapgen_piece& piece, PaletteImportReport& report )
 {
-    return false; // TODO
+    const jmapgen_spawn_item* casted = dynamic_cast<const jmapgen_spawn_item*>(&piece);
+    if (!casted) {
+        return false;
+    }
+    return true; // TODO
 }
 
 bool PieceTrap::try_import( const jmapgen_piece& piece, PaletteImportReport& report )
@@ -8987,7 +9034,11 @@ bool PieceZone::try_import( const jmapgen_piece& piece, PaletteImportReport& rep
 
 bool PieceNested::try_import( const jmapgen_piece& piece, PaletteImportReport& report )
 {
-    return false; // TODO
+    const jmapgen_nested* casted = dynamic_cast<const jmapgen_nested*>(&piece);
+    if (!casted) {
+        return false;
+    }
+    return true; // TODO
 }
 
 template<typename E, typename J>
@@ -9042,6 +9093,16 @@ bool PieceAltFurniture::try_import( const jmapgen_piece& piece, PaletteImportRep
 bool PieceAltTerrain::try_import( const jmapgen_piece& piece, PaletteImportReport& report )
 {
     return import_alternatively<EID::Ter, jmapgen_terrain>(list, piece, report);
+}
+
+bool PieceRemoveAll::try_import(const jmapgen_piece& piece, PaletteImportReport& report)
+{
+    return dynamic_cast<const jmapgen_remove_all*>(&piece) != nullptr;
+}
+
+bool PieceConstrained::try_import(const jmapgen_piece& piece, PaletteImportReport& report)
+{
+    return false;
 }
 
 bool PieceUnknown::try_import(const jmapgen_piece& piece, PaletteImportReport& report)
