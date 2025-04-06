@@ -9,6 +9,7 @@
 #include "project/project.h"
 #include "state/state.h"
 #include "state/control_state.h"
+#include "state/ui_state.h"
 
 // FIXME: conflicts in include path
 #include "../../mapgen.h"
@@ -19,15 +20,22 @@
 namespace editor
 {
 
-PaletteImportReport import_palette_data( Project &project, Palette &palette,
-        const EID::Palette &source_id )
+static void import_palette_data( Project &project, Palette &palette,
+        const EID::Palette &source_id, PaletteImportReport &report )
 {
     palette_id id( source_id.data );
     const mapgen_palette &source = *id;
     palette.imported_id = id;
     palette.imported = true;
 
-    PaletteImportReport report;
+    auto anc_data = calc_palette_ancestors(source);
+    PaletteAncestorList list;
+    for (const auto& anc : anc_data) {
+        PaletteAncestorSwitch sw;
+        sw.options = anc;
+        list.list.push_back(sw);
+    }
+    palette.ancestors = list;
 
     std::unordered_set<map_key> all_keys;
 
@@ -65,14 +73,14 @@ PaletteImportReport import_palette_data( Project &project, Palette &palette,
         entry.key = key;
         palette.entries.emplace_back( std::move( entry ) );
     }
-
-    return report;
 }
 
 
 void import_palette_data_and_report(State& state, Palette& destination, EID::Palette source)
 {
-    PaletteImportReport rep = import_palette_data(state.project(), destination, source);
+    PaletteImportReport rep;
+    import_palette_data(state.project(), destination, source, rep);
+
     bool is_ok = true;
     std::string error_text;
     if (rep.num_failed != 0) {
@@ -99,7 +107,26 @@ void import_palette_data_and_report(State& state, Palette& destination, EID::Pal
 void reimport_palette(State& state, Palette& p)
 {
     p.entries.clear();
+    p.ancestors.clear();
     import_palette_data_and_report(state, p, p.imported_id);
+}
+
+void quick_import_palette(State& state, EID::Palette p)
+{
+    Palette& new_palette = quick_create_palette(state);
+
+    import_palette_data_and_report(state, new_palette, p);
+    new_palette.name = p.data;
+}
+
+Palette& quick_create_palette(State& state)
+{
+    Project& project = state.project();
+    UUID new_palette_uuid = project.uuid_generator();
+    project.palettes.emplace_back();
+    Palette& new_palette = project.palettes.back();
+    new_palette.uuid = new_palette_uuid;
+    return new_palette;
 }
 
 } // namespace editor

@@ -5,6 +5,7 @@
 #include "imgui.h"
 #include "mapgen/mapgen.h"
 #include "mapgen/palette.h"
+#include "mapgen/palette_making.h"
 #include "new_mapgen.h"
 #include "new_palette.h"
 #include "state/state.h"
@@ -62,11 +63,7 @@ void show_project_overview_ui( State &state, Project &project, bool &show )
         ImGui::SameLine();
         if( ImGui::Button( "New palette" ) )
         {
-            NewPaletteState new_pal;
-            new_pal.kind = NewPaletteKind::BrandNew;
-            // FIXME: implement display names for palettes
-            //new_pal.name = "New palette";
-            add_palette(state, new_pal);
+            quick_create_palette(state);
             return true;
         }
         return false;

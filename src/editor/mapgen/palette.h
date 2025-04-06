@@ -75,6 +75,18 @@ struct PaletteEntry {
     void deserialize(const TextJsonValue& jsin);
 };
 
+struct PaletteAncestorSwitch {
+    std::vector<std::string> options;
+};
+
+struct PaletteAncestorList {
+    std::vector<PaletteAncestorSwitch> list;
+
+    void clear() {
+        list.clear();
+    }
+};
+
 struct Palette {
 public:
     UUID uuid;
@@ -83,7 +95,8 @@ public:
     EID::Palette imported_id;
     std::string created_id;
     std::string name;
-    std::optional<UUID> inherits_from;
+    // Cached ancestors tree
+    PaletteAncestorList ancestors;
     std::vector<PaletteEntry> entries;
 
     const std::string *display_key_from_uuid( const map_key &uuid ) const;

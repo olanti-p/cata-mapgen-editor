@@ -402,7 +402,84 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
     }
 }
 
-static void show_palette_header_info(State& state, Palette& p)
+struct PaletteTreeState {
+    std::optional<std::string> import_pal;
+};
+
+static Palette* find_next_pal(State& state, const std::string& id) {
+    for (Palette& p : state.project().palettes) {
+        if (p.imported && p.imported_id.data == id) {
+            return &p;
+        }
+        if (!p.imported && p.created_id == id) {
+            return &p;
+        }
+    }
+    return nullptr;
+}
+
+void print_dependency_list(PaletteTreeState& pts, State& state, Palette& p);
+
+static void print_palette_entry(PaletteTreeState& pts, State& state, Palette& p2)
+{
+    std::string disp_name = p2.display_name();
+    if (p2.ancestors.list.empty()) {
+        ImGui::Text("%s", disp_name.c_str());
+    }
+    else {
+        ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+        if (ImGui::TreeNode(disp_name.c_str())) {
+            print_dependency_list(pts, state, p2);
+            ImGui::TreePop();
+        }
+    }
+}
+
+static void print_palette_entry(PaletteTreeState& pts, State& state, std::string maybe_id) {
+    ImGui::PushID(maybe_id.c_str());
+    Palette* p = find_next_pal(state, maybe_id);
+    if (p) {
+        print_palette_entry(pts, state, *p);
+    }
+    else {
+        if (ImGui::SmallButton("Import")) {
+            pts.import_pal = maybe_id;
+        }
+        ImGui::SameLine();
+        ImGui::Text("<%s>", maybe_id.c_str());
+    }
+    ImGui::PopID();
+}
+
+static void print_dependency_opts(PaletteTreeState& pts, State& state, const PaletteAncestorSwitch &sw) {
+    if (sw.options.size() == 1) {
+        print_palette_entry(pts, state, sw.options[0]);
+    }
+    else {
+        ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+        if (ImGui::TreeNode("SWITCH")) {
+            for (const std::string& s : sw.options) {
+                ImGui::PushID(&s);
+                print_palette_entry(pts, state, s);
+                ImGui::PopID();
+            }
+            ImGui::TreePop();
+        }
+    }
+}
+
+void print_dependency_list(PaletteTreeState& pts, State& state, Palette& p)
+{
+    ImGui::PushID(&p);
+    for (const PaletteAncestorSwitch& sw : p.ancestors.list) {
+        ImGui::PushID(&sw);
+        print_dependency_opts(pts, state, sw);
+        ImGui::PopID();
+    }
+    ImGui::PopID();
+}
+
+static void show_palette_header_info( State& state, Palette& p)
 {
     if (ImGui::InputText("Display name", &p.name)) {
         state.mark_changed("palette-name");
@@ -447,10 +524,16 @@ static void show_palette_header_info(State& state, Palette& p)
             }
         }
     }
-    if (p.inherits_from) {
-        std::string label = string_format("Inherits from: %s",
-            state.project().get_palette(*p.inherits_from)->display_name());
-        ImGui::Text("%s", label.c_str());
+    if (!p.ancestors.list.empty()) {
+        PaletteTreeState pts;
+        if (ImGui::TreeNode("Dependency graph")) {
+            print_palette_entry(pts, state, p);
+            ImGui::TreePop();
+        }
+        if (pts.import_pal && EID::Palette(*pts.import_pal).is_valid()) {
+            quick_import_palette(state, EID::Palette(*pts.import_pal));
+            state.mark_changed();
+        }
     }
     else {
         ImGui::Text("<No inheritance>");

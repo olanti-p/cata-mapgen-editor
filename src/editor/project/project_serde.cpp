@@ -603,7 +603,6 @@ void Palette::serialize( JsonOut &jsout ) const
     jsout.member( "imported_id", imported_id );
     jsout.member( "created_id", created_id );
     jsout.member( "name", name );
-    jsout.member( "inherits_from", inherits_from );
     jsout.member( "entries", entries );
     jsout.end_object();
 }
@@ -618,7 +617,6 @@ void Palette::deserialize( const TextJsonValue &jsin )
     jo.read( "imported_id", imported_id );
     jo.read( "created_id", created_id );
     jo.read( "name", name );
-    jo.read( "inherits_from", inherits_from );
     jo.read( "entries", entries );
 }
 

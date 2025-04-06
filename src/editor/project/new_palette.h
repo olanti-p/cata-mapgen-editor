@@ -12,17 +12,8 @@ struct Palette;
 struct Project;
 struct State;
 
-enum class NewPaletteKind {
-    BrandNew,
-    Imported,
-};
-
 struct NewPaletteState {
-    std::string name;
-    NewPaletteKind kind = NewPaletteKind::Imported;
     EID::Palette import_from;
-    bool inherits = false;
-    UUID inherits_from = UUID_INVALID;
 
     bool confirmed = false;
     bool cancelled = false;
@@ -30,7 +21,6 @@ struct NewPaletteState {
 
 // FIXME: remove palette creation code from this and leave only import
 bool show_new_palette_window( State &state, NewPaletteState &palette );
-void add_palette( State &state, NewPaletteState &palette );
 
 } // namespace editor
 

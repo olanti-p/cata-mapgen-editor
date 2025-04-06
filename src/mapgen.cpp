@@ -9049,4 +9049,17 @@ bool PieceUnknown::try_import(const jmapgen_piece& piece, PaletteImportReport& r
     return false;
 }
 
+std::vector<std::vector<std::string>>
+calc_palette_ancestors(const mapgen_palette& source)
+{
+    std::vector<std::vector<std::string>> ret;
+
+    const mapgen_parameters& all_parameters = source.get_parameters();
+    for (const auto& it : source.get_ancestors()) {
+        ret.emplace_back(it.all_possible_results(all_parameters));
+    }
+
+    return ret;
+}
+
 } // namespace editor

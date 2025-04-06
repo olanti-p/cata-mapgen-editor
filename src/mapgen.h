@@ -322,6 +322,10 @@ class mapgen_palette
         static void check_definitions();
 
         static void reset();
+
+        const std::vector<mapgen_value<std::string>>& get_ancestors() const {
+            return palettes_used;
+        }
     private:
         mapgen_parameters parameters;
 

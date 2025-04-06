@@ -25,14 +25,7 @@ bool show_new_palette_window( State &state, NewPaletteState &palette )
 
     ImGui::InputId( "Source", palette.import_from );
 
-    bool input_ok = true;
-    if( palette.kind == NewPaletteKind::BrandNew && palette.inherits &&
-        !state.project().get_palette( palette.inherits_from ) ) {
-        input_ok = false;
-    }
-    if( palette.kind == NewPaletteKind::Imported && !palette.import_from.is_valid() ) {
-        input_ok = false;
-    }
+    bool input_ok = palette.import_from.is_valid();
 
     ImGui::BeginDisabled( !input_ok );
     if( ImGui::Button( "Confirm" ) ) {
@@ -46,30 +39,11 @@ bool show_new_palette_window( State &state, NewPaletteState &palette )
         return false;
     }
     if( palette.confirmed ) {
-        add_palette( state, palette );
+        quick_import_palette( state, palette.import_from );
         state.mark_changed();
         return false;
     }
     return true;
-}
-
-void add_palette( State &state, NewPaletteState &palette )
-{
-    Project &project = state.project();
-    UUID new_palette_uuid = project.uuid_generator();
-    project.palettes.emplace_back();
-    Palette &new_palette = project.palettes.back();
-    new_palette.uuid = new_palette_uuid;
-    new_palette.imported = palette.kind == NewPaletteKind::Imported;
-
-    if( palette.inherits ) {
-        new_palette.inherits_from = palette.inherits_from;
-    }
-    if( palette.kind == NewPaletteKind::Imported ) {
-        import_palette_data_and_report(state, new_palette, palette.import_from);
-        palette.name = palette.import_from.data;
-    }
-    new_palette.name = palette.name;
 }
 
 } // namespace editor
