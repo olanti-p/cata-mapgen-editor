@@ -1,5 +1,59 @@
 [
   {
+    "type": "palette",
+    "id": "fake_house_garage",
+    "//": "This palette is copied from house_garage mapgen. For debugging only.",
+    "palettes": [ "domestic_general_construction_and_variant_palette" ],
+    "terrain": {
+      "%": [ "t_region_shrub", "t_region_shrub_fruit", "t_region_shrub_decorative" ],
+      "!": "t_region_groundcover_urban",
+      "=": "t_door_metal_locked",
+      "_": "t_pavement",
+      "&": "t_gates_control_brick",
+      "G": "t_sidewalk",
+      "K": "t_sidewalk",
+      "~": "t_thconc_floor",
+      "q": "t_thconc_floor"
+    },
+    "furniture": { "!": "f_region_flower" }
+  },
+  {
+    "type": "mapgen",
+    "//": "Debug version of garage mapgen for palette testing.",
+    "method": "json",
+    "om_terrain": [ "house_garage" ],
+    "object": {
+      "fill_ter": "t_floor",
+      "rows": [
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################"
+      ],
+      "palettes": [ "domestic_general_construction_and_variant_palette" ]
+    }
+  },
+  {
     "type": "mapgen",
     "method": "json",
     "om_terrain": [ "house_garage" ],
