@@ -40,6 +40,43 @@ void SelectionSettings::show()
     // TODO: selection modes
 }
 
+static std::optional<CanvasSnippet> try_import_snippet_from_clipboard() {
+    // TODO: ensure this matches mapgen parsing logic
+    // TODO: check for backslashes, double-width and combining characters
+    std::string text(ImGui::GetClipboardText());
+    if (text.empty()) {
+        return std::nullopt;
+    }
+    std::vector<std::string> lines = string_split(text, '\n');
+    std::vector<std::vector<std::string_view>> matrix;
+    size_t size_y = lines.size();
+    size_t size_x = 0;
+    for (const std::string& line : lines) {
+        std::vector<std::string_view> symbols;
+        utf8_display_split_into(line, symbols);
+        size_x = std::max(size_x, symbols.size());
+        matrix.emplace_back(std::move(symbols));
+    }
+    if (size_x > (24 * 4) || size_y > (24 * 4)) {
+        // Arbitrary limit, should cover most use cases
+        return std::nullopt;
+    }
+    point size(size_x, size_y);
+    Canvas2D<map_key> data(size, map_key());
+    Canvas2D<Bool> mask(size, Bool(false));
+    for (size_t y = 0; y < matrix.size(); y++) {
+        const std::vector<std::string_view>& row = matrix[y];
+        for (size_t x = 0; x < row.size(); x++) {
+            point pos(x, y);
+            data.set(pos, map_key(row[x]));
+            mask.set(pos, Bool(true));
+        }
+    }
+
+    // TODO: better paste pos
+    return CanvasSnippet(std::move(data), std::move(mask), point_zero);
+}
+
 void SelectionControl::handle_tool_operation( ToolTarget &target )
 {
     if( !target.has_canvas || !target.selection ) {
@@ -74,6 +111,24 @@ void SelectionControl::handle_tool_operation( ToolTarget &target )
     const auto is_selection_at = [&]( point_abs_etile pos ) {
         return target.selection->get( pos.raw() );
     };
+    if( should_import_from_clipboard ) {
+        should_import_from_clipboard = false;
+        std::optional<CanvasSnippet> new_snippet = try_import_snippet_from_clipboard();
+        if (new_snippet) {
+            // Abort & paste
+            apply_snippet();
+            start.reset();
+            selection_aborted = true;
+
+            if (target.selection->has_selected()) {
+                target.selection->clear_all();
+                target.made_changes = true;
+            }
+
+            // TODO: paste pos
+            target.snippets.add_snippet(target.mapgen.uuid, std::move(*new_snippet));
+        }
+    }
     if( target.view_hovered ) {
         if( ImGui::IsMouseClicked( ImGuiMouseButton_Left ) ) {
             dismissing_selection = true;

@@ -91,6 +91,7 @@ struct ControlState {
 
         void show_warning_popup( const std::string &data );
         void handle_warning_popup();
+        void handle_import_rows_from_clipboard();
 
     private:
         void set_tool_control( tools::ToolKind t );

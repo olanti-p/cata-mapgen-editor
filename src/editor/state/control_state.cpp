@@ -2,6 +2,7 @@
 
 #include "imgui.h"
 #include "tool/cursor.h"
+#include "tool/selection.h"
 
 #include <memory>
 
@@ -54,6 +55,20 @@ void ControlState::handle_warning_popup()
         }
         ImGui::EndPopup();
     }
+}
+
+void ControlState::handle_import_rows_from_clipboard()
+{
+    if ( has_ongoing_tool_operation() ) {
+        return;
+    }
+    tools::ToolControl& tool = get_tool_control(tools::ToolKind::Selection);
+    tools::SelectionControl* selection = dynamic_cast<tools::SelectionControl*>(&tool);
+    if (!selection) {
+        // Shouldn't heppen
+        std::abort();
+    }
+    selection->should_import_from_clipboard = true;
 }
 
 } // namespace editor

@@ -20,6 +20,7 @@ struct SelectionControl : public ToolControl {
     bool is_dragging_snippet = false;
     bool dismissing_selection = false;
     bool selection_aborted = false;
+    bool should_import_from_clipboard = false;
 
     void handle_tool_operation( ToolTarget &target ) override;
     inline bool operation_in_progress() const override {

@@ -41,6 +41,9 @@ void show_main_menu_bar( State &state )
             if( ImGui::MenuItem( "Redo", "Ctrl+Shift+Z", nullptr, state.history->can_redo() ) ) {
                 state.history->queue_redo();
             }
+            if (ImGui::MenuItem( "Paste from clipboard", "Ctrl+Shift+V" )) {
+                state.control->handle_import_rows_from_clipboard();
+            }
             ImGui::EndMenu();
         }
         if( ImGui::BeginMenu( "Window" ) ) {
@@ -103,6 +106,12 @@ void show_main_menu_bar( State &state )
             if( state.history->can_undo() ) {
                 state.history->queue_undo();
             }
+        }
+    }
+
+    if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsKeyPressed(ImGuiKey_V)) {
+        if (ImGui::IsKeyDown(ImGuiKey_LeftShift)) {
+            state.control->handle_import_rows_from_clipboard();
         }
     }
 }
