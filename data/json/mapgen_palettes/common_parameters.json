@@ -49,7 +49,7 @@
       "|": { "param": "interior_wall_type", "fallback": "t_wall_w" },
       "#": { "param": "exterior_wall_type", "fallback": "t_brick_wall" }
     },
-    "nested": { "#": { "chunks": [ [ "shelter_graffiti", 1 ], [ "general_graffiti", 1 ], [ "null", 598 ] ] } }
+    "nested": { "#": { "chunks": [ [ "general_graffiti", 1 ], [ "shelter_graffiti", 1 ], [ "null", 598 ] ] } }
   },
   {
     "type": "palette",
