@@ -495,12 +495,12 @@ void PieceZone::deserialize( const JSON_OBJECT &jsin )
 
 void PieceNested::serialize( JsonOut &jsout ) const
 {
-    // TODO
+    jsout.member("list", list);
 }
 
 void PieceNested::deserialize( const JSON_OBJECT &jsin )
 {
-    // TODO
+    jsin.read("list", list);
 }
 
 void PieceAltTrap::serialize( JsonOut &jsout ) const

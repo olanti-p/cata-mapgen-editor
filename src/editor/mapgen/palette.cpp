@@ -127,6 +127,15 @@ std::string Palette::display_name() const
     }
 }
 
+int Palette::num_pieces_total() const
+{
+    size_t ret = 0;
+    for (const PaletteEntry& it : entries) {
+        ret += it.mapping.pieces.size();
+    }
+    return ret;
+}
+
 void Palette::rebuild_cache() const {
     entries_cache.clear();
     for (size_t i = 0; i < entries.size(); i++) {

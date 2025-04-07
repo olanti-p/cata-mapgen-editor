@@ -117,6 +117,7 @@ public:
     const PaletteEntry *find_entry( const map_key &uuid ) const;
 
     std::string display_name() const;
+    int num_pieces_total() const;
 
     void serialize( JsonOut &jsout ) const;
     void deserialize(const TextJsonValue& jsin);

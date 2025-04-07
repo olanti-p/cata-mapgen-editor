@@ -212,7 +212,9 @@ struct PieceZone : public Piece {
 struct PieceNested : public Piece {
     IMPLEMENT_ME_PIECE( PieceNested, PieceType::Nested )
 
-    // TODO
+    void init_new() override;
+
+    WeightedList<EID::Nest> list;
 };
 
 struct PieceAltTrap : public Piece {

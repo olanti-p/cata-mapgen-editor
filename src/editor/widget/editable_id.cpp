@@ -105,6 +105,18 @@ const std::vector<std::string> &EditableID<npc_template>::get_all_opts()
 }
 
 template<>
+const std::vector<std::string>& EditableID<nested_mapgen>::get_all_opts()
+{
+    if (all_opts.empty()) {
+        all_opts.reserve(nested_mapgens.size());
+        for (const auto& it : nested_mapgens) {
+            all_opts.push_back(it.first.str());
+        }
+    }
+    return all_opts;
+}
+
+template<>
 const std::vector<std::string> &EditableID<oter_t>::get_all_opts()
 {
     if( all_opts.empty() ) {
@@ -195,6 +207,18 @@ const std::vector<std::string> &EditableID<trap>::get_all_opts()
         all_opts.reserve( trap::get_all().size() );
         for( const trap &it : trap::get_all() ) {
             all_opts.push_back( it.id.str() );
+        }
+    }
+    return all_opts;
+}
+
+template<>
+const std::vector<std::string>& EditableID<update_mapgen>::get_all_opts()
+{
+    if (all_opts.empty()) {
+        all_opts.reserve(update_mapgens.size());
+        for (const auto& it : update_mapgens) {
+            all_opts.push_back(it.first.str());
         }
     }
     return all_opts;

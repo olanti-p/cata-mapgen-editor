@@ -8984,6 +8984,16 @@ bool PieceItem::try_import( const jmapgen_piece& piece, PaletteImportReport& rep
     if (!casted) {
         return false;
     }
+    {
+        // TODO: parametric
+        auto val = casted->type.collapse_import();
+        if (val.first) {
+            report.num_values_folded++;
+        }
+        if (val.second) {
+            item_id = EID::Item(val.second->str());
+        }
+    }
     return true; // TODO
 }
 
@@ -9038,6 +9048,23 @@ bool PieceNested::try_import( const jmapgen_piece& piece, PaletteImportReport& r
     if (!casted) {
         return false;
     }
+    list.entries.clear();
+    for (const auto& entry : casted->entries) {
+        // TODO: parametric
+        auto val = entry.obj.collapse_import();
+        if (val.first) {
+            report.num_values_folded++;
+        }
+        if (val.second) {
+             int weight = entry.weight;
+             EID::Nest nested_id(val.second->str());
+             list.entries.emplace_back(nested_id, weight);
+        }
+    }
+    if (list.entries.empty()) {
+        list.entries.emplace_back(EID::Nest(), 1);
+    }
+
     return true; // TODO
 }
 

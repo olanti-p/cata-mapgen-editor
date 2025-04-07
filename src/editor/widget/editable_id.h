@@ -88,6 +88,7 @@ using IGroup = EditableID<item_group_tag>;
 using Item = EditableID<itype>;
 using Liquid = EditableID<liquid_item_tag>;
 using MGroup = EditableID<MonsterGroup>;
+using Nest = EditableID<nested_mapgen>;
 using NPCTemplate = EditableID<npc_template>;
 using Oter = EditableID<oter_t>;
 using OterType = EditableID<oter_type_t>;
@@ -97,6 +98,7 @@ using SnippetCategory = EditableID<snippet_category_tag>;
 using Ter = EditableID<ter_t>;
 using Trait = EditableID<mutation_branch>;
 using Trap = EditableID<trap>;
+using Update = EditableID<update_mapgen>;
 using VGroup = EditableID<VehicleGroup>;
 
 } // namespace EID

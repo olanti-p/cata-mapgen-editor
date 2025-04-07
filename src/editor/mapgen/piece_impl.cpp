@@ -6,6 +6,51 @@
 
 namespace editor
 {
+template<typename T>
+void show_weighted_list(State& state, editor::WeightedList<T>& list)
+{
+    ImGui::Indent(style::list_indent);
+
+    const auto can_delete = [&](size_t) -> bool {
+        return list.entries.size() > 1;
+        };
+
+    const auto show_val = [&](size_t i) {
+        ImGui::SetNextItemWidth(ImGui::GetFrameHeight() * 5.0f);
+        bool bad_weight = list.entries[i].weight <= 0;
+        if (bad_weight) {
+            ImGui::BeginErrorArea();
+        }
+        if (ImGui::InputInt("##weight", &list.entries[i].weight)) {
+            state.mark_changed("entry-weight");
+        }
+        if (bad_weight) {
+            ImGui::EndErrorArea();
+        }
+        ImGui::HelpPopup("Weight");
+        ImGui::SameLine();
+
+        ImGui::SetNextItemWidth(ImGui::GetFrameHeight() * 10.0f);
+        if (ImGui::InputId("##ter", list.entries[i].val)) {
+            state.mark_changed();
+        }
+        ImGui::HelpPopup("Value");
+        };
+
+    if (
+        ImGui::VectorWidget()
+        .with_for_each(show_val)
+        .with_can_delete(can_delete)
+        .with_default_add()
+        .with_default_delete()
+        .with_default_move()
+        .with_default_drag_drop()
+        .run(list.entries)) {
+        state.mark_changed();
+    }
+
+    ImGui::Indent(-style::list_indent);
+}
 
 void PieceField::show_ui( State &state )
 {
@@ -557,58 +602,24 @@ std::string PieceZone::fmt_data_summary() const
 
 void PieceNested::show_ui( State &state )
 {
-    ImGui::Text( "TODO" );
+    ImGui::Text( "TODO: more info" );
+
+    show_weighted_list(state, list);
 }
 
 std::string PieceNested::fmt_data_summary() const
 {
-    return "TODO";
+    std::string ret = list.entries[0].val.data;
+    if (list.entries.size() > 1) {
+        ret += string_format(" (+%d)", list.entries.size() - 1);
+    }
+    return ret;
 }
 
-template<typename T>
-void show_piece_alt( State &state, editor::WeightedList<T> &list )
+void PieceNested::init_new()
 {
-    ImGui::Indent( style::list_indent );
-
-    const auto can_delete = [&]( size_t ) -> bool {
-        return list.entries.size() > 1;
-    };
-
-    const auto show_val = [&]( size_t i ) {
-        ImGui::SetNextItemWidth( ImGui::GetFrameHeight() * 5.0f );
-        bool bad_weight = list.entries[i].weight <= 0;
-        if( bad_weight ) {
-            ImGui::BeginErrorArea();
-        }
-        if( ImGui::InputInt( "##weight", &list.entries[i].weight ) ) {
-            state.mark_changed( "entry-weight" );
-        }
-        if( bad_weight ) {
-            ImGui::EndErrorArea();
-        }
-        ImGui::HelpPopup( "Weight" );
-        ImGui::SameLine();
-
-        ImGui::SetNextItemWidth( ImGui::GetFrameHeight() * 10.0f );
-        if( ImGui::InputId( "##ter", list.entries[i].val ) ) {
-            state.mark_changed();
-        }
-        ImGui::HelpPopup( "Value" );
-    };
-
-    if(
-        ImGui::VectorWidget()
-        .with_for_each( show_val )
-        .with_can_delete( can_delete )
-        .with_default_add()
-        .with_default_delete()
-        .with_default_move()
-        .with_default_drag_drop()
-        .run( list.entries ) ) {
-        state.mark_changed();
-    }
-
-    ImGui::Indent( -style::list_indent );
+    list.entries.emplace_back();
+    list.entries.back().weight = 1;
 }
 
 void PieceAltTrap::init_new()
@@ -619,7 +630,7 @@ void PieceAltTrap::init_new()
 
 void PieceAltTrap::show_ui( State &state )
 {
-    show_piece_alt( state, list );
+    show_weighted_list( state, list );
 }
 
 std::string PieceAltTrap::fmt_data_summary() const
@@ -639,7 +650,7 @@ void PieceAltFurniture::init_new()
 
 void PieceAltFurniture::show_ui( State &state )
 {
-    show_piece_alt( state, list );
+    show_weighted_list( state, list );
 }
 
 std::string PieceAltFurniture::fmt_data_summary() const
@@ -659,7 +670,7 @@ void PieceAltTerrain::init_new()
 
 void PieceAltTerrain::show_ui( State &state )
 {
-    show_piece_alt( state, list );
+    show_weighted_list( state, list );
 }
 
 std::string PieceAltTerrain::fmt_data_summary() const
@@ -704,7 +715,7 @@ std::string PieceConstrained::fmt_summary() const
 
 void PieceConstrained::show_ui(State& state)
 {
-    ImGui::SeparatorText("CONSTRAINED PIECE");
+    ImGui::SeparatorText("$ CONDITIONAL MAPPING $");
     data->show_ui(state);
 }
 

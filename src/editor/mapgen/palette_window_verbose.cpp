@@ -253,7 +253,7 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
         }
     }
 
-    ImGui::Text("%d symbols", list.size());
+    ImGui::Text("%d symbols  %d mappings", list.size(), palette.num_pieces_total());
     ImGui::Separator();
 
     Project &proj = state.project();
