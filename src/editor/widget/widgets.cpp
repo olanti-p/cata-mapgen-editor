@@ -1,5 +1,8 @@
 #include "widget/widgets.h"
 
+#include <optional>
+
+#include "editable_id.h"
 #include "cata_tiles.h"
 #include "catacharset.h"
 #include "color.h"
@@ -10,7 +13,6 @@
 #include "mapgen/palette.h"
 #include "sdl_utils.h"
 #include "sdltiles.h"
-#include <optional>
 
 #ifdef DebugLog
 #  undef DebugLog
@@ -21,7 +23,23 @@ SpriteRef::SpriteRef( const std::string &id )
 {
     const tileset &tset = tilecontext->get_tileset();
     const tile_type *t = tset.find_tile_type( id );
-    if( t ) {
+    if (!t) {
+        std::optional<tile_lookup_res> lookup_res;
+        editor::EID::Ter ter_id(id);
+        if (ter_id.is_valid()) {
+            lookup_res = tilecontext->find_tile_looks_like(id, TILE_CATEGORY::TERRAIN, "");
+        }
+        if (!lookup_res) {
+            editor::EID::Furn furn_id(id);
+            if (furn_id.is_valid()) {
+                lookup_res = tilecontext->find_tile_looks_like(id, TILE_CATEGORY::FURNITURE, "");
+            }
+        }
+        if (lookup_res) {
+            t = &lookup_res->tile();
+        }
+    }
+    if (t) {
         tile_idx = t->fg.begin()->obj[0];
     }
 }

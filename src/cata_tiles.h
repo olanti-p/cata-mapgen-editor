@@ -473,7 +473,6 @@ class cata_tiles
         /** Minimap functionality */
         void draw_minimap( const point &dest, const tripoint_bub_ms &center, int width, int height );
 
-    protected:
         /** How many rows and columns of tiles fit into given dimensions, fully
          ** or partially shown, but disregarding any extra contents outside the
          ** basic x range of [0, tile_width) and the basic y range of
