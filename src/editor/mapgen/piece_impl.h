@@ -214,6 +214,8 @@ struct PieceNested : public Piece {
 
     void init_new() override;
 
+    std::unordered_set<point> silhouette() const;
+
     WeightedList<EID::Nest> list;
 };
 

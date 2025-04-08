@@ -1,8 +1,12 @@
 #include "piece_impl.h"
 
+#include "common/algo.h"
 #include "widget/style.h"
 #include "state/state.h"
 #include "widget/widgets.h"
+
+// FIXME: header name conflict
+#include "../../mapgen.h"
 
 namespace editor
 {
@@ -620,6 +624,22 @@ void PieceNested::init_new()
 {
     list.entries.emplace_back();
     list.entries.back().weight = 1;
+}
+
+std::unordered_set<point> PieceNested::silhouette() const
+{
+    std::unordered_set<point> ret;
+    for (const auto& entry : list.entries) {
+        if (entry.val.is_valid()) {
+            const nested_mapgen& obj = entry.val.obj();
+            for (const auto& it : obj.funcs()) {
+                const mapgen_function_json_nested* func = it.obj.get();
+                half_open_rectangle<point> rect(point_zero, func->mapgensize.raw());
+                accumulate_points<point>(ret, rect);
+            }
+        }
+    }
+    return ret;
 }
 
 void PieceAltTrap::init_new()

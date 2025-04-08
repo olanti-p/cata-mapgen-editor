@@ -4,6 +4,7 @@
 #include "uuid.h"
 #include "canvas_2d.h"
 #include "mapgen_map_key.h"
+#include "cuboid_rectangle.h"
 
 #include <vector>
 
@@ -39,6 +40,15 @@ std::pair<Point, Point> normalize_rect( Point a, Point b )
         Point( std::min( a.x(), b.x() ), std::min( a.y(), b.y() ) ),
         Point( std::max( a.x(), b.x() ), std::max( a.y(), b.y() ) )
     };
+}
+
+template<typename Point>
+void accumulate_points(std::unordered_set<Point>& points, half_open_rectangle<Point> rect) {
+    for (auto y = rect.p_min.y; y < rect.p_max.y; y++) {
+        for (auto x = rect.p_min.x; x < rect.p_max.x; x++) {
+            points.insert(Point(x, y));
+        }
+    }
 }
 
 } // namespace editor

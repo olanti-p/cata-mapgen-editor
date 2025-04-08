@@ -26,6 +26,7 @@
 #include "view/ruler.h"
 #include "widget/widgets.h"
 #include "mapgen/palette_view.h"
+#include "mapgen/piece_impl.h"
 
 #include <array>
 #include <cmath>
@@ -454,6 +455,34 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
 
     if( view_hovered ) {
         point_abs_etile tile_pos = get_mouse_tile_pos( cam );
+        if (mapgen.uses_rows() && is_mouse_in_bounds) {
+            const map_key& uuid = get_uuid_at_pos(tile_pos.raw());
+            ViewEntry* hovered_entry = pal.find_entry(uuid);
+
+            std::unordered_set<point> nested_info;
+            if (hovered_entry) {
+                for (const ViewPiece& piece : hovered_entry->pieces) {
+                    const PieceNested* nested = dynamic_cast<const PieceNested*>(piece.piece);
+                    if (nested) {
+                        std::unordered_set<point> sil = nested->silhouette();
+                        nested_info.insert(sil.begin(), sil.end());
+                    }
+                }
+            }
+            bool show_nest = false;
+            if (nested_info.size() > 1) {
+                show_nest = true;
+            }
+            else if (nested_info.size() == 1) {
+                show_nest = *nested_info.begin() != point_zero;
+            }
+            if (show_nest) {
+                for (const point& delta : nested_info) {
+                    fill_tile(draw_list, cam, tile_pos + delta, col_nest);
+                }
+            }
+        }
+
         highlight_tile( draw_list, cam, tile_pos, col_cursor );
     }
 
