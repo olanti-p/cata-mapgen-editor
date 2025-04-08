@@ -166,7 +166,7 @@ void ViewPalette::invalidate_caches() const
 void ViewPalette::add_palette( Palette& pal)
 {
     if (std::find(palettes.begin(), palettes.end(), &pal) != palettes.end()) {
-        //return;
+        return;
     }
     palettes.emplace_back(&pal);
 
