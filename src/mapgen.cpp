@@ -1544,7 +1544,21 @@ void jmapgen_place::offset( const tripoint_rel_ms &offset )
     z.valmax -= offset.z();
 }
 
+map_key::map_key(const char* s) : str(s)
+{
+    if (utf8_width(str) != 1) {
+        debugmsg("map key '%s' must be 1 column", str);
+    }
+}
+
 map_key::map_key( const std::string &s ) : str( s )
+{
+    if( utf8_width( str ) != 1 ) {
+        debugmsg( "map key '%s' must be 1 column", str );
+    }
+}
+
+map_key::map_key( const std::string_view& s ) : str( s )
 {
     if( utf8_width( str ) != 1 ) {
         debugmsg( "map key '%s' must be 1 column", str );

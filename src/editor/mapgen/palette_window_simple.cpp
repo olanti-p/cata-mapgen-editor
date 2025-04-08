@@ -8,6 +8,7 @@
 #include "state/ui_state.h"
 #include "widget/widgets.h"
 #include "mapgen/palette_window.h"
+#include "mapgen/palette_view.h"
 
 #include <algorithm>
 #include <vector>
@@ -148,7 +149,64 @@ void show_palette_entries_simple( State &state, Palette &palette )
     }
 }
 
-void show_active_palette_simple( State &state, Palette &p, bool &show )
+// FIXME: this is an almost complete dupe of the other function
+void show_palette_entries_simple(State& state, ViewPalette& palette)
+{
+    const map_key& selected = state.ui->tools->get_main_tile();
+    ImGuiStyle& style = ImGui::GetStyle();
+    int buttons_count = palette.entries.size();
+    float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+    ImVec2 button_sz(40, 40);
+    ImVec2 button_sz_text = button_sz + ImGui::GetStyle().FramePadding * 2;
+    for (int idx = 0; idx < buttons_count; idx++) {
+        const ViewMapping& entry = palette.entries[idx];
+        SpritePair img = palette.sprite_from_uuid(entry.key);
+        ImGui::PushID(idx);
+        bool is_selected = selected == entry.key;
+        bool is_highlighted = state.control->highlight_entry_in_palette == entry.key;
+        if (is_highlighted) {
+            ImGui::PushStyleColor(ImGuiCol_Button, col_highlighted_palette_entry);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, col_highlighted_palette_entry);
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, col_highlighted_palette_entry);
+        }
+        else if (is_selected) {
+            ImGui::PushStyleColor(ImGuiCol_Button, col_selected_palette_entry);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, col_selected_palette_entry);
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, col_selected_palette_entry);
+        }
+        bool btn_result;
+        if (img.furn) {
+            // FIXME: combine ter + furn in button preview
+            btn_result = ImGui::ImageButton("button", *img.furn, button_sz);
+        }
+        else if (img.ter) {
+            btn_result = ImGui::ImageButton("button", *img.ter, button_sz);
+        }
+        else {
+            std::string label = string_format("%s###button", entry.key.str);
+            btn_result = ImGui::Button(label.c_str(), button_sz_text);
+        }
+        if (is_selected || is_highlighted) {
+            ImGui::PopStyleColor(3);
+        }
+        if (btn_result && !is_selected) {
+            state.ui->tools->set_main_tile(entry.key);
+        }
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort)) {
+            ImGui::BeginTooltip();
+            show_palette_entry_tooltip(state.project(), entry);
+            ImGui::EndTooltip();
+        }
+        float last_button_x2 = ImGui::GetItemRectMax().x;
+        float next_button_x2 = last_button_x2 + style.ItemSpacing.x + button_sz.x;
+        if (idx + 1 <= buttons_count && next_button_x2 < window_visible_x2) {
+            ImGui::SameLine();
+        }
+        ImGui::PopID();
+    }
+}
+
+void show_active_palette_simple( State &state, Palette &p, bool &show, bool resolved )
 {
     ImGui::SetNextWindowSize( ImVec2( 620.0f, 240.0f ), ImGuiCond_FirstUseEver );
     ImGui::SetNextWindowPos( ImVec2( 50.0f, 50.0f ), ImGuiCond_FirstUseEver );
@@ -159,7 +217,17 @@ void show_active_palette_simple( State &state, Palette &p, bool &show )
     }
     ImGui::PushID( p.uuid );
 
-    show_palette_entries_simple( state, p );
+    if (resolved) {
+        // FIXME: use existing resolved palette, if available
+        ViewPalette vp(state.project());
+        vp.add_palette_recursive(p, state.ui->view_palette_tree_states[p.uuid]);
+        vp.finalize();
+
+        show_palette_entries_simple( state, vp );
+    }
+    else {
+        show_palette_entries_simple( state, p );
+    }
 
     ImGui::PopID();
     ImGui::End();

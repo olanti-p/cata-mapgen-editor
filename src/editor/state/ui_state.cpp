@@ -144,7 +144,7 @@ void run_ui_for_state( State &state )
     if( uistate.show_mapgen_palette_simple && active_mapgen ) {
         Palette* pal = proj.get_palette(active_mapgen->base.palette);
         if (pal) {
-            show_active_palette_simple(state, *pal, uistate.show_mapgen_palette_simple);
+            show_active_palette_simple(state, *pal, uistate.show_mapgen_palette_simple, true);
         }
         else {
             uistate.show_mapgen_palette_simple = false;

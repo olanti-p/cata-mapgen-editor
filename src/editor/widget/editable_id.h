@@ -48,6 +48,10 @@ struct EditableID {
             return string_id<T>( data ).is_null();
         }
 
+        bool is_empty() const {
+            return data.empty();
+        }
+
         const T &obj() const {
             return string_id<T>( data ).obj();
         }

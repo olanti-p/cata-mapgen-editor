@@ -153,4 +153,17 @@ std::unique_ptr<Project> create_empty_project()
     return ret;
 }
 
+const Palette* Project::find_palette_by_string(const std::string& id) const
+{
+    for (const Palette& p : palettes) {
+        if (p.imported && p.imported_id.data == id) {
+            return &p;
+        }
+        if (!p.imported && p.created_id == id) {
+            return &p;
+        }
+    }
+    return nullptr;
+}
+
 } // namespace editor

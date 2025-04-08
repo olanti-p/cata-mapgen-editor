@@ -25,6 +25,7 @@
 #include "uistate.h"
 #include "view/ruler.h"
 #include "widget/widgets.h"
+#include "mapgen/palette_view.h"
 
 #include <array>
 #include <cmath>
@@ -175,7 +176,10 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
     bool view_hovered = ImGui::IsWindowHovered();
     ToolsState &tools = *state.ui->tools;
 
-    const Palette &pal = *state.project().get_palette( mapgen.base.palette );
+    ViewPalette pal(state.project());
+    const Palette &pal_data = *state.project().get_palette( mapgen.base.palette );
+    pal.add_palette_recursive(pal_data, state.ui->view_palette_tree_states[pal_data.uuid]);
+    pal.finalize();
 
     point_abs_etile tile_pos = get_mouse_tile_pos( cam );
     point_rel_etile mapgensize = mapgen.mapgensize();
@@ -216,9 +220,10 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
     }
 
     bool show_tooltip = false;
-    const PaletteEntry *tooltip_entry = nullptr;
+    const ViewMapping *tooltip_entry = nullptr;
     map_key tooltip_entry_uuid;
     bool tooltip_entry_error = false;
+    bool tooltip_entry_fill_ter = false;
     std::string tooltip_error_msg;
     point_abs_etile tooltip_pos;
 
@@ -237,6 +242,11 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
         return mapgen.base.canvas.get( pos );
     };
 
+    float canvas_sprite_opacity = state.ui->canvas_sprite_opacity;
+    bool show_canvas_sprites = state.ui->show_canvas_sprites && canvas_sprite_opacity > 0.01f;
+    bool show_fill_ter_fallback = show_canvas_sprites && state.ui->show_fill_ter_sprites;
+    bool has_fill_ter = !mapgen.oter.fill_ter.is_empty() && !mapgen.oter.fill_ter.is_null();
+
     if( view_hovered ) {
         handle_view_change_hotkey( state );
 
@@ -245,13 +255,17 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
             tooltip_pos = tile_pos;
             if( is_mouse_in_bounds ) {
                 const map_key&uuid = get_uuid_at_pos( tile_pos.raw() );
-                tooltip_entry = state.project().get_palette(
-                                    mapgen.base.palette )->find_entry( uuid );
+                tooltip_entry = pal.find_entry( uuid );
                 tooltip_entry_uuid = uuid;
                 tooltip_entry_error = !tooltip_entry;
                 if (tooltip_entry_error) {
                     if (uuid.str.empty()) {
                         tooltip_error_msg = "No symbol assigned here";
+                    }
+                    else if (has_fill_ter && ( uuid.str == " " || uuid.str == ".")) {
+                        // No error - silent fill_ter fallback
+                        tooltip_entry_error = false;
+                        tooltip_entry_fill_ter = true;
                     }
                     else {
                         tooltip_error_msg = "Symbol not present in palette";
@@ -295,18 +309,27 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
     }
 
     if( mapgen.uses_rows() ) {
-        float canvas_sprite_opacity = state.ui->canvas_sprite_opacity;
-        bool show_canvas_sprites = state.ui->show_canvas_sprites && canvas_sprite_opacity > 0.01f;
         bool show_canvas_symbols = state.ui->show_canvas_symbols;
+        std::optional<SpriteRef> fill_ter_fallback;
 
         if (show_canvas_sprites) {
+            if (show_fill_ter_fallback) {
+                fill_ter_fallback = SpriteRef( mapgen.oter.fill_ter.data );
+            }
+
             for (int x = 0; x < mapgen.mapgensize().x(); x++) {
                 for (int y = 0; y < mapgen.mapgensize().y(); y++) {
                     point_abs_etile p(x, y);
                     const map_key& uuid = get_uuid_at_pos(p.raw());
-                    const SpriteRef* img = pal.sprite_from_uuid(uuid);
-                    if (img) {
-                        fill_tile_sprited(draw_list, cam, p, *img);
+                    SpritePair img = pal.sprite_from_uuid(uuid);
+                    if (img.ter) {
+                        fill_tile_sprited(draw_list, cam, p, *img.ter);
+                    }
+                    else if (fill_ter_fallback) {
+                        fill_tile_sprited(draw_list, cam, p, *fill_ter_fallback);
+                    }
+                    if (img.furn) {
+                        fill_tile_sprited(draw_list, cam, p, *img.furn);
                     }
                 }
             }
@@ -317,8 +340,11 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                 point_abs_etile p( x, y );
                 const map_key &uuid = get_uuid_at_pos( p.raw() );
                 ImVec4 col = pal.color_from_uuid( uuid );
-                const SpriteRef *img = show_canvas_sprites ? pal.sprite_from_uuid( uuid ) : nullptr;
-                if( img ) {
+                bool has_img = false;
+                if (show_canvas_sprites) {
+                    has_img = fill_ter_fallback.has_value() || !pal.sprite_from_uuid(uuid).is_empty();
+                }
+                if( has_img ) {
                     col.w *= (1.0f - canvas_sprite_opacity);
                 }
                 fill_tile( draw_list, cam, p, col );
@@ -338,7 +364,10 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                             static std::string fallback = "#";
                             mk = &fallback;
                         }
-                        else {
+                        else if (has_fill_ter && (uuid.str == " " || uuid.str == ".")) {
+                            // These are special cases that use fill_ter
+                            mk = &uuid.str;
+                        } else {
                             // FIXME: this may cause lag!
                             tmp = "<" + uuid.str + ">";
                             mk = &tmp;
@@ -507,13 +536,13 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
             objects.push_back( &obj );
         }
 
-        if( tooltip_entry || tooltip_entry_error || !objects.empty() ) {
+        if( tooltip_entry || tooltip_entry_error || (tooltip_entry_fill_ter && show_fill_ter_fallback) || !objects.empty() ) {
             ImGui::BeginTooltip();
             if( tooltip_needs_separator ) {
                 ImGui::SeparatorText( "Info" );
             }
             if( tooltip_entry ) {
-                show_palette_entry_tooltip( *tooltip_entry );
+                show_palette_entry_tooltip( state.project(), *tooltip_entry);
             }
             if( tooltip_entry_error ) {
                 std::string text = "ERROR: " + tooltip_error_msg;
@@ -523,6 +552,11 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                 ImGui::TextDisabled( "OBJ" );
                 ImGui::SameLine();
                 ImGui::Text( "%s", obj->piece->fmt_summary().c_str() );
+            }
+            if (show_fill_ter_fallback && has_fill_ter && (tooltip_entry_fill_ter || !pal.sprite_from_uuid(tooltip_entry_uuid).ter)) {
+                ImGui::TextDisabled("FILL");
+                ImGui::SameLine();
+                ImGui::Text("%s", mapgen.oter.fill_ter.data.c_str());
             }
             ImGui::EndTooltip();
             tooltip_needs_separator = true;

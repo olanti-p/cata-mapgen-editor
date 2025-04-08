@@ -165,12 +165,37 @@ void reimport_palette(State& state, Palette& p)
     }
 }
 
-void quick_import_palette(State& state, EID::Palette p)
+static void recursive_import_inner(State& state, Palette& p) {
+    auto list_copy = p.ancestors.list;
+    for (const auto& it : list_copy) {
+        for (const auto& opt : it.options) {
+            Palette* pal = state.project().find_palette_by_string(opt);
+            if (pal) {
+                recursive_import_inner(state, *pal);
+            }
+            else {
+                EID::Palette p_id(opt);
+                if (p_id.is_valid()) {
+                    Palette& pal = quick_import_palette(state, p_id);
+                    recursive_import_inner(state, pal);
+                }
+            }
+        }
+    }
+}
+
+void recursive_import_palette(State& state, Palette& p)
+{
+    recursive_import_inner(state, p);
+}
+
+Palette& quick_import_palette(State& state, EID::Palette p)
 {
     Palette& new_palette = quick_create_palette(state);
 
     import_palette_data_and_report(state, new_palette, p);
     new_palette.name = p.data;
+    return new_palette;
 }
 
 void quick_import_temp_palette(State& state, EID::TempPalette p)

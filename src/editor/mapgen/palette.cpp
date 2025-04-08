@@ -30,6 +30,32 @@ bool Mapping::has_piece_of_type( PieceType pt ) const
     return false;
 }
 
+const Piece* Mapping::find_piece(UUID uuid) const
+{
+    for (const auto& piece : pieces) {
+        if (piece->uuid == uuid) {
+            return piece.get();
+        }
+    }
+    return nullptr;
+}
+
+const Piece* Mapping::get_first_piece_of_type(PieceType pt) const
+{
+    for (const auto& piece : pieces) {
+        if (piece->get_type() == pt) {
+            return piece.get();
+        }
+        const PieceConstrained* cons = dynamic_cast<const PieceConstrained*>(piece.get());
+        if (cons) {
+            if (cons->data->get_type() == pt) {
+                return cons->data.get();
+            }
+        }
+    }
+    return nullptr;
+}
+
 const std::string *Palette::display_key_from_uuid( const map_key &uuid ) const
 {
     const PaletteEntry *entry = find_entry( uuid );
@@ -152,7 +178,7 @@ void PaletteEntry::build_sprite_cache() const
         const PieceAltFurniture *ptr = mapping.get_first_piece_of_type<PieceAltFurniture>();
         if( ptr ) {
             auto list = ptr->list;
-            if( !list.entries.empty() ) {
+            if( !list.entries.empty() && !list.entries[0].val.is_null() ) {
                 sprite_cache = SpriteRef( list.entries[0].val.data );
             }
         }
@@ -163,7 +189,7 @@ void PaletteEntry::build_sprite_cache() const
         const PieceAltTerrain *ptr = mapping.get_first_piece_of_type<PieceAltTerrain>();
         if( ptr ) {
             auto list = ptr->list;
-            if( !list.entries.empty() ) {
+            if( !list.entries.empty() && !list.entries[0].val.is_null() ) {
                 sprite_cache = SpriteRef( list.entries[0].val.data );
             }
         }

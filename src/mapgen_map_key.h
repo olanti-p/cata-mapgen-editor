@@ -19,7 +19,9 @@ class map_key
         map_key() = default;
         map_key( const map_key & ) = default;
         map_key( map_key && ) = default;
+        explicit map_key( const char* );
         explicit map_key( const std::string & );
+        explicit map_key( const std::string_view& );
         explicit map_key( const JsonMember & );
 		explicit map_key(const TextJsonMember&);
         ~map_key() = default;

@@ -41,6 +41,14 @@ struct Mapping {
     void serialize( JsonOut &jsout ) const;
     void deserialize( const TextJsonValue &jsin );
 
+    Piece* find_piece(UUID uuid) {
+        const Mapping* this_c = this;
+        return const_cast<Piece*>(this_c->find_piece(uuid));
+    }
+    const Piece* find_piece(UUID uuid) const;
+
+    const Piece* get_first_piece_of_type(PieceType pt) const;
+
     template<typename T>
     const T *get_first_piece_of_type() const {
         for( auto &piece : pieces ) {

@@ -4,6 +4,7 @@
 #include "common/color.h"
 #include "mapgen/palette_making.h"
 #include "mapgen/piece_impl.h"
+#include "mapgen/palette_view.h"
 #include "project/project.h"
 #include "state/control_state.h"
 #include "state/state.h"
@@ -335,11 +336,13 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, c);
         }
         bool clicked = false;
+        PieceAltTerrain* piece_disp_ter = nullptr;
+        PieceAltFurniture* piece_disp_furn = nullptr;
         {
             std::optional<std::string> text;
-            PieceAltTerrain *ptr = list[idx].mapping.get_first_piece_of_type<PieceAltTerrain>();
-            if( ptr ) {
-                text = ptr->fmt_data_summary();
+            piece_disp_ter = list[idx].mapping.get_first_piece_of_type<PieceAltTerrain>();
+            if(piece_disp_ter) {
+                text = piece_disp_ter->fmt_data_summary();
             }
             ImGui::SameLine();
             ImGui::PushID("ter");
@@ -351,9 +354,9 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
         }
         {
             std::optional<std::string> text;
-            PieceAltFurniture *ptr = list[idx].mapping.get_first_piece_of_type<PieceAltFurniture>();
-            if( ptr ) {
-                text = ptr->fmt_data_summary();
+            piece_disp_furn = list[idx].mapping.get_first_piece_of_type<PieceAltFurniture>();
+            if(piece_disp_furn) {
+                text = piece_disp_furn->fmt_data_summary();
             }
             ImGui::SameLine();
             ImGui::PushID("furn");
@@ -382,7 +385,13 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
         int additional_pieces = 0;
         std::string additional_summary;
         for( const auto &it : list[idx].mapping.pieces ) {
-            if( it->get_type() == PieceType::AltTerrain || it->get_type() == PieceType::AltFurniture ) {
+            Piece* og_piece = it.get();
+            PieceConstrained* og_constr = dynamic_cast<PieceConstrained*>(og_piece);
+            if (og_constr) {
+                // TODO: get rid of constrained wrapper!?
+                og_piece = og_constr->data.get();
+            }
+            if (og_piece == piece_disp_ter || og_piece == piece_disp_furn) {
                 continue;
             }
             additional_pieces += 1;
@@ -406,78 +415,217 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
     }
 }
 
-struct PaletteTreeState {
-    std::optional<std::string> import_pal;
-};
-
-static Palette* find_next_pal(State& state, const std::string& id) {
-    for (Palette& p : state.project().palettes) {
-        if (p.imported && p.imported_id.data == id) {
-            return &p;
-        }
-        if (!p.imported && p.created_id == id) {
-            return &p;
-        }
-    }
-    return nullptr;
-}
-
-void print_dependency_list(PaletteTreeState& pts, State& state, Palette& p);
-
-static void print_palette_entry(PaletteTreeState& pts, State& state, Palette& p2)
+// FIXME: this is an almost complete dupe of the other function
+static void show_palette_entries_verbose(State& state, ViewPalette& palette)
 {
-    std::string disp_name = p2.display_name();
-    if (p2.ancestors.list.empty()) {
-        ImGui::Text("%s", disp_name.c_str());
-    }
-    else {
-        ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-        if (ImGui::TreeNode(disp_name.c_str())) {
-            print_dependency_list(pts, state, p2);
-            ImGui::TreePop();
-        }
-    }
-}
+    std::vector<ViewMapping>& list = palette.entries;
 
-static void print_palette_entry(PaletteTreeState& pts, State& state, std::string maybe_id) {
-    ImGui::PushID(maybe_id.c_str());
-    Palette* p = find_next_pal(state, maybe_id);
-    if (p) {
-        print_palette_entry(pts, state, *p);
-    }
-    else {
-        if (ImGui::SmallButton("Import")) {
-            pts.import_pal = maybe_id;
+    ImGui::Text("%d symbols  %d mappings", list.size(), palette.num_pieces_total());
+    ImGui::Separator();
+
+    Project& proj = state.project();
+    ToolsState& tools = *state.ui->tools;
+
+    bool changed = ImGui::VectorWidget()
+        .with_for_each([&](size_t idx) {
+        bool selected = list[idx].key == tools.get_main_tile();
+
+        ImGui::SetNextItemWidth(ImGui::GetFrameHeight());
+        ImGui::BeginDisabled();
+        if (ImGui::InputSymbol("##key", list[idx].key.str, default_map_key.str.c_str())) {
+            // FIXME: ensure unique keys, sync to ancestors
+            state.mark_changed("palette-entry-key");
+        }
+        ImGui::EndDisabled();
+        ImGui::HelpPopup("Symbol to use on canvas.");
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 0));
+        if (selected) {
+            // Highlight entry
+            ImVec4 c = col_selected_palette_entry;
+            c.w *= 0.6f;
+            ImGui::PushStyleColor(ImGuiCol_Button, c);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, c);
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, c);
+        }
+        else {
+            // Use dim colors so it's not distracting
+            ImVec4 c = ImGui::GetStyleColorVec4(ImGuiCol_Button);
+            c.w *= 0.6f;
+            ImGui::PushStyleColor(ImGuiCol_Button, c);
+            c = ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered);
+            c.w *= 0.6f;
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, c);
+            c = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
+            c.w *= 0.6f;
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, c);
+        }
+        bool clicked = false;
+        const PieceAltTerrain* piece_disp_ter = nullptr;
+        const PieceAltFurniture* piece_disp_furn = nullptr;
+        {
+            std::optional<std::string> text;
+            piece_disp_ter = dynamic_cast<const PieceAltTerrain*>( list[idx].get_first_piece_of_type( proj, PieceType::AltTerrain ) );
+            if (piece_disp_ter) {
+                text = piece_disp_ter->fmt_data_summary();
+            }
+            ImGui::SameLine();
+            ImGui::PushID("ter");
+            clicked = ImGui::Button(
+                text ? text->c_str() : "-",
+                ImVec2(ImGui::GetFrameHeight() * 8.0f, 0.0f)
+            );
+            ImGui::PopID();
+        }
+        {
+            std::optional<std::string> text;
+            piece_disp_furn = dynamic_cast<const PieceAltFurniture*>(list[idx].get_first_piece_of_type(proj, PieceType::AltFurniture));
+            if (piece_disp_furn) {
+                text = piece_disp_furn->fmt_data_summary();
+            }
+            ImGui::SameLine();
+            ImGui::PushID("furn");
+            clicked = ImGui::Button(
+                text ? text->c_str() : "-",
+                ImVec2(ImGui::GetFrameHeight() * 8.0f, 0.0f)
+            ) || clicked;
+            ImGui::PopID();
+        }
+        ImGui::PopStyleColor(3);
+        ImGui::PopStyleVar();
+        if (clicked) {
+            if (selected) {
+                tools.set_main_tile(map_key());
+            }
+            else {
+                tools.set_main_tile(list[idx].key);
+            }
         }
         ImGui::SameLine();
-        ImGui::Text("<%s>", maybe_id.c_str());
+        if (ImGui::ArrowButton("##mapping", ImGuiDir_Right)) {
+            const ViewMapping& ve = palette.entries[idx];
+            //state.ui->toggle_show_mapping(palette.uuid, list[idx].key);
+        }
+        ImGui::HelpPopup("Show/hide mappings\nassociated with this symbol.");
+
+        int additional_pieces = 0;
+        std::string additional_summary;
+        for (const auto& it : list[idx].pieces) {
+            const Palette& owner_palette = *proj.get_palette(it.palette);
+            const PaletteEntry& owner_entry = *owner_palette.find_entry(list[idx].key);
+            const Piece* og_piece = owner_entry.mapping.find_piece(it.id);
+            const PieceConstrained* og_constr = dynamic_cast<const PieceConstrained*>(og_piece);
+            if (og_constr) {
+                // TODO: get rid of constrained wrapper!?
+                og_piece = og_constr->data.get();
+            }
+            if (og_piece == piece_disp_ter || og_piece == piece_disp_furn) {
+                continue;
+            }
+            additional_pieces += 1;
+            additional_summary += og_piece->fmt_summary();
+            additional_summary += "\n";
+        }
+        if (additional_pieces > 0) {
+            ImGui::SameLine();
+            ImGui::Text("+ %d", additional_pieces);
+            ImGui::HelpPopup(additional_summary.c_str());
+        }
+            })
+        .run(list);
+
+    if (changed) {
+        state.mark_changed();
+    }
+}
+
+struct PaletteTreeState {
+    ViewPaletteTreeState& view;
+    std::optional<std::string> import_pal;
+
+    size_t get_selected_idx(UUID palette, size_t ancestor_idx)
+    {
+        auto& list = view.selected_opts[palette];
+        if (list.size() <= ancestor_idx) {
+            list.resize(ancestor_idx+1);
+        }
+        return list[ancestor_idx];
+    }
+    void set_selected_idx(UUID palette, size_t ancestor_idx, size_t selected_idx)
+    {
+        view.selected_opts[palette][ancestor_idx] = selected_idx;
+    }
+};
+
+void print_dependency_list(PaletteTreeState& pts, State& state, Palette& p, bool*selected);
+
+static void print_palette_entry_resolved(PaletteTreeState& pts, State& state, Palette& p2, bool* selected)
+{
+    std::string disp_name = p2.display_name();
+    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_OpenOnArrow;
+    if (p2.ancestors.list.empty()) {
+        flags |= ImGuiTreeNodeFlags_Leaf;
+    }
+    if (*selected) {
+        flags |= ImGuiTreeNodeFlags_Selected;
+    }
+    ImGui::SetNextItemOpen(true);
+    if (ImGui::TreeNodeEx(disp_name.c_str(), flags)) {
+        print_dependency_list(pts, state, p2, selected);
+        ImGui::TreePop();
+    }
+    if (ImGui::IsItemClicked()) {
+        *selected = true;
+    }
+}
+
+static void print_palette_entry_unresolved(PaletteTreeState& pts, State& state, const std::string& maybe_id, bool* selected)
+{
+    if (ImGui::SmallButton("Import")) {
+        pts.import_pal = maybe_id;
+    }
+    ImGui::SameLine();
+    ImGui::Selectable(maybe_id.c_str(), selected);
+}
+
+static void print_palette_entry(PaletteTreeState& pts, State& state, const std::string& maybe_id, bool *selected) {
+    ImGui::PushID(maybe_id.c_str());
+    Palette* p = state.project().find_palette_by_string(maybe_id);
+    if (p) {
+        print_palette_entry_resolved(pts, state, *p, selected);
+    }
+    else {
+        print_palette_entry_unresolved(pts, state, maybe_id, selected);
     }
     ImGui::PopID();
 }
 
-static void print_dependency_opts(PaletteTreeState& pts, State& state, const PaletteAncestorSwitch &sw) {
-    if (sw.options.size() == 1) {
-        print_palette_entry(pts, state, sw.options[0]);
-    }
-    else {
-        ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-        if (ImGui::TreeNode("SWITCH")) {
-            for (const std::string& s : sw.options) {
-                ImGui::PushID(&s);
-                print_palette_entry(pts, state, s);
-                ImGui::PopID();
-            }
-            ImGui::TreePop();
-        }
-    }
-}
-
-void print_dependency_list(PaletteTreeState& pts, State& state, Palette& p)
+void print_dependency_list(PaletteTreeState& pts, State& state, Palette& p, bool* selected)
 {
     ImGui::PushID(&p);
-    for (const PaletteAncestorSwitch& sw : p.ancestors.list) {
+    for (size_t ancestor_idx = 0; ancestor_idx < p.ancestors.list.size(); ancestor_idx++) {
+        const PaletteAncestorSwitch& sw = p.ancestors.list[ancestor_idx];
         ImGui::PushID(&sw);
-        print_dependency_opts(pts, state, sw);
+        if (sw.options.size() == 1) {
+            print_palette_entry(pts, state, sw.options[0], selected);
+        }
+        else {
+            ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_OpenOnArrow;
+            ImGui::SetNextItemOpen(true);
+            if (ImGui::TreeNodeEx("SWITCH", flags)) {
+                for (size_t opt_idx = 0; opt_idx < sw.options.size(); opt_idx++) {
+                    const std::string& s = sw.options[opt_idx];
+                    ImGui::PushID(&s);
+                    bool opt_selected = (pts.get_selected_idx(p.uuid, ancestor_idx) == opt_idx) && *selected;
+                    print_palette_entry(pts, state, s, &opt_selected);
+                    if (opt_selected) {
+                        pts.set_selected_idx(p.uuid, ancestor_idx, opt_idx);
+                        *selected = true;
+                    }
+                    ImGui::PopID();
+                }
+                ImGui::TreePop();
+            }
+        }
         ImGui::PopID();
     }
     ImGui::PopID();
@@ -498,6 +646,13 @@ static void show_palette_header_info( State& state, Palette& p)
             state.mark_changed("palette-reimported");
         }
         ImGui::HelpPopup("Discard all changes and re-import the palette from same id.");
+        ImGui::SameLine();
+        if (ImGui::Button("+ Recursive import")) {
+            reimport_palette(state, p);
+            recursive_import_palette(state, p);
+            state.mark_changed("palette-recursive-imported");
+        }
+        ImGui::HelpPopup("Same as Reimport, but also ensures all ancestors are imported.");
         ImGui::Text("IMPORTED PALETTE, ALL CHANGES WILL BE DISCARDED ON EXPORT");
     }
     else {
@@ -529,9 +684,10 @@ static void show_palette_header_info( State& state, Palette& p)
         }
     }
     if (!p.ancestors.list.empty()) {
-        PaletteTreeState pts;
+        PaletteTreeState pts{ state.ui->view_palette_tree_states[p.uuid]  };
         if (ImGui::TreeNode("Dependency graph")) {
-            print_palette_entry(pts, state, p);
+            bool tmp = true;
+            print_palette_entry_resolved(pts, state, p, &tmp);
             ImGui::TreePop();
         }
         if (pts.import_pal && EID::Palette(*pts.import_pal).is_valid()) {
@@ -554,13 +710,30 @@ void show_active_palette_details( State &state, Palette &p, bool &show )
         return;
     }
     ImGui::PushID( p.uuid );
-    
-    show_palette_header_info( state, p );
-    // Align position so the entries list stays in one place when switching palettes
-    ImGui::SetCursorPosY(ImGui::GetFrameHeight() * 6.0f);
-    ImGui::Separator();
-    show_palette_entries_verbose( state, p );
 
+    if (ImGui::BeginTabBar("PaletteDetailsTabBar")) {
+        // FIXME: use existing resolved palette, if available
+        // FIXME: this is opaque, but we create the palette here because it validates global ui state
+        ViewPalette vp(state.project());
+        vp.add_palette_recursive(p, state.ui->view_palette_tree_states[p.uuid]);
+        vp.finalize();
+
+        if (ImGui::BeginTabItem("General")) {
+            show_palette_header_info(state, p);
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Source")) {
+            show_palette_entries_verbose(state, p);
+            show_palette_entries_simple(state, p);
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Resolved")) {
+            show_palette_entries_verbose(state, vp);
+            ImGui::EndTabItem();
+        }
+        ImGui::EndTabBar();
+    }
+    
     ImGui::PopID();
     ImGui::End();
 }
@@ -578,12 +751,29 @@ void show_palette_preview( State& state, Palette& p, bool& show )
     }
     ImGui::PushID(p.uuid);
 
-    show_palette_header_info(state, p);
-    ImGui::Separator();
-    show_palette_entries_verbose(state, p);
+    if (ImGui::BeginTabBar("PalettePreviewTabBar")) {
+        // FIXME: use existing resolved palette, if available
+        // FIXME: this is opaque, but we create the palette here because it validates global ui state
+        ViewPalette vp(state.project());
+        vp.add_palette_recursive(p, state.ui->view_palette_tree_states[p.uuid]);
+        vp.finalize();
 
-    ImGui::Separator();
-    show_palette_entries_simple(state, p);
+        if (ImGui::BeginTabItem("General")) {
+            show_palette_header_info(state, p);
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Source")) {
+            show_palette_entries_verbose(state, p);
+            show_palette_entries_simple(state, p);
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Resolved")) {
+            show_palette_entries_verbose(state, vp);
+            show_palette_entries_simple(state, vp);
+            ImGui::EndTabItem();
+        }
+        ImGui::EndTabBar();
+    }
 
     ImGui::PopID();
     ImGui::End();

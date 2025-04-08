@@ -45,6 +45,10 @@ struct OpenMapgenObject {
 };
 } // namespace detail
 
+struct ViewPaletteTreeState {
+    std::unordered_map<UUID, std::vector<int>> selected_opts;
+};
+
 /**
  * Editor UI state.
  *
@@ -81,6 +85,7 @@ struct UiState {
     bool show_omt_grid = false;             // Whether to show omt grid on canvas
     bool show_canvas_symbols = false;       // Whether to show symbols on canvas
     bool show_canvas_sprites = false;       // Whether to show sprites on canvas
+    bool show_fill_ter_sprites = false;       // Whether to show fill_ter sprites as fallback
     float canvas_sprite_opacity = 0.4f;     // Opacity for sprites on canvas
 
     bool autosave_enabled = true;
@@ -92,6 +97,7 @@ struct UiState {
     std::vector<detail::OpenPalette> open_palette_previews; // List of open palettes (verbose)
     std::vector<detail::OpenMapping> open_mappings; // List of open mappings
     std::vector<detail::OpenMapgenObject> open_mapgenobjects; // List of open mapgenobjects
+    std::unordered_map<UUID, ViewPaletteTreeState> view_palette_tree_states;
 
     pimpl<Camera> camera;
     pimpl<ToolsState> tools;

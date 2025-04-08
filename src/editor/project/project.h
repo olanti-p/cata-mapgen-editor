@@ -29,6 +29,12 @@ struct Project {
         const Project *this_c = this;
         return const_cast<Palette *>( this_c->get_palette( pid ) );
     }
+
+    const Palette* find_palette_by_string(const std::string& id) const;
+    Palette* find_palette_by_string(const std::string& id) {
+        const Project* this_c = this;
+        return const_cast<Palette*>(this_c->find_palette_by_string(id));
+    }
 };
 
 void show_project_overview_ui( State &state, Project &project, bool &show );

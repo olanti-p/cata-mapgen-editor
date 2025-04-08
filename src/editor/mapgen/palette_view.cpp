@@ -1,0 +1,226 @@
+#include "palette_view.h"
+
+#include <algorithm>
+
+#include "mapgen/piece_impl.h"
+#include "mapgen_map_key.h"
+
+#include "project/project.h"
+#include "state/state.h"
+#include "state/ui_state.h"
+
+namespace editor
+{
+
+const Piece* ViewMapping::get_first_piece_of_type(const Project& project, PieceType pt) const
+{
+    for( const ViewPiece &piece : pieces ) {
+        const Palette* pal = project.get_palette(piece.palette);
+        if (!pal) {
+            // FIXME: Shouldn't happen
+            // std::abort();
+            sprite_cache_valid = false;
+            continue;
+        }
+        const PaletteEntry* entry = pal->find_entry(key);
+        if (!entry) {
+            // FIXME: shouldn't happen
+            // std::abort
+            sprite_cache_valid = false;
+            continue;
+        }
+        const Piece* pc = entry->mapping.get_first_piece_of_type(pt);
+        if (pc) {
+            return pc;
+        }
+    }
+    return nullptr;
+}
+
+void ViewMapping::rebuild_sprite_cache(const Project& project) const
+{
+    sprite_cache_ter.reset();
+    sprite_cache_furn.reset();
+
+    {
+        const Piece* ptr_raw = get_first_piece_of_type(project, PieceType::AltTerrain);
+        const PieceAltTerrain* ptr = dynamic_cast<const PieceAltTerrain*>(ptr_raw);
+        if (ptr) {
+            auto list = ptr->list;
+            if (!list.entries.empty() && !list.entries[0].val.is_null()) {
+                sprite_cache_ter = SpriteRef(list.entries[0].val.data);
+            }
+        }
+    }
+
+    {
+        const Piece* ptr_raw = get_first_piece_of_type(project, PieceType::AltFurniture);
+        const PieceAltFurniture* ptr = dynamic_cast<const PieceAltFurniture*>(ptr_raw);
+        if (ptr) {
+            auto list = ptr->list;
+            if (!list.entries.empty() && !list.entries[0].val.is_null()) {
+                sprite_cache_furn = SpriteRef(list.entries[0].val.data);
+            }
+        }
+    }
+
+    sprite_cache_valid = true;
+}
+
+const std::string *ViewPalette::display_key_from_uuid( const map_key &uuid ) const
+{
+    const ViewMapping *entry = find_entry( uuid );
+    if( entry ) {
+        return &entry->key.str;
+    }
+
+    return nullptr;
+}
+
+const ImVec4 &ViewPalette::color_from_uuid( const map_key &uuid ) const
+{
+    /* TODO: palette colors
+    const ViewMapping*entry = find_entry( uuid );
+    if( entry ) {
+        return entry->color;
+    }
+    */
+
+    static ImVec4 default_color(0.0f, 0.0f, 0.0f, 1.0f);
+    return default_color;
+}
+
+SpritePair ViewPalette::sprite_from_uuid( const map_key &uuid ) const
+{
+    SpritePair ret;
+
+    const ViewMapping*entry = find_entry( uuid );
+    if( entry ) {
+        if( !entry->sprite_cache_valid ) {
+            entry->rebuild_sprite_cache(project);
+        }
+        if (entry->sprite_cache_ter) {
+            ret.ter = &*entry->sprite_cache_ter;
+        }
+        if (entry->sprite_cache_furn) {
+            ret.furn = &*entry->sprite_cache_furn;
+        }
+    }
+
+    return ret;
+}
+
+ViewMapping *ViewPalette::find_entry( const map_key&uuid )
+{
+    if (uuid.str.empty()) {
+        return nullptr;
+    }
+    if (entries.size() != entries_cache.size()) {
+        rebuild_cache();
+    }
+    auto it = entries_cache.find(uuid);
+    if (it == entries_cache.end()) {
+        return nullptr;
+    }
+    if (entries[it->second].key != uuid) {
+        rebuild_cache();
+        auto it = entries_cache.find(uuid);
+        if (it == entries_cache.end()) {
+            return nullptr;
+        }
+    }
+    return &entries[it->second];
+}
+
+const ViewMapping *ViewPalette::find_entry( const map_key&uuid ) const
+{
+    if (uuid.str.empty()) {
+        return nullptr;
+    }
+    if (entries.size() != entries_cache.size()) {
+        rebuild_cache();
+    }
+    auto it = entries_cache.find(uuid);
+    if (it == entries_cache.end()) {
+        return nullptr;
+    }
+    if (entries[it->second].key != uuid) {
+        rebuild_cache();
+        auto it = entries_cache.find(uuid);
+        if (it == entries_cache.end()) {
+            return nullptr;
+        }
+    }
+    return &entries[it->second];
+}
+
+int ViewPalette::num_pieces_total() const
+{
+    size_t ret = 0;
+    for (const ViewMapping& it : entries) {
+        ret += it.pieces.size();
+    }
+    return ret;
+}
+
+void ViewPalette::rebuild_cache() const {
+    entries_cache.clear();
+    for (size_t i = 0; i < entries.size(); i++) {
+        entries_cache[entries[i].key] = i;
+        entries[i].rebuild_sprite_cache(project);
+    }
+}
+
+void ViewPalette::invalidate_caches() const
+{
+    for (const ViewMapping& entry : entries) {
+        entry.sprite_cache_valid = false;
+    }
+}
+
+void ViewPalette::add_palette(const Palette& pal)
+{
+    if (std::find(palettes.begin(), palettes.end(), pal.uuid) != palettes.end()) {
+        //return;
+    }
+    palettes.emplace_back(pal.uuid);
+
+    for (const PaletteEntry& entry : pal.entries) {
+        const Mapping& mapping = entry.mapping;
+        const map_key& key = entry.key;
+        ViewMapping* vm;
+        if (entries_cache.count(key) == 0) {
+            entries.emplace_back();
+            vm = &*entries.rbegin();
+            vm->key = key;
+            entries_cache[key] = entries.size() - 1;
+        }
+        else {
+            vm = &entries[entries_cache[key]];
+        }
+        for (const auto& piece : mapping.pieces) {
+            vm->pieces.push_back(ViewPiece{ pal.uuid, piece->uuid });
+        }
+    }
+}
+
+void ViewPalette::add_palette_recursive(const Palette& pal, ViewPaletteTreeState& vpts)
+{
+    std::vector<int>& selected_opts_palette = vpts.selected_opts[pal.uuid];
+    selected_opts_palette.resize(pal.ancestors.list.size());
+    for (size_t list_idx = 0; list_idx < pal.ancestors.list.size(); list_idx++) {
+        const PaletteAncestorSwitch& ref = pal.ancestors.list[list_idx];
+        int &selected_opt_this_list = selected_opts_palette[list_idx];
+        if (selected_opt_this_list >= ref.options.size()) {
+            selected_opt_this_list = ref.options.size() - 1;
+        }
+        const std::string& opt = ref.options[selected_opt_this_list];
+        const Palette* p = project.find_palette_by_string(opt);
+        if (p) {
+            add_palette_recursive(*p, vpts);
+        }
+    }
+    add_palette(pal);
+}
+
+} // namespace editor
