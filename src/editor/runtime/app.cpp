@@ -64,6 +64,7 @@ void update_app_state( App &app )
                 app.editor_state = std::make_unique<State>( std::move( f ), &retval.load_path );
                 std::string project_uuid = app.editor_state->project().project_uuid;
                 set_project_ini_path( project_uuid );
+                app.editor_state->control->reimport_all_palettes = true;
             } else {
                 app.title_state->popup_prompt =
                     string_format( "Failed to load project:\n%s\nSee debug.log for details.", retval.load_path );

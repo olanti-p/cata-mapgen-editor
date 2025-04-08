@@ -19,6 +19,7 @@
 #include "widget/widgets.h"
 #include "project/new_mapgen.h"
 #include "project/new_palette.h"
+#include "mapgen/palette_making.h"
 
 namespace editor
 {
@@ -127,6 +128,15 @@ void run_ui_for_state( State &state )
         }
     }
     control.quick_add_state.active = false;
+
+    if (control.reimport_all_palettes) {
+        control.reimport_all_palettes = false;
+        for (Palette& pal : proj.palettes) {
+            if (pal.imported) {
+                reimport_palette( state, pal );
+            }
+        }
+    }
 
     // TODO: multiple mapgens on same canvas
     show_editor_view( state, active_mapgen );
