@@ -430,7 +430,7 @@ static void show_palette_entries_verbose(State& state, ViewPalette& palette)
         }
         ImGui::EndDisabled();
         ImGui::HelpPopup("Symbol to use on canvas.");
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 0));
+        ImGui::PushStyleVarX(ImGuiStyleVar_ItemSpacing, 2);
         if (selected) {
             // Highlight entry
             ImVec4 c = col_selected_palette_entry;
@@ -492,12 +492,14 @@ static void show_palette_entries_verbose(State& state, ViewPalette& palette)
                 tools.set_main_tile(list[idx].key);
             }
         }
+        /** TODO: implement viewing mappings
         ImGui::SameLine();
         if (ImGui::ArrowButton("##mapping", ImGuiDir_Right)) {
             const ViewEntry& ve = palette.entries[idx];
             //state.ui->toggle_show_mapping(palette.uuid, list[idx].key);
         }
         ImGui::HelpPopup("Show/hide mappings\nassociated with this symbol.");
+        */
 
         int additional_pieces = 0;
         std::string additional_summary;
