@@ -70,6 +70,15 @@ void show_main_menu_bar( State &state )
             ImGui::SliderFloat("Sprite opacity", &state.ui->canvas_sprite_opacity, 0.0, 1.0);
             ImGui::EndMenu();
         }
+
+        {
+            std::string fps = string_format("   AVG %.3f ms/frame [%.1f FPS]", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            ImVec2 sz = ImGui::CalcTextSize(fps.c_str());
+            float wnd_w = ImGui::GetWindowSize().x;
+            ImGui::SetCursorPosX(wnd_w - (sz.x + ImGui::GetStyle().ItemSpacing.x));
+            ImGui::Text("%s", fps.c_str());
+        }
+
         ImGui::EndMainMenuBar();
     }
 
