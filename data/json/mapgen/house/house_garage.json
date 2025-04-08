@@ -18,6 +18,65 @@
     "furniture": { "!": "f_region_flower" }
   },
   {
+    "type": "palette",
+    "id": "me_palette_1",
+    "terrain": {
+      "%": [ "t_region_shrub", "t_region_shrub_fruit", "t_region_shrub_decorative" ],
+      "!": "t_region_groundcover_urban",
+      "=": "t_door_metal_locked",
+      "_": "t_pavement"
+    },
+    "furniture": { "≠": "f_piano", "$": [ "f_stool", "f_chair"], "&": "f_table", "!": "f_region_flower" }
+  },
+  {
+    "type": "palette",
+    "id": "me_palette_2",
+    "palettes": [ "me_palette_1" ],
+    "terrain": {
+      "%": "t_region_shrub_fruit",
+      "!": [ "t_region_groundcover_urban" ],
+      "$": "t_door_metal_locked",
+      "#": "t_pavement"
+    },
+    "furniture": { "+": "f_piano", "$": "f_chair", "*": "f_table", "^": "f_region_flower" }
+  },
+  {
+    "type": "mapgen",
+    "//": "Debug version of garage mapgen for palette testing.",
+    "method": "json",
+    "om_terrain": [ "house_garage" ],
+    "object": {
+      "fill_ter": "t_floor",
+      "rows": [
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################",
+        "########################"
+      ],
+      "palettes": [ "me_palette_2" ]
+    }
+  },
+  {
     "type": "mapgen",
     "//": "Debug version of garage mapgen for palette testing.",
     "method": "json",
