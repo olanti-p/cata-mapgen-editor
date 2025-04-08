@@ -136,6 +136,8 @@ void run_ui_for_state( State &state )
                 reimport_palette( state, pal );
             }
         }
+        // FIXME: this should be transparent to the user
+        state.mark_changed("palette-reimport-on-load");
     }
 
     // TODO: multiple mapgens on same canvas
