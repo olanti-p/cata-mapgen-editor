@@ -45,12 +45,14 @@ void show_mapping( State &state, editor::Palette &p, editor::PaletteEntry &entry
     }
     ImGui::PushID( entry.key );
 
+    /* TODO: implement names
     if( ImGui::InputText( "Name", &entry.name ) ) {
         state.mark_changed( "entry-name" );
     }
     ImGui::HelpPopup( "Display name.  Has no effect, just for convenience." );
+    */
 
-    auto &list = entry.mapping.pieces;
+    std::vector<std::unique_ptr<Piece>> &list = entry.pieces;
 
     bool changed = ImGui::VectorWidget()
     .with_add( [&]()->bool {
@@ -61,7 +63,7 @@ void show_mapping( State &state, editor::Palette &p, editor::PaletteEntry &entry
             if( !is_available_as_mapping( pt ) ) {
                 continue;
             }
-            if( is_piece_exclusive( pt ) && entry.mapping.has_piece_of_type( pt ) ) {
+            if( is_piece_exclusive( pt ) && entry.has_piece_of_type( pt ) ) {
                 continue;
             }
             piece_opts.emplace_back( io::enum_to_string<PieceType>( pt ), pt );
@@ -104,6 +106,9 @@ void show_mapping( State &state, editor::Palette &p, editor::PaletteEntry &entry
             ImGui::HelpPopup( "Hide details." );
             ImGui::SameLine();
             ImGui::Text( "%d %s", static_cast<int>( idx ), list[idx]->fmt_summary().c_str() );
+            if (list[idx]->constraint) {
+                ImGui::SeparatorText("$ CONDITIONAL PIECE $");
+            }
             list[idx]->show_ui( state );
             ImGui::Separator();
         } else {
@@ -154,8 +159,7 @@ static bool show_palette_add_entry_section( State &state, Palette &palette,
                 ImGui::HelpPopup( "Cancel" );
                 ImGui::SameLine();
                 if( ImGui::InputId( "Terrain", qstate.eid_ter ) ) {
-                    list.emplace_back( make_simple_entry( state.project(), palette,
-                                                          make_mapping( &qstate.eid_ter, nullptr ) ) );
+                    list.emplace_back( make_simple_entry( state.project(), palette, &qstate.eid_ter, nullptr ) );
                     ret = true;
                     qstate.active = false;
                 }
@@ -168,8 +172,7 @@ static bool show_palette_add_entry_section( State &state, Palette &palette,
                 ImGui::HelpPopup( "Cancel" );
                 ImGui::SameLine();
                 if( ImGui::InputId( "Furniture", qstate.eid_furn ) ) {
-                    list.emplace_back( make_simple_entry( state.project(), palette,
-                                                          make_mapping( nullptr, &qstate.eid_furn ) ) );
+                    list.emplace_back( make_simple_entry( state.project(), palette, nullptr, &qstate.eid_furn ) );
                     ret = true;
                     qstate.active = false;
                 }
@@ -185,8 +188,7 @@ static bool show_palette_add_entry_section( State &state, Palette &palette,
                 bool disabled = !qstate.eid_furn.is_valid() || !qstate.eid_ter.is_valid();
                 ImGui::BeginDisabled( disabled );
                 if( ImGui::ImageButton( "confirm", "me_add" ) ) {
-                    list.emplace_back( make_simple_entry( state.project(), palette,
-                                                          make_mapping( &qstate.eid_ter, &qstate.eid_furn ) ) );
+                    list.emplace_back( make_simple_entry( state.project(), palette, &qstate.eid_ter, &qstate.eid_furn ) );
                     ret = true;
                     qstate.active = false;
                 }
@@ -204,8 +206,7 @@ static bool show_palette_add_entry_section( State &state, Palette &palette,
     } else {
         // In default mode
         if( ImGui::Button( "New Empty" ) ) {
-            list.emplace_back( make_simple_entry( state.project(), palette, make_mapping( nullptr,
-                                                  nullptr ) ) );
+            list.emplace_back( make_simple_entry( state.project(), palette, nullptr, nullptr ) );
             ret = true;
         }
         ImGui::HelpPopup( "Add a new empty entry." );
@@ -266,14 +267,10 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
     } )
     .with_duplicate( [&]( size_t idx ) {
         const PaletteEntry &src = list[ idx ];
-        list.insert( std::next( list.cbegin(), idx + 1 ), PaletteEntry{
-            pick_available_key( palette ),
-            src.color,
-            src.name,
-            src.mapping,
-            false,
-            std::nullopt
-        } );
+        PaletteEntry new_entry = src;
+        new_entry.key = pick_available_key(palette);
+        new_entry.sprite_cache_valid = false;
+        list.insert( std::next( list.cbegin(), idx + 1 ), std::move(new_entry) );
     } )
     .with_delete( [&]( size_t idx ) {
         const map_key &uuid = list[ idx ].key;
@@ -340,7 +337,7 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
         PieceAltFurniture* piece_disp_furn = nullptr;
         {
             std::optional<std::string> text;
-            piece_disp_ter = list[idx].mapping.get_first_piece_of_type<PieceAltTerrain>();
+            piece_disp_ter = list[idx].get_first_piece_of_type<PieceAltTerrain>();
             if(piece_disp_ter) {
                 text = piece_disp_ter->fmt_data_summary();
             }
@@ -354,7 +351,7 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
         }
         {
             std::optional<std::string> text;
-            piece_disp_furn = list[idx].mapping.get_first_piece_of_type<PieceAltFurniture>();
+            piece_disp_furn = list[idx].get_first_piece_of_type<PieceAltFurniture>();
             if(piece_disp_furn) {
                 text = piece_disp_furn->fmt_data_summary();
             }
@@ -384,13 +381,8 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
 
         int additional_pieces = 0;
         std::string additional_summary;
-        for( const auto &it : list[idx].mapping.pieces ) {
+        for( const auto &it : list[idx].pieces ) {
             Piece* og_piece = it.get();
-            PieceConstrained* og_constr = dynamic_cast<PieceConstrained*>(og_piece);
-            if (og_constr) {
-                // TODO: get rid of constrained wrapper!?
-                og_piece = og_constr->data.get();
-            }
             if (og_piece == piece_disp_ter || og_piece == piece_disp_furn) {
                 continue;
             }
@@ -418,7 +410,7 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
 // FIXME: this is an almost complete dupe of the other function
 static void show_palette_entries_verbose(State& state, ViewPalette& palette)
 {
-    std::vector<ViewMapping>& list = palette.entries;
+    std::vector<ViewEntry>& list = palette.entries;
 
     ImGui::Text("%d symbols  %d mappings", list.size(), palette.num_pieces_total());
     ImGui::Separator();
@@ -464,7 +456,7 @@ static void show_palette_entries_verbose(State& state, ViewPalette& palette)
         const PieceAltFurniture* piece_disp_furn = nullptr;
         {
             std::optional<std::string> text;
-            piece_disp_ter = dynamic_cast<const PieceAltTerrain*>( list[idx].get_first_piece_of_type( proj, PieceType::AltTerrain ) );
+            piece_disp_ter = list[idx].get_first_piece_of_type<PieceAltTerrain>();
             if (piece_disp_ter) {
                 text = piece_disp_ter->fmt_data_summary();
             }
@@ -478,7 +470,7 @@ static void show_palette_entries_verbose(State& state, ViewPalette& palette)
         }
         {
             std::optional<std::string> text;
-            piece_disp_furn = dynamic_cast<const PieceAltFurniture*>(list[idx].get_first_piece_of_type(proj, PieceType::AltFurniture));
+            piece_disp_furn = list[idx].get_first_piece_of_type<PieceAltFurniture>();
             if (piece_disp_furn) {
                 text = piece_disp_furn->fmt_data_summary();
             }
@@ -502,7 +494,7 @@ static void show_palette_entries_verbose(State& state, ViewPalette& palette)
         }
         ImGui::SameLine();
         if (ImGui::ArrowButton("##mapping", ImGuiDir_Right)) {
-            const ViewMapping& ve = palette.entries[idx];
+            const ViewEntry& ve = palette.entries[idx];
             //state.ui->toggle_show_mapping(palette.uuid, list[idx].key);
         }
         ImGui::HelpPopup("Show/hide mappings\nassociated with this symbol.");
@@ -510,14 +502,7 @@ static void show_palette_entries_verbose(State& state, ViewPalette& palette)
         int additional_pieces = 0;
         std::string additional_summary;
         for (const auto& it : list[idx].pieces) {
-            const Palette& owner_palette = *proj.get_palette(it.palette);
-            const PaletteEntry& owner_entry = *owner_palette.find_entry(list[idx].key);
-            const Piece* og_piece = owner_entry.mapping.find_piece(it.id);
-            const PieceConstrained* og_constr = dynamic_cast<const PieceConstrained*>(og_piece);
-            if (og_constr) {
-                // TODO: get rid of constrained wrapper!?
-                og_piece = og_constr->data.get();
-            }
+            const Piece* og_piece = it.piece;
             if (og_piece == piece_disp_ter || og_piece == piece_disp_furn) {
                 continue;
             }

@@ -12,38 +12,23 @@
 namespace editor
 {
 
-const Piece* ViewMapping::get_first_piece_of_type(const Project& project, PieceType pt) const
+const Piece* ViewEntry::get_first_piece_of_type(PieceType pt) const
 {
     for( const ViewPiece &piece : pieces ) {
-        const Palette* pal = project.get_palette(piece.palette);
-        if (!pal) {
-            // FIXME: Shouldn't happen
-            // std::abort();
-            sprite_cache_valid = false;
-            continue;
-        }
-        const PaletteEntry* entry = pal->find_entry(key);
-        if (!entry) {
-            // FIXME: shouldn't happen
-            // std::abort
-            sprite_cache_valid = false;
-            continue;
-        }
-        const Piece* pc = entry->mapping.get_first_piece_of_type(pt);
-        if (pc) {
-            return pc;
+        if (piece.piece->get_type() == pt) {
+            return piece.piece;
         }
     }
     return nullptr;
 }
 
-void ViewMapping::rebuild_sprite_cache(const Project& project) const
+void ViewEntry::rebuild_sprite_cache(const Project& project) const
 {
     sprite_cache_ter.reset();
     sprite_cache_furn.reset();
 
     {
-        const Piece* ptr_raw = get_first_piece_of_type(project, PieceType::AltTerrain);
+        const Piece* ptr_raw = get_first_piece_of_type(PieceType::AltTerrain);
         const PieceAltTerrain* ptr = dynamic_cast<const PieceAltTerrain*>(ptr_raw);
         if (ptr) {
             auto list = ptr->list;
@@ -54,7 +39,7 @@ void ViewMapping::rebuild_sprite_cache(const Project& project) const
     }
 
     {
-        const Piece* ptr_raw = get_first_piece_of_type(project, PieceType::AltFurniture);
+        const Piece* ptr_raw = get_first_piece_of_type(PieceType::AltFurniture);
         const PieceAltFurniture* ptr = dynamic_cast<const PieceAltFurniture*>(ptr_raw);
         if (ptr) {
             auto list = ptr->list;
@@ -69,7 +54,7 @@ void ViewMapping::rebuild_sprite_cache(const Project& project) const
 
 const std::string *ViewPalette::display_key_from_uuid( const map_key &uuid ) const
 {
-    const ViewMapping *entry = find_entry( uuid );
+    const ViewEntry *entry = find_entry( uuid );
     if( entry ) {
         return &entry->key.str;
     }
@@ -80,7 +65,7 @@ const std::string *ViewPalette::display_key_from_uuid( const map_key &uuid ) con
 const ImVec4 &ViewPalette::color_from_uuid( const map_key &uuid ) const
 {
     /* TODO: palette colors
-    const ViewMapping*entry = find_entry( uuid );
+    const ViewEntry*entry = find_entry( uuid );
     if( entry ) {
         return entry->color;
     }
@@ -94,7 +79,7 @@ SpritePair ViewPalette::sprite_from_uuid( const map_key &uuid ) const
 {
     SpritePair ret;
 
-    const ViewMapping*entry = find_entry( uuid );
+    const ViewEntry*entry = find_entry( uuid );
     if( entry ) {
         if( !entry->sprite_cache_valid ) {
             entry->rebuild_sprite_cache(project);
@@ -110,7 +95,7 @@ SpritePair ViewPalette::sprite_from_uuid( const map_key &uuid ) const
     return ret;
 }
 
-ViewMapping *ViewPalette::find_entry( const map_key&uuid )
+ViewEntry *ViewPalette::find_entry( const map_key&uuid )
 {
     if (uuid.str.empty()) {
         return nullptr;
@@ -132,7 +117,7 @@ ViewMapping *ViewPalette::find_entry( const map_key&uuid )
     return &entries[it->second];
 }
 
-const ViewMapping *ViewPalette::find_entry( const map_key&uuid ) const
+const ViewEntry *ViewPalette::find_entry( const map_key&uuid ) const
 {
     if (uuid.str.empty()) {
         return nullptr;
@@ -157,7 +142,7 @@ const ViewMapping *ViewPalette::find_entry( const map_key&uuid ) const
 int ViewPalette::num_pieces_total() const
 {
     size_t ret = 0;
-    for (const ViewMapping& it : entries) {
+    for (const ViewEntry& it : entries) {
         ret += it.pieces.size();
     }
     return ret;
@@ -173,22 +158,21 @@ void ViewPalette::rebuild_cache() const {
 
 void ViewPalette::invalidate_caches() const
 {
-    for (const ViewMapping& entry : entries) {
+    for (const ViewEntry& entry : entries) {
         entry.sprite_cache_valid = false;
     }
 }
 
-void ViewPalette::add_palette(const Palette& pal)
+void ViewPalette::add_palette( Palette& pal)
 {
-    if (std::find(palettes.begin(), palettes.end(), pal.uuid) != palettes.end()) {
+    if (std::find(palettes.begin(), palettes.end(), &pal) != palettes.end()) {
         //return;
     }
-    palettes.emplace_back(pal.uuid);
+    palettes.emplace_back(&pal);
 
     for (const PaletteEntry& entry : pal.entries) {
-        const Mapping& mapping = entry.mapping;
         const map_key& key = entry.key;
-        ViewMapping* vm;
+        ViewEntry* vm;
         if (entries_cache.count(key) == 0) {
             entries.emplace_back();
             vm = &*entries.rbegin();
@@ -198,13 +182,13 @@ void ViewPalette::add_palette(const Palette& pal)
         else {
             vm = &entries[entries_cache[key]];
         }
-        for (const auto& piece : mapping.pieces) {
-            vm->pieces.push_back(ViewPiece{ pal.uuid, piece->uuid });
+        for (const auto& piece : entry.pieces) {
+            vm->pieces.push_back(ViewPiece{ &pal, piece.get() });
         }
     }
 }
 
-void ViewPalette::add_palette_recursive(const Palette& pal, ViewPaletteTreeState& vpts)
+void ViewPalette::add_palette_recursive(Palette& pal, ViewPaletteTreeState& vpts)
 {
     std::vector<int>& selected_opts_palette = vpts.selected_opts[pal.uuid];
     selected_opts_palette.resize(pal.ancestors.list.size());
@@ -215,7 +199,7 @@ void ViewPalette::add_palette_recursive(const Palette& pal, ViewPaletteTreeState
             selected_opt_this_list = ref.options.size() - 1;
         }
         const std::string& opt = ref.options[selected_opt_this_list];
-        const Palette* p = project.find_palette_by_string(opt);
+        Palette* p = project.find_palette_by_string(opt);
         if (p) {
             add_palette_recursive(*p, vpts);
         }

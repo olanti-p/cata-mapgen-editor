@@ -6,13 +6,19 @@
 namespace editor
 {
 
-Mapping::Mapping( const Mapping &rhs )
+PaletteEntry::PaletteEntry( const PaletteEntry&rhs )
 {
     *this = rhs;
 }
 
-Mapping &Mapping::operator=( const Mapping &rhs )
+PaletteEntry& PaletteEntry::operator=( const PaletteEntry&rhs )
 {
+    key = rhs.key;
+    color = rhs.color;
+    name = rhs.name;
+    sprite_cache = rhs.sprite_cache;
+    sprite_cache_valid = rhs.sprite_cache_valid;
+
     pieces.reserve( rhs.pieces.size() );
     for( const auto &piece : rhs.pieces ) {
         pieces.emplace_back( piece->clone() );
@@ -20,7 +26,7 @@ Mapping &Mapping::operator=( const Mapping &rhs )
     return *this;
 }
 
-bool Mapping::has_piece_of_type( PieceType pt ) const
+bool PaletteEntry::has_piece_of_type( PieceType pt ) const
 {
     for( const auto &piece : pieces ) {
         if( piece->get_type() == pt ) {
@@ -30,7 +36,7 @@ bool Mapping::has_piece_of_type( PieceType pt ) const
     return false;
 }
 
-const Piece* Mapping::find_piece(UUID uuid) const
+const Piece* PaletteEntry::find_piece(UUID uuid) const
 {
     for (const auto& piece : pieces) {
         if (piece->uuid == uuid) {
@@ -40,17 +46,11 @@ const Piece* Mapping::find_piece(UUID uuid) const
     return nullptr;
 }
 
-const Piece* Mapping::get_first_piece_of_type(PieceType pt) const
+const Piece* PaletteEntry::get_first_piece_of_type(PieceType pt) const
 {
     for (const auto& piece : pieces) {
         if (piece->get_type() == pt) {
             return piece.get();
-        }
-        const PieceConstrained* cons = dynamic_cast<const PieceConstrained*>(piece.get());
-        if (cons) {
-            if (cons->data->get_type() == pt) {
-                return cons->data.get();
-            }
         }
     }
     return nullptr;
@@ -157,7 +157,7 @@ int Palette::num_pieces_total() const
 {
     size_t ret = 0;
     for (const PaletteEntry& it : entries) {
-        ret += it.mapping.pieces.size();
+        ret += it.pieces.size();
     }
     return ret;
 }
@@ -175,7 +175,7 @@ void PaletteEntry::build_sprite_cache() const
 
     // Try furniture tile
     {
-        const PieceAltFurniture *ptr = mapping.get_first_piece_of_type<PieceAltFurniture>();
+        const PieceAltFurniture *ptr = get_first_piece_of_type<PieceAltFurniture>();
         if( ptr ) {
             auto list = ptr->list;
             if( !list.entries.empty() && !list.entries[0].val.is_null() ) {
@@ -186,7 +186,7 @@ void PaletteEntry::build_sprite_cache() const
 
     // Try terrain tile
     if( !sprite_cache ) {
-        const PieceAltTerrain *ptr = mapping.get_first_piece_of_type<PieceAltTerrain>();
+        const PieceAltTerrain *ptr = get_first_piece_of_type<PieceAltTerrain>();
         if( ptr ) {
             auto list = ptr->list;
             if( !list.entries.empty() && !list.entries[0].val.is_null() ) {

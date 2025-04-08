@@ -46,6 +46,11 @@ namespace editor
 struct State;
 struct PaletteImportReport;
 
+struct PieceConstraint {
+    void serialize(JsonOut& jsout) const;
+    void deserialize(const TextJsonObject& jsin);
+};
+
 struct Piece {
     Piece() = default;
     virtual ~Piece() = default;
@@ -53,6 +58,7 @@ struct Piece {
     virtual PieceType get_type() const = 0;
 
     UUID uuid = UUID_INVALID;
+    std::optional<PieceConstraint> constraint;
 
     virtual std::unique_ptr<Piece> clone() const = 0;
 
@@ -68,7 +74,7 @@ struct Piece {
     /**
      * Returns "Type: data" summary string
     */
-    virtual std::string fmt_summary() const;
+    std::string fmt_summary() const;
 
     /**
      * Returns data summary string;
@@ -78,7 +84,6 @@ struct Piece {
 
 const std::vector<std::unique_ptr<Piece>> &get_piece_templates();
 std::unique_ptr<Piece> make_new_piece( PieceType pt );
-std::unique_ptr<Piece> wrap_in_constrained(std::unique_ptr<Piece> &&piece);
 
 bool is_alt_piece( PieceType pt );
 bool is_piece_exclusive( PieceType pt );

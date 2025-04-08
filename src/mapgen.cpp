@@ -9141,11 +9141,6 @@ bool PieceRemoveAll::try_import(const jmapgen_piece& piece, PaletteImportReport&
     return dynamic_cast<const jmapgen_remove_all*>(&piece) != nullptr;
 }
 
-bool PieceConstrained::try_import(const jmapgen_piece& piece, PaletteImportReport& report)
-{
-    return false;
-}
-
 bool PieceUnknown::try_import(const jmapgen_piece& piece, PaletteImportReport& report)
 {
     return false;

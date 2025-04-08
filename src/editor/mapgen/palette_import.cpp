@@ -29,9 +29,9 @@ static std::unique_ptr<Piece> try_import_recursive(Project& project, const jmapg
         }
         report.num_constrained++;
         std::unique_ptr<Piece> inner_imported = try_import_recursive(project, *inner, report);
-        std::unique_ptr<Piece> wrapper = wrap_in_constrained(std::move(inner_imported));
-        wrapper->uuid = project.uuid_generator();
-        return wrapper;
+        inner_imported->constraint = PieceConstraint();
+        inner_imported->uuid = project.uuid_generator();
+        return inner_imported;
     }
     else {
         std::unique_ptr<Piece> new_piece;
@@ -76,18 +76,17 @@ static void import_palette_data_internal( Project &project, Palette &palette,
         all_keys.insert( it.first );
     }
     for( const map_key &key : all_keys ) {
-        editor::Mapping mapping;
+        editor::PaletteEntry entry = make_simple_entry( project, palette, nullptr, nullptr );
+        entry.key = key;
         {
             auto it = source.format_placings.find( key );
             if( it != source.format_placings.end() ) {
                 for( const auto &piece_ptr : it->second ) {
                     std::unique_ptr<Piece> new_piece = try_import_recursive(project, *piece_ptr, report);
-                    mapping.pieces.emplace_back(std::move(new_piece));
+                    entry.pieces.emplace_back(std::move(new_piece));
                 }
             }
         }
-        editor::PaletteEntry entry = make_simple_entry( project, palette, std::move( mapping ) );
-        entry.key = key;
         palette.entries.emplace_back( std::move( entry ) );
         report.num_mappings++;
     }

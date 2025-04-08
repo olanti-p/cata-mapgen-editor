@@ -36,7 +36,6 @@ enum class PieceType : int {
     AltFurniture,
     AltTerrain,
     RemoveAll,
-    Constrained, // TODO: move constrains into component
     Unknown,
 
     NumJmTypes

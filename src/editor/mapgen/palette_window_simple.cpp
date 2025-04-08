@@ -159,7 +159,7 @@ void show_palette_entries_simple(State& state, ViewPalette& palette)
     ImVec2 button_sz(40, 40);
     ImVec2 button_sz_text = button_sz + ImGui::GetStyle().FramePadding * 2;
     for (int idx = 0; idx < buttons_count; idx++) {
-        const ViewMapping& entry = palette.entries[idx];
+        const ViewEntry& entry = palette.entries[idx];
         SpritePair img = palette.sprite_from_uuid(entry.key);
         ImGui::PushID(idx);
         bool is_selected = selected == entry.key;

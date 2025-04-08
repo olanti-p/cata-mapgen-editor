@@ -26,23 +26,41 @@ struct Piece;
 struct ViewPaletteTreeState;
 
 struct ViewPiece {
-    UUID palette;
-    UUID id;
+    Palette* pal = nullptr;
+    Piece* piece = nullptr;
 };
 
-struct ViewMapping {
+struct ViewEntry {
     map_key key;
     std::vector<ViewPiece> pieces;
 
-    ViewMapping() = default;
-    ViewMapping( const ViewMapping & ) = default;
-    ViewMapping( ViewMapping && ) = default;
-    ~ViewMapping() = default;
+    ViewEntry() = default;
+    ViewEntry( const ViewEntry & ) = default;
+    ViewEntry( ViewEntry && ) = default;
+    ~ViewEntry() = default;
 
-    ViewMapping &operator=( const ViewMapping & ) = default;
-    ViewMapping &operator=( ViewMapping && ) = default;
+    ViewEntry &operator=( const ViewEntry & ) = default;
+    ViewEntry &operator=( ViewEntry && ) = default;
 
-    const Piece* get_first_piece_of_type(const Project& project, PieceType pt) const;
+    const Piece* get_first_piece_of_type(PieceType pt) const;
+
+    template<typename T>
+    const T* get_first_piece_of_type() const {
+        for (auto& it : pieces) {
+            T* ptr = dynamic_cast<T*>(it.piece);
+            if (ptr) {
+                return ptr;
+            }
+        }
+        return nullptr;
+    }
+
+    template<typename T>
+    T* get_first_piece_of_type() {
+        const ViewEntry* this_c = this;
+        return const_cast<T*>(this_c->get_first_piece_of_type<T>());
+    }
+
     void rebuild_sprite_cache( const Project& project ) const;
 
     mutable bool sprite_cache_valid = false;
@@ -51,7 +69,7 @@ struct ViewMapping {
 };
 
 struct ViewPaletteAncestorSwitch {
-    std::vector<UUID> options;
+    std::vector<Palette*> options;
     int selected = 0;
 };
 
@@ -70,29 +88,29 @@ struct SpritePair {
 
 struct ViewPalette {
 public:
-    ViewPalette(const Project& project_) : project(project_) {}
+    ViewPalette(Project& project_) : project(project_) {}
 
-    const Project& project;
-    std::vector<ViewMapping> entries;
+    Project& project;
+    std::vector<ViewEntry> entries;
 
     const std::string *display_key_from_uuid( const map_key &uuid ) const;
     const ImVec4 &color_from_uuid( const map_key &uuid ) const;
     SpritePair sprite_from_uuid( const map_key &uuid ) const;
 
-    ViewMapping *find_entry( const map_key &uuid );
-    const ViewMapping *find_entry( const map_key &uuid ) const;
+    ViewEntry *find_entry( const map_key &uuid );
+    const ViewEntry *find_entry( const map_key &uuid ) const;
 
     int num_pieces_total() const;
 
     void invalidate_caches() const;
-    void add_palette(const Palette& pal);
-    void add_palette_recursive(const Palette& pal, ViewPaletteTreeState& vpts);
+    void add_palette(Palette& pal);
+    void add_palette_recursive( Palette& pal, ViewPaletteTreeState& vpts);
     void finalize() {
         rebuild_cache();
     }
 
 private:
-    std::vector<UUID> palettes;
+    std::vector<Palette*> palettes;
     mutable std::unordered_map<map_key, size_t> entries_cache;
     void rebuild_cache() const;
 };

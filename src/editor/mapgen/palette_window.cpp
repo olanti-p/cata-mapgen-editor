@@ -15,32 +15,19 @@ void show_palette_entry_tooltip( const PaletteEntry &entry )
     if( !name.empty() ) {
         ImGui::Text( "%s", name.c_str() );
     }
-    for( const auto &it : entry.mapping.pieces ) {
+    for( const auto &it : entry.pieces ) {
         ImGui::TextDisabled( "MAP" );
         ImGui::SameLine();
         ImGui::Text( "%s", it->fmt_summary().c_str() );
     }
 }
 
-void show_palette_entry_tooltip(const Project& project, const ViewMapping& entry)
+void show_palette_entry_tooltip(const Project& project, const ViewEntry& entry)
 {
-    for (const auto& it : entry.pieces) {
-        const Palette* pal = project.get_palette(it.palette);
-        if (!pal) {
-            std::abort();
-        }
-        const PaletteEntry* e = pal->find_entry(entry.key);
-        if (!e) {
-            std::abort();
-        }
-        for (const auto& piece : e->mapping.pieces) {
-            if (piece->uuid == it.id) {
-                ImGui::TextDisabled("MAP");
-                ImGui::SameLine();
-                ImGui::Text("%s", piece->fmt_summary().c_str());
-                break;
-            }
-        }
+    for (const auto& piece : entry.pieces) {
+        ImGui::TextDisabled("MAP");
+        ImGui::SameLine();
+        ImGui::Text("%s", piece.piece->fmt_summary().c_str());
     }
 }
 

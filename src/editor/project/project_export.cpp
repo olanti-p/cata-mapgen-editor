@@ -446,11 +446,6 @@ void PieceRemoveAll::export_func(JsonOut& jo) const
     // Empty object
 }
 
-void PieceConstrained::export_func(JsonOut& jo) const
-{
-    // TODO: print some error or something
-}
-
 void PieceUnknown::export_func(JsonOut& jo) const
 {
     // TODO: print some error or something
@@ -491,7 +486,6 @@ std::string get_palette_category( editor::PieceType data )
         case editor::PieceType::AltTerrain: return "terrain";
         case editor::PieceType::RemoveAll: return "remove_all";
         // These cannot exist as mappings
-        case editor::PieceType::Constrained:
         case editor::PieceType::Unknown:
         case editor::PieceType::Loot:
         case editor::PieceType::Trap:
@@ -537,7 +531,6 @@ std::string get_object_category( editor::PieceType data )
         case editor::PieceType::Nested: return "place_nested";
         // These cannot exist as objects
         case editor::PieceType::RemoveAll:
-        case editor::PieceType::Constrained:
         case editor::PieceType::Unknown:
         case editor::PieceType::SealedItem:
         case editor::PieceType::AltTrap:
@@ -567,7 +560,7 @@ static void emit_palette_entries(JsonOut& jo, const editor::Palette& pal)
         std::unordered_map<map_key, std::vector<const editor::Piece*>> matching_pieces;
 
         for (const editor::PaletteEntry& it : pal.entries) {
-            for (const auto& pc : it.mapping.pieces) {
+            for (const auto& pc : it.pieces) {
                 if (pc->get_type() == pt) {
                     matching_pieces[it.key].push_back(pc.get());
                 }

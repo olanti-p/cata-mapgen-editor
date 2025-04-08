@@ -16,6 +16,7 @@ void serialize( const std::unique_ptr<editor::Piece> &ptr, JsonOut &jsout )
     jsout.start_object();
     jsout.member_as_string( "piece_type", ptr->get_type() );
     jsout.member( "uuid", ptr->uuid );
+    jsout.member("constraint", ptr->constraint);
     ptr->serialize( jsout );
     jsout.end_object();
 }
@@ -28,10 +29,13 @@ void deserialize( std::unique_ptr<editor::Piece> &ptr, const TextJsonValue &jsin
     jo.read( "piece_type", pt );
     editor::UUID uuid;
     jo.read( "uuid", uuid );
+    std::optional<editor::PieceConstraint> constraint;
+    jo.read("constraint", constraint);
 
     std::unique_ptr<editor::Piece> val = editor::make_new_piece( pt );
     val->deserialize( jo );
     val->uuid = uuid;
+    val->constraint = std::move( constraint );
     ptr = std::move( val );
 }
 
@@ -170,7 +174,6 @@ std::string enum_to_string<editor::PieceType>( editor::PieceType data )
         case editor::PieceType::AltFurniture: return "AltFurniture";
         case editor::PieceType::AltTerrain: return "AltTerrain";
         case editor::PieceType::RemoveAll: return "RemoveAll";
-        case editor::PieceType::Constrained: return "Constrained";
         case editor::PieceType::Unknown: return "Unknown";
         // *INDENT-ON*
         default:
@@ -184,6 +187,17 @@ std::string enum_to_string<editor::PieceType>( editor::PieceType data )
 
 namespace editor
 {
+void PieceConstraint::deserialize(const JSON_OBJECT& jsin)
+{
+    // TODO
+}
+
+void PieceConstraint::serialize( JsonOut &jsout ) const
+{
+    jsout.start_object();
+    // TODO
+    jsout.end_object();
+}
 
 void PieceField::serialize( JsonOut &jsout ) const
 {
@@ -543,16 +557,6 @@ void PieceRemoveAll::deserialize(const JSON_OBJECT& jsin)
     // No data
 }
 
-void PieceConstrained::serialize(JsonOut& jsout) const
-{
-    jsout.member( "data", data );
-}
-
-void PieceConstrained::deserialize(const JSON_OBJECT& jsin)
-{
-    jsin.read( "data", data );
-}
-
 void PieceUnknown::serialize(JsonOut& jsout) const
 {
 
@@ -582,27 +586,13 @@ void deserialize_eid( const TextJsonValue &jsin, std::string &data )
 
 } // namespace detail
 
-void Mapping::serialize( JsonOut &jsout ) const
-{
-    jsout.start_object();
-    jsout.member( "pieces", pieces );
-    jsout.end_object();
-}
-
-void Mapping::deserialize( const TextJsonValue &jsin )
-{
-    JSON_OBJECT jo = jsin.get_object();
-
-    jo.read( "pieces", pieces );
-}
-
 void PaletteEntry::serialize( JsonOut &jsout ) const
 {
     jsout.start_object();
     jsout.member( "key", key );
     jsout.member( "color", color );
     jsout.member( "name", name );
-    jsout.member( "mapping", mapping );
+    jsout.member( "pieces", pieces );
     jsout.end_object();
 }
 
@@ -613,7 +603,7 @@ void PaletteEntry::deserialize( const TextJsonValue &jsin )
     jo.read( "key", key );
     jo.read( "color", color );
     jo.read( "name", name );
-    jo.read( "mapping", mapping );
+    jo.read( "pieces", pieces );
 }
 
 void Palette::serialize( JsonOut &jsout ) const

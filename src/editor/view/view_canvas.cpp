@@ -177,7 +177,7 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
     ToolsState &tools = *state.ui->tools;
 
     ViewPalette pal(state.project());
-    const Palette &pal_data = *state.project().get_palette( mapgen.base.palette );
+    Palette &pal_data = *state.project().get_palette( mapgen.base.palette );
     pal.add_palette_recursive(pal_data, state.ui->view_palette_tree_states[pal_data.uuid]);
     pal.finalize();
 
@@ -220,7 +220,7 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
     }
 
     bool show_tooltip = false;
-    const ViewMapping *tooltip_entry = nullptr;
+    const ViewEntry *tooltip_entry = nullptr;
     map_key tooltip_entry_uuid;
     bool tooltip_entry_error = false;
     bool tooltip_entry_fill_ter = false;

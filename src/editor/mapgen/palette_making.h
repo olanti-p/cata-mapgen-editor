@@ -13,8 +13,7 @@ struct Project;
 
 map_key pick_available_key( const Palette &pal );
 
-PaletteEntry make_simple_entry( Project &project, Palette &palette, Mapping &&mapping );
-Mapping make_mapping( const EID::Ter *ter, const EID::Furn *furn );
+PaletteEntry make_simple_entry( Project &project, Palette &palette, const EID::Ter* ter, const EID::Furn* furn );
 
 std::vector<std::vector<std::string>>
 calc_palette_ancestors(const mapgen_palette& source);
