@@ -670,6 +670,11 @@
   },
   {
     "type": "vehicle_group",
+    "id": "farm_vehicles_2",
+    "vehicles": [ [ "tractor_plow", 1000 ] ]
+  },
+  {
+    "type": "vehicle_group",
     "id": "farm_horse_vehicles",
     "vehicles": [
       [ "tractor_plow", 250 ],

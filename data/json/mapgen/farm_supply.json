@@ -354,7 +354,7 @@
         { "group": "FERAL_HUMANS", "x": [ 32, 34 ], "y": [ 43, 44 ], "chance": 80 }
       ],
       "vehicles": {
-        "Ü": { "vehicle": "farm_vehicles", "chance": 50, "rotation": 180 },
+        "Ü": { "vehicle": "farm_vehicles_2", "chance": 100, "rotation": 180 },
         "Ú": { "vehicle": "parkinglotbasic", "chance": 15, "rotation": 90 },
         "Û": { "vehicle": "parkinglotbasic", "chance": 20, "rotation": 90, "status": 1 },
         "Ù": { "vehicle": "industrial_transport", "chance": 10, "rotation": 180 }
