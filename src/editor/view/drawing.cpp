@@ -1,14 +1,34 @@
 #include "drawing.h"
 
 #include "camera.h"
+#include "common/algo.h"
 #include "common/canvas_2d.h"
 #include "common/color.h"
 #include "common/math.h"
 #include "common/sprite_ref.h"
 #include "imgui.h"
+#include "units.h"
 
 namespace editor
 {
+
+void draw_ray(
+    ImDrawList* draw_list,
+    const Camera& cam,
+    const point_abs_etile& start,
+    const units::angle& angle_from_north,
+    float length,
+    ImVec4 col
+)
+{
+    float angle = units::to_radians(angle_from_north);
+    point_abs_epos p = project_combine(start, point_etile_epos());
+    ImVec2 start_raw(p.raw());
+    ImVec2 start_centered = start_raw + ImVec2(ETILE_SIZE, ETILE_SIZE) / 2.0;
+    ImVec2 p_a = cam.world_to_screen(start_centered);
+    ImVec2 p_b = p_a + vector_rotated( ImVec2(0.0, 1.0), angle ) * cam.world_to_screen(length * ETILE_SIZE);
+    draw_list->AddLine(p_a, p_b, ImColor(col), 2.0f);
+}
 
 void draw_frame(
     ImDrawList *draw_list,

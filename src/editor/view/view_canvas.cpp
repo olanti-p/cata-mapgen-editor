@@ -481,6 +481,30 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                     fill_tile(draw_list, cam, tile_pos + delta, col_nest);
                 }
             }
+
+            std::unordered_set<point> vehicle_info;
+            std::unordered_set<int> vehicle_rotations;
+            if (hovered_entry) {
+                for (const ViewPiece& piece : hovered_entry->pieces) {
+                    const PieceVehicle* vehicle = dynamic_cast<const PieceVehicle*>(piece.piece);
+                    if (vehicle) {
+                        vehicle_rotations.insert(vehicle->allowed_rotations.begin(), vehicle->allowed_rotations.end());
+                        std::unordered_set<point> sil = vehicle->silhouette();
+                        vehicle_info.insert(sil.begin(), sil.end());
+                    }
+                }
+            }
+            bool show_vehicle = !vehicle_info.empty();
+            if (show_vehicle) {
+                for (const point& delta : vehicle_info) {
+                    fill_tile(draw_list, cam, tile_pos + delta, col_vehicle_outline);
+                }
+                for (int angle : vehicle_rotations) {
+                    // Reminder: 0 degrees means east, rotations are clockwise
+                    int angle_normalized = (angle - 90 + 360) % 360;
+                    draw_ray(draw_list, cam, tile_pos, units::from_degrees(angle_normalized), 1.4f, col_vehicle_dir);
+                }
+            }
         }
 
         highlight_tile( draw_list, cam, tile_pos, col_cursor );

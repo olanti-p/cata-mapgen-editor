@@ -23,6 +23,8 @@ struct Camera {
     point_abs_screen world_to_screen( const point_abs_epos &p ) const;
     point_rel_epos screen_to_world( const point_rel_screen &p ) const;
     point_rel_screen world_to_screen( const point_rel_epos &p ) const;
+    ImVec2 world_to_screen(const ImVec2& p) const;
+    float world_to_screen(float length) const;
 };
 
 } // namespace editor

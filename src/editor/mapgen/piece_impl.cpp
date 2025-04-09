@@ -7,6 +7,8 @@
 
 // FIXME: header name conflict
 #include "../../mapgen.h"
+#include "vehicle_group.h"
+#include "vehicle.h"
 
 namespace editor
 {
@@ -468,6 +470,37 @@ void PieceVehicle::show_ui( State &state )
 std::string PieceVehicle::fmt_data_summary() const
 {
     return group_id.data;
+}
+
+void add_rotated_points( std::unordered_set<point>& points, vehicle& veh, units::angle dir) {
+    veh.face.init(dir);
+    veh.turn_dir = dir;
+    veh.refresh();
+    veh.precalc_mounts(0, veh.turn_dir, veh.pivot_anchor[0]);
+
+    for (const vpart_reference& vp : veh.get_all_parts_with_fakes()) {
+        tripoint_rel_ms p = vp.part().precalc[0];
+        points.insert(p.raw().xy());
+    }
+}
+
+std::unordered_set<point> PieceVehicle::silhouette() const
+{
+    std::unordered_set<point> ret;
+    if (!group_id.is_valid()) {
+        return ret;
+    }
+
+    // TODO: cache this
+    const VehicleGroup& vg = group_id.obj();
+    for (const vproto_id& proto_id : vg.all_possible_results()) {
+        std::unique_ptr<vehicle> temp_veh = std::make_unique<vehicle>(proto_id);
+        for (int rot : allowed_rotations) {
+            add_rotated_points(ret, *temp_veh, units::from_degrees(rot));
+        }
+    }
+
+    return ret;
 }
 
 void PieceItem::show_ui( State &state )

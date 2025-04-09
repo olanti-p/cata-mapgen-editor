@@ -143,6 +143,8 @@ struct PieceVehicle : public Piece {
     bool random_fuel_amount = true;
     int fuel = 100;
     std::set<int> allowed_rotations;
+
+    std::unordered_set<point> silhouette() const;
 };
 
 struct PieceItem : public Piece {

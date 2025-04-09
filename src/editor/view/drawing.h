@@ -11,6 +11,15 @@ namespace editor
 {
 struct Camera;
 
+void draw_ray(
+    ImDrawList* draw_list,
+    const Camera& cam,
+    const point_abs_etile& start,
+    const units::angle& angle_from_north,
+    float length,
+    ImVec4 col
+);
+
 void draw_frame(
     ImDrawList *draw_list,
     const Camera &cam,

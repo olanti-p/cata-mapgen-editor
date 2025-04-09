@@ -1,6 +1,7 @@
 #include "algo.h"
 
 #include "point.h"
+#include "imgui.h"
 
 #include <set>
 
@@ -99,6 +100,16 @@ std::vector<point> line_bresenham( point a, point b )
     }
 
     return ret;
+}
+
+ImVec2 vector_rotated(ImVec2 v, float angle)
+{
+    float s = sin(angle);
+    float c = cos(angle);
+    return ImVec2(
+        v.x * c - v.y * s,
+        v.x * s + v.y * c
+    );
 }
 
 } // namespace editor

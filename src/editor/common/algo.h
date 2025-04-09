@@ -51,6 +51,8 @@ void accumulate_points(std::unordered_set<Point>& points, half_open_rectangle<Po
     }
 }
 
+ImVec2 vector_rotated(ImVec2 v, float angle);
+
 } // namespace editor
 
 #endif // CATA_SRC_EDITOR_ALGO_H
