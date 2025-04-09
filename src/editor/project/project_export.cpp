@@ -344,6 +344,9 @@ void PieceVehicle::export_func( JsonOut &jo ) const
     } else if( status == VehicleStatus::Disabled ) {
         ee::emit( jo, "status", 1 );
     }
+    else if (status == VehicleStatus::Pristine) {
+        ee::emit(jo, "status", 2);
+    }
     if( !random_fuel_amount ) {
         ee::emit( jo, "fuel", fuel );
     }

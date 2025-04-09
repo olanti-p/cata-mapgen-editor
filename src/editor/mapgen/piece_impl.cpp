@@ -427,8 +427,8 @@ void PieceVehicle::show_ui( State &state )
     }
 
     ImGui::HelpMarkerInline( "Chance to spawn, in percent." );
-    if( ImGui::InputIntRange( "chance (%)", chance ) ) {
-        state.mark_changed( "me-piece-mgroup-chance-input" );
+    if( ImGui::InputIntClamped( "chance (%)", chance, 0, 100 ) ) {
+        state.mark_changed( "me-piece-vehicle-chance-input" );
     }
 
     ImGui::HelpMarkerInline(
@@ -443,6 +443,9 @@ void PieceVehicle::show_ui( State &state )
     }
     if( ImGui::RadioButton( "Disabled", status == VehicleStatus::Disabled ) ) {
         status = VehicleStatus::Disabled;
+    }
+    if( ImGui::RadioButton( "Pristine", status == VehicleStatus::Pristine ) ) {
+        status = VehicleStatus::Pristine;
     }
 
     ImGui::HelpMarkerInline( "Whether to spawn with random percentage of fuel, or a set one." );

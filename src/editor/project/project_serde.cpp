@@ -132,6 +132,7 @@ std::string enum_to_string<editor::VehicleStatus>( editor::VehicleStatus data )
         case editor::VehicleStatus::LightDamage: return "LightDamage";
         case editor::VehicleStatus::Undamaged: return "Undamaged";
         case editor::VehicleStatus::Disabled: return "Disabled";
+        case editor::VehicleStatus::Pristine: return "Pristine";
         // *INDENT-ON*
         case editor::VehicleStatus::_Num:
             break;

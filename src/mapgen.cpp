@@ -8989,7 +8989,46 @@ bool PieceMonster::try_import( const jmapgen_piece& piece, PaletteImportReport& 
 
 bool PieceVehicle::try_import( const jmapgen_piece& piece, PaletteImportReport& report )
 {
-    return false; // TODO
+    const jmapgen_vehicle* casted = dynamic_cast<const jmapgen_vehicle*>(&piece);
+    if (!casted) {
+        return false;
+    }
+    {
+        // TODO: parametric
+        auto val = casted->type.collapse_import();
+        if (val.first) {
+            report.num_values_folded++;
+        }
+        if (val.second) {
+            group_id = EID::VGroup(val.second->str());
+        }
+    }
+    chance = casted->chance;
+    for (const auto& rot : casted->rotation) {
+        int degrees = int( round( to_degrees( rot ) ) ) % 360;
+        allowed_rotations.emplace(degrees);
+    }
+    if (casted->fuel == -1) {
+        random_fuel_amount = true;
+    }
+    else {
+        random_fuel_amount = false;
+        fuel = casted->fuel;
+    }
+    if (casted->status == -1) {
+        status = VehicleStatus::LightDamage;
+    }
+    else if (casted->status == 0) {
+        status = VehicleStatus::Undamaged;
+    }
+    else if (casted->status == 1) {
+        status = VehicleStatus::Disabled;
+    }
+    else if (casted->status == 2) {
+        status = VehicleStatus::Pristine;
+    }
+    // TODO: faction
+    return true;
 }
 
 bool PieceItem::try_import( const jmapgen_piece& piece, PaletteImportReport& report )

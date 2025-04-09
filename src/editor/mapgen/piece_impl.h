@@ -129,6 +129,7 @@ enum class VehicleStatus {
     LightDamage,
     Undamaged,
     Disabled,
+    Pristine,
 
     _Num,
 };
@@ -137,7 +138,7 @@ struct PieceVehicle : public Piece {
     IMPLEMENT_ME_PIECE( PieceVehicle, PieceType::Vehicle )
 
     EID::VGroup group_id;
-    IntRange chance;
+    int chance = 100;
     VehicleStatus status = VehicleStatus::LightDamage;
     bool random_fuel_amount = true;
     int fuel = 100;
