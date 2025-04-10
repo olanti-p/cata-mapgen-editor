@@ -321,18 +321,41 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                 fill_ter_fallback = SpriteRef( mapgen.oter.fill_ter.data );
             }
 
-            for (int x = 0; x < mapgen.mapgensize().x(); x++) {
-                for (int y = 0; y < mapgen.mapgensize().y(); y++) {
-                    point_abs_etile p(x, y);
-                    const map_key& uuid = get_uuid_at_pos(p.raw());
-                    SpritePair img = pal.sprite_from_uuid(uuid);
-                    if (img.ter) {
-                        fill_tile_sprited(draw_list, cam, p, *img.ter);
+            // Run this for separate layers, then for each entry individually
+            // to avoid draw command fragmentation from using different sprites
+            for (const ViewEntry& ve : pal.entries) {
+                SpritePair img = pal.sprite_from_uuid(ve.key);
+                if (!img.ter && !fill_ter_fallback) {
+                    continue;
+                }
+                for (int x = 0; x < mapgen.mapgensize().x(); x++) {
+                    for (int y = 0; y < mapgen.mapgensize().y(); y++) {
+                        point_abs_etile p(x, y);
+                        const map_key& uuid = get_uuid_at_pos(p.raw());
+                        if (uuid != ve.key) {
+                            continue;
+                        }
+                        if (img.ter) {
+                            fill_tile_sprited(draw_list, cam, p, *img.ter);
+                        }
+                        else {
+                            fill_tile_sprited(draw_list, cam, p, *fill_ter_fallback);
+                        }
                     }
-                    else if (fill_ter_fallback) {
-                        fill_tile_sprited(draw_list, cam, p, *fill_ter_fallback);
-                    }
-                    if (img.furn) {
+                }
+            }
+            for (const ViewEntry& ve : pal.entries) {
+                SpritePair img = pal.sprite_from_uuid(ve.key);
+                if (!img.furn) {
+                    continue;
+                }
+                for (int x = 0; x < mapgen.mapgensize().x(); x++) {
+                    for (int y = 0; y < mapgen.mapgensize().y(); y++) {
+                        point_abs_etile p(x, y);
+                        const map_key& uuid = get_uuid_at_pos(p.raw());
+                        if (uuid != ve.key) {
+                            continue;
+                        }
                         fill_tile_sprited(draw_list, cam, p, *img.furn);
                     }
                 }
