@@ -183,6 +183,13 @@ void ViewPalette::add_palette( Palette& pal)
             vm = &entries[entries_cache[key]];
         }
         for (const auto& piece : entry.pieces) {
+            PieceType piece_type = piece->get_type();
+            if (is_piece_exclusive(piece_type)) {
+                auto new_end = std::remove_if(vm->pieces.begin(), vm->pieces.end(), [=](const ViewPiece& vp) {
+                    return !vp.piece->constraint.has_value() && vp.piece->get_type() == piece_type;
+                });
+                vm->pieces.erase(new_end, vm->pieces.end());
+            }
             vm->pieces.push_back(ViewPiece{ &pal, piece.get() });
         }
     }
