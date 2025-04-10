@@ -147,12 +147,14 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                   ImGuiWindowFlags_NoScrollWithMouse
                 );
 
+    bool view_hovered = ImGui::IsWindowHovered();
+
     if( !mapgen_ptr ) {
         ImGui::BeginDisabled();
         ImGui::TextCenteredVH( "No active mapgen" );
         ImGui::EndDisabled();
 
-        if( ImGui::IsWindowHovered() ) {
+        if( view_hovered ) {
             handle_view_change_hotkey( state );
         }
 
@@ -174,8 +176,11 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
     );
 
     ImGuiIO &io = ImGui::GetIO();
-    bool view_hovered = ImGui::IsWindowHovered();
     ToolsState &tools = *state.ui->tools;
+
+    if( view_hovered ) {
+        handle_view_change_hotkey(state);
+    }
 
     ViewPalette pal(state.project());
     Palette &pal_data = *state.project().get_palette( mapgen.base.palette );
@@ -249,8 +254,6 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
     bool has_fill_ter = !mapgen.oter.fill_ter.is_empty() && !mapgen.oter.fill_ter.is_null();
 
     if( view_hovered ) {
-        handle_view_change_hotkey( state );
-
         if( ImGui::IsKeyDown( ImGuiKey_ModCtrl ) ) {
             show_tooltip = true;
             tooltip_pos = tile_pos;
@@ -454,7 +457,6 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
     }
 
     if( view_hovered ) {
-        point_abs_etile tile_pos = get_mouse_tile_pos( cam );
         if (mapgen.uses_rows() && is_mouse_in_bounds) {
             const map_key& uuid = get_uuid_at_pos(tile_pos.raw());
             ViewEntry* hovered_entry = pal.find_entry(uuid);
