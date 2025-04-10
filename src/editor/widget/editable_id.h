@@ -81,6 +81,7 @@ struct snippet_category_tag {};
 struct liquid_item_tag {};
 struct item_group_tag {};
 struct temp_palette_tag {};
+struct import_mapgen_tag {};
 
 // EditableID specified for types
 namespace EID
@@ -89,6 +90,7 @@ namespace EID
 using Field = EditableID<field_type>;
 using Furn = EditableID<furn_t>;
 using IGroup = EditableID<item_group_tag>;
+using ImportMapgen = EditableID<import_mapgen_tag>;
 using Item = EditableID<itype>;
 using Liquid = EditableID<liquid_item_tag>;
 using MGroup = EditableID<MonsterGroup>;

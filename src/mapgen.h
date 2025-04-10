@@ -312,7 +312,7 @@ class mapgen_palette
          * Loads a palette object and returns it. Doesn't save it anywhere.
          */
         static mapgen_palette load_temp( const JsonObject &jo, std::string_view src,
-                                         const std::string &context );
+                                         const std::string &context, bool editor_mode );
         /**
          * Load a palette object and adds it to the global set of palettes.
          * If "palette" field is specified, those palettes will be loaded recursively.
@@ -343,7 +343,7 @@ class mapgen_palette
 
         static mapgen_palette load_internal(
             const JsonObject &jo, std::string_view src, const std::string &context,
-            bool require_id, bool allow_recur );
+            bool require_id, bool allow_recur, bool editor_mode);
 
         struct add_palette_context {
             add_palette_context( const std::string &ctx, mapgen_parameters * );
@@ -438,7 +438,7 @@ class mapgen_function_json_base
         }
 
         JsonObject jsobj;
-        mapgen_function_json_base( const JsonObject &jsobj, const std::string &context );
+        mapgen_function_json_base( const JsonObject &jsobj, const std::string &context, bool editor_mode_);
         virtual ~mapgen_function_json_base();
 
         void setup_common();
@@ -456,6 +456,12 @@ class mapgen_function_json_base
         std::string context_;
         enum_bitset<jmapgen_flags> flags_;
         bool is_ready;
+
+        bool editor_mode = false;
+        std::vector<std::vector<map_key>> editor_matrix;
+        std::string editor_palette_id;
+        std::vector<std::string> editor_oter_list;
+        std::vector<std::vector<std::string>> editor_oter_matrix;
 
         point_rel_ms mapgensize;
         tripoint_rel_ms m_offset;
@@ -479,12 +485,13 @@ class mapgen_function_json : public mapgen_function_json_base, public virtual ma
         mapgen_parameters get_mapgen_params( mapgen_parameter_scope ) const override;
         mapgen_function_json( const JsonObject &jsobj, dbl_or_var w,
                               const std::string &context,
-                              const point_rel_omt &grid_offset, const point_rel_omt &grid_total );
+                              const point_rel_omt &grid_offset, const point_rel_omt &grid_total, bool editor_mode_ );
         ~mapgen_function_json() override = default;
 
         cata::value_ptr<mapgen_value<ter_id>> fill_ter;
         oter_id predecessor_mapgen;
 
+        std::optional<ter_id> get_fill_ter() const;
         bool setup_internal( const JsonObject &jo ) override;
 
         jmapgen_int rotation;
@@ -494,7 +501,7 @@ class mapgen_function_json : public mapgen_function_json_base, public virtual ma
 class update_mapgen_function_json : public mapgen_function_json_base
 {
     public:
-        update_mapgen_function_json( const JsonObject &jsobj, const std::string &context );
+        update_mapgen_function_json( const JsonObject &jsobj, const std::string &context, bool editor_mode_);
         ~update_mapgen_function_json() override = default;
 
         void setup();
@@ -521,7 +528,7 @@ class mapgen_function_json_nested : public mapgen_function_json_base
         void setup();
         void finalize_parameters();
         void check() const;
-        mapgen_function_json_nested( const JsonObject &jsobj, const std::string &context );
+        mapgen_function_json_nested( const JsonObject &jsobj, const std::string &context, bool editor_mode_);
         ~mapgen_function_json_nested() override = default;
 
         void nest( const mapgendata &md, const tripoint_rel_ms &offset,
@@ -563,10 +570,11 @@ class update_mapgen
  * Load mapgen function of any type from a json object
  */
 std::shared_ptr<mapgen_function> load_mapgen_function( const JsonObject &jio,
-        const std::string &id_base, const point_rel_omt &offset, const point_rel_omt &total );
-void load_and_add_mapgen_function(
+        const std::string &id_base, const point_rel_omt &offset, const point_rel_omt &total,
+    bool editor_mode );
+mapgen_function_json* load_and_add_mapgen_function(
     const JsonObject &jio, const std::string &id_base, const point_rel_omt &offset,
-    const point_rel_omt &total );
+    const point_rel_omt &total, bool editor_mode);
 /*
  * Load the above directly from a file via init, as opposed to riders attached to overmap_terrain. Added check
  * for oter_mapgen / oter_mapgen_weights key, multiple possible ( i.e., [ "house_w_1", "duplex" ] )
@@ -645,6 +653,7 @@ void add_corpse( map *m, const point_bub_ms & );
 
 const std::map<std::string, mapgen_palette>& get_temp_mapgen_palettes();
 const mapgen_palette& get_temp_mapgen_palette(const std::string& key);
+extern std::map<std::string, mapgen_function_json*> editor_mapgen_refs;
 extern std::map<nested_mapgen_id, nested_mapgen> nested_mapgens;
 extern std::map<update_mapgen_id, update_mapgen> update_mapgens;
 

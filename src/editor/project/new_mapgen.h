@@ -19,8 +19,20 @@ struct NewMapgenState {
     bool cancelled = false;
 };
 
+struct ImportMapgenState {
+    MapgenType mtype = MapgenType::Oter;
+    EID::ImportMapgen oter;
+    EID::Nest nested;
+    EID::Update update;
+
+    bool confirmed = false;
+    bool cancelled = false;
+};
+
 bool show_new_mapgen_window( State &state, NewMapgenState &mapgen );
+bool show_import_mapgen_window(State& state, ImportMapgenState& mapgen);
 void add_mapgen( State &state, NewMapgenState &mapgen );
+Mapgen* import_mapgen( State &state, ImportMapgenState &mapgen );
 
 } // namespace editor
 

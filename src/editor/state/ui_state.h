@@ -16,6 +16,7 @@ struct Camera;
 struct ToolsState;
 struct NewMapgenState;
 struct NewPaletteState;
+struct ImportMapgenState;
 
 namespace detail
 {
@@ -105,7 +106,9 @@ struct UiState {
     std::set<UUID> expanded_mapping_pieces;
     std::set<UUID> expanded_mapobjects;
 
+    // TODO: move to control state?
     std::unique_ptr<NewMapgenState> new_mapgen_window;
+    std::unique_ptr<ImportMapgenState> import_mapgen_window;
     std::unique_ptr<NewPaletteState> new_palette_window;
 
     std::optional<std::string> project_export_path;

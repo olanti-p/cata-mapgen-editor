@@ -191,6 +191,11 @@ void run_ui_for_state( State &state )
             uistate.new_mapgen_window.reset();
         }
     }
+    if (uistate.import_mapgen_window) {
+        if (!show_import_mapgen_window(state, *uistate.import_mapgen_window)) {
+            uistate.import_mapgen_window.reset();
+        }
+    }
     if( uistate.new_palette_window ) {
         if( !show_new_palette_window( state, *uistate.new_palette_window ) ) {
             uistate.new_palette_window.reset();

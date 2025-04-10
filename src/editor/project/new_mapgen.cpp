@@ -8,6 +8,10 @@
 #include "widget/widgets.h"
 #include "state/ui_state.h"
 #include "project.h"
+#include "mapgen/palette_making.h"
+
+// FIXME: header conflict
+#include "../../mapgen.h"
 
 #include <chrono>
 #include <cstddef>
@@ -82,6 +86,67 @@ bool show_new_mapgen_window( State &state, NewMapgenState &mapgen )
     return true;
 }
 
+bool show_import_mapgen_window(State& state, ImportMapgenState& mapgen)
+{
+    bool keep_open = true;
+    ImGui::Begin("Import Mapgen", &keep_open);
+    if (!keep_open) {
+        mapgen.cancelled = true;
+    }
+
+    ImGui::Text("Mapgen type:");
+    ImGui::BeginDisabled(); // TODO: implement update and nested
+    if (ImGui::RadioButton("Oter", mapgen.mtype == MapgenType::Oter)) {
+        mapgen.mtype = MapgenType::Oter;
+    }
+    ImGui::SameLine();
+    if (ImGui::RadioButton("Update", mapgen.mtype == MapgenType::Update)) {
+        mapgen.mtype = MapgenType::Update;
+    }
+    ImGui::SameLine();
+    if (ImGui::RadioButton("Nested", mapgen.mtype == MapgenType::Nested)) {
+        mapgen.mtype = MapgenType::Nested;
+    }
+    ImGui::EndDisabled();
+
+    ImGui::Separator();
+
+    bool input_ok = false;
+
+    // FIXME: size math here is probably wrong
+    ImGui::PushItemWidth(ImGui::GetWindowWidth() - ImGui::GetFrameHeight() );
+    if (mapgen.mtype == MapgenType::Oter) {
+        ImGui::InputId("##oter", mapgen.oter);
+        input_ok = mapgen.oter.is_valid();
+    } else if (mapgen.mtype == MapgenType::Nested) {
+        ImGui::InputId("##nested", mapgen.nested);
+        input_ok = mapgen.nested.is_valid();
+    } else {
+        ImGui::InputId("##update", mapgen.update);
+        input_ok = mapgen.update.is_valid();
+    }
+    ImGui::PopItemWidth();
+
+    ImGui::BeginDisabled(!input_ok);
+    if (ImGui::Button("Confirm")) {
+        mapgen.confirmed = true;
+    }
+    ImGui::EndDisabled();
+
+    ImGui::End();
+
+    if (mapgen.cancelled) {
+        return false;
+    }
+    if (mapgen.confirmed) {
+        Mapgen* new_mapgen = import_mapgen(state, mapgen);
+        state.mark_changed();
+        state.ui->active_mapgen_id = new_mapgen->uuid;
+        return false;
+    }
+    return true;
+}
+
 void add_mapgen( State &state, NewMapgenState &mapgen )
 {
     Project &project = state.project();
@@ -93,5 +158,97 @@ void add_mapgen( State &state, NewMapgenState &mapgen )
     new_mapgen.name = mapgen.name;
     new_mapgen.base.palette = mapgen.palette;
 }
+
+Mapgen* import_mapgen(State& state, ImportMapgenState& mapgen)
+{
+    Project& project = state.project();
+    UUID new_mapgen_uuid = project.uuid_generator();
+    project.mapgens.emplace_back();
+    Mapgen& new_mapgen = project.mapgens.back();
+    new_mapgen.uuid = new_mapgen_uuid;
+    new_mapgen.mtype = mapgen.mtype;
+    UUID new_palette = UUID_INVALID;
+
+    if (mapgen.mtype == MapgenType::Oter) {
+        mapgen_function_json* ref = editor_mapgen_refs[mapgen.oter.data];
+        if (!ref->editor_mode) {
+            // Shouldn't happen
+            std::abort();
+        }
+        new_mapgen.name = mapgen.oter.data;
+        auto &matrix = ref->editor_matrix;
+        point ms_size(matrix[0].size(), matrix.size());
+        point oter_size = ms_size / 24;
+        if (oter_size.x == 0 || oter_size.y == 0) {
+            std::abort();
+        }
+        if (oter_size != point(1, 1)) {
+            new_mapgen.oter.matrix_mode = true;
+            new_mapgen.oter.om_terrain_matrix.set_size(oter_size);
+        }
+        else {
+            new_mapgen.oter.matrix_mode = false;
+        }
+        new_mapgen.set_canvas_size(ms_size);
+
+        for (size_t y = 0; y < ms_size.y; y++) {
+            for (size_t x = 0; x < ms_size.x; x++) {
+                new_mapgen.base.canvas.set(point(x, y), matrix[y][x]);
+            }
+        }
+
+        Palette* loaded_palette = state.project().find_palette_by_string(ref->editor_palette_id);
+        if (!loaded_palette) {
+            quick_import_temp_palette(state, EID::TempPalette(ref->editor_palette_id));
+            loaded_palette = state.project().find_palette_by_string(ref->editor_palette_id);
+            if (!loaded_palette) {
+                std::abort();
+            }
+            recursive_import_palette(state, *loaded_palette);
+            // FIXME: palettes need to be persistent in memory...
+            loaded_palette = state.project().find_palette_by_string(ref->editor_palette_id);
+        }
+        new_palette = loaded_palette->uuid;
+
+        // TODO: parametric fill_ter
+        auto fill_ter_original = ref->get_fill_ter();
+        if (fill_ter_original) {
+            new_mapgen.oter.fill_ter = fill_ter_original->id();
+            if (!new_mapgen.oter.fill_ter.is_valid()) {
+                // TODO: this shouldn't happen
+                new_mapgen.oter.fill_ter = EID::Ter();
+            }
+        }
+
+        if (new_mapgen.oter.matrix_mode) {
+            for (size_t y = 0; y < oter_size.y; y++) {
+                for (size_t x = 0; x < oter_size.x; x++) {
+                    new_mapgen.oter.om_terrain_matrix.set(
+                        point(x, y), EID::OterType(
+                            ref->editor_oter_matrix[y][x]
+                        )
+                    );
+                }
+            }
+        }
+        else {
+            for (const std::string& id : ref->editor_oter_list) {
+                new_mapgen.oter.om_terrain.emplace_back(EID::OterType(id));
+            }
+        }
+
+        // TODO: objects
+    }
+    else if (mapgen.mtype == MapgenType::Nested) {
+        // TODO
+    }
+    else {
+        // TODO
+    }
+
+    new_mapgen.base.palette = new_palette;
+    return &new_mapgen;
+}
+
 
 } // namespace editor

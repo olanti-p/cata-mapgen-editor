@@ -115,6 +115,11 @@ static bool show_mapgens_tab(State& state, Project& project) {
         ImGui::HelpPopup("Click to switch to this mapgen.");
             })
         .with_add([&]()->bool {
+        if (ImGui::Button("Import mapgen..."))
+        {
+            state.ui->import_mapgen_window = std::make_unique<ImportMapgenState>();
+        }
+        ImGui::SameLine();
         if (ImGui::Button("New mapgen"))
         {
             state.ui->new_mapgen_window = std::make_unique<NewMapgenState>();
