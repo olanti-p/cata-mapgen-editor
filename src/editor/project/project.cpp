@@ -39,12 +39,7 @@ const Palette *Project::get_palette( const UUID &fid ) const
     return nullptr;
 }
 
-void show_project_overview_ui( State &state, Project &project, bool &show )
-{
-    ImGui::SetNextWindowSize( ImVec2( 250.0f, 200.0f ), ImGuiCond_FirstUseEver );
-    ImGui::Begin( "Project Overview", &show );
-
-    ImGui::PushID( "palettes" );
+static bool show_palettes_tab(State& state, Project& project) {
     ImGui::Text( "Active Palettes:" );
 
     bool changed_palettes = ImGui::VectorWidget()
@@ -92,9 +87,10 @@ void show_project_overview_ui( State &state, Project &project, bool &show )
     .with_default_drag_drop()
     .run( project.palettes );
 
-    ImGui::PopID();
-    ImGui::Separator();
-    ImGui::PushID("mapgens");
+    return changed_palettes;
+}
+
+static bool show_mapgens_tab(State& state, Project& project) {
     ImGui::Text("Active Mapgens:");
 
     bool changed_mapgens = ImGui::VectorWidget()
@@ -137,10 +133,28 @@ void show_project_overview_ui( State &state, Project &project, bool &show )
         .with_default_drag_drop()
         .run(project.mapgens);
 
-    ImGui::PopID();
+    return changed_mapgens;
+}
 
-    if( changed_mapgens || changed_palettes ) {
-        state.mark_changed();
+void show_project_overview_ui( State &state, Project &project, bool &show )
+{
+    ImGui::SetNextWindowSize( ImVec2( 250.0f, 200.0f ), ImGuiCond_FirstUseEver );
+    ImGui::Begin( "Project Overview", &show );
+
+    if (ImGui::BeginTabBar("ProjectContentsBar")) {
+        bool changed = false;
+        if (ImGui::BeginTabItem("Mapgens")) {
+            changed = show_mapgens_tab(state, project) || changed;
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Palettes")) {
+            changed = show_palettes_tab(state, project) || changed;
+            ImGui::EndTabItem();
+        }
+        ImGui::EndTabBar();
+        if( changed ) {
+            state.mark_changed();
+        }
     }
 
     ImGui::End();
