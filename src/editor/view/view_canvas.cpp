@@ -23,7 +23,6 @@
 #include "state/ui_state.h"
 #include "tool/tool.h"
 #include "uistate.h"
-#include "view/ruler.h"
 #include "widget/widgets.h"
 #include "mapgen/palette_view.h"
 #include "mapgen/piece_impl.h"
@@ -552,57 +551,22 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
     }
 
     if( target.highlight.active() ) {
+        ImVec4 tool_color = target.highlight.color ? ImVec4( *target.highlight.color ) : col_tool;
         for( const point_abs_etile &p : target.highlight.tiles ) {
-            ImVec4 col_bg = col_tool;
+            ImVec4 col_bg = tool_color;
             col_bg.w *= 0.4f;
             fill_tile( draw_list, cam, p, col_bg );
-            highlight_tile( draw_list, cam, p, col_tool );
+            highlight_tile( draw_list, cam, p, tool_color);
         }
         for( const auto &p : target.highlight.areas ) {
             auto rect = editor::normalize_rect( p.first, p.second );
-            ImVec4 col_bg = col_tool;
+            ImVec4 col_bg = tool_color;
             col_bg.w *= 0.4f;
-            highlight_region( draw_list, cam, rect.first, rect.second, col_bg, col_tool );
+            highlight_region( draw_list, cam, rect.first, rect.second, col_bg, tool_color);
         }
-    }
-
-    bool show_ruler = false;
-    std::optional<point_abs_etile> &ruler = state.control->ruler.start;
-    if( view_hovered && ImGui::IsKeyDown( ImGuiKey_ModAlt ) ) {
-        if( !ruler ) {
-            ruler = tile_pos;
-        }
-        if( *ruler != tile_pos ) {
-            show_ruler = true;
-        }
-    } else {
-        ruler.reset();
     }
 
     bool tooltip_needs_separator = false;
-
-    if( show_ruler ) {
-        ImVec4 col_border = col_ruler;
-        ImVec4 col_bg = col_ruler;
-        col_bg.w *= 0.4f;
-        assert( ruler );
-        auto rect = editor::normalize_rect( tile_pos, *ruler );
-        highlight_region( draw_list, cam, rect.first, rect.second, col_bg, col_border );
-
-        ImGui::BeginTooltip();
-        if( tooltip_needs_separator ) {
-            ImGui::SeparatorText( "Ruler" );
-        }
-        point delta = ( *ruler - tile_pos ).raw().abs();
-        if( delta.x != 0 ) {
-            ImGui::Text( "X %d", delta.x + 1 );
-        }
-        if( delta.y != 0 ) {
-            ImGui::Text( "Y %d", delta.y + 1 );
-        }
-        ImGui::EndTooltip();
-        tooltip_needs_separator = true;
-    }
 
     if( target.want_tooltip ) {
         ImGui::BeginTooltip();

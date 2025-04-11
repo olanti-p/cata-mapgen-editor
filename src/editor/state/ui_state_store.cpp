@@ -111,6 +111,7 @@ std::string enum_to_string<editor::tools::ToolKind>( editor::tools::ToolKind dat
         case ToolKind::Brush: return "Brush";
         case ToolKind::Bucket: return "Bucket";
         case ToolKind::Cursor: return "Cursor";
+        case ToolKind::Ruler: return "Ruler";
         case ToolKind::Line: return "Line";
         case ToolKind::Rectangle: return "Rectangle";
         case ToolKind::Selection: return "Selection";

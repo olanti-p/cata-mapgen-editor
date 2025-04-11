@@ -14,6 +14,7 @@
 #include "tool/line_tool.h"
 #include "tool/rectangle_tool.h"
 #include "tool/selection.h"
+#include "tool/ruler.h"
 #include "widget/widgets.h"
 
 #include <unordered_map>
@@ -39,6 +40,10 @@ const ToolDefinition &get_tool_definition( ToolKind kind )
         }
         case ToolKind::Cursor: {
             static Cursor tool;
+            return tool;
+        }
+        case ToolKind::Ruler: {
+            static Ruler tool;
             return tool;
         }
         case ToolKind::Line: {

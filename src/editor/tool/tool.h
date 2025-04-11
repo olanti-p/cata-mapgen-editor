@@ -5,6 +5,7 @@
 #include "common/uuid.h"
 #include "coordinates.h"
 #include "enum_traits.h"
+#include "imgui.h"
 
 #include <cassert>
 #include <memory>
@@ -22,6 +23,7 @@ namespace editor::tools
 
 enum class ToolKind {
     Cursor,
+    Ruler,
     Brush,
     Bucket,
     Line,
@@ -70,6 +72,7 @@ struct ToolDefinition {
 struct ToolHighlight {
     std::vector<point_abs_etile> tiles;
     std::vector<std::pair<point_abs_etile, point_abs_etile>> areas;
+    std::optional<ImColor> color;
 
     inline bool active() const {
         return !tiles.empty() || !areas.empty();

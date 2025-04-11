@@ -3,7 +3,6 @@
 
 #include "common/uuid.h"
 #include "tool/tool.h"
-#include "view/ruler.h"
 #include "widget/editable_id.h"
 #include "mapgen/canvas_snippet.h"
 
@@ -81,8 +80,6 @@ struct ControlState {
         bool reimport_all_palettes = false;     // Reimport palettes, for loadede projects that use imports
 
         MapKey highlight_entry_in_palette;
-
-        RulerState ruler;
 
         bool has_ongoing_tool_operation();
         tools::ToolControl &get_tool_control( tools::ToolKind t );
