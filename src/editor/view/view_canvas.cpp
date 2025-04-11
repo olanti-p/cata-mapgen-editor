@@ -323,9 +323,21 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
 
             // Run this for separate layers, then for each entry individually
             // to avoid draw command fragmentation from using different sprites
+            if (fill_ter_fallback) {
+                for (int x = 0; x < mapgen.mapgensize().x(); x++) {
+                    for (int y = 0; y < mapgen.mapgensize().y(); y++) {
+                        point_abs_etile p(x, y);
+                        const map_key& uuid = get_uuid_at_pos(p.raw());
+                        SpritePair img = pal.sprite_from_uuid(uuid);
+                        if (!img.ter) {
+                            fill_tile_sprited(draw_list, cam, p, *fill_ter_fallback);
+                        }
+                    }
+                }
+            }
             for (const ViewEntry& ve : pal.entries) {
                 SpritePair img = pal.sprite_from_uuid(ve.key);
-                if (!img.ter && !fill_ter_fallback) {
+                if (!img.ter) {
                     continue;
                 }
                 for (int x = 0; x < mapgen.mapgensize().x(); x++) {
@@ -337,9 +349,6 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                         }
                         if (img.ter) {
                             fill_tile_sprited(draw_list, cam, p, *img.ter);
-                        }
-                        else {
-                            fill_tile_sprited(draw_list, cam, p, *fill_ter_fallback);
                         }
                     }
                 }

@@ -5085,6 +5085,9 @@ mapgen_palette::add_palette_context::add_palette_context(
 
 std::optional<ter_id> mapgen_function_json::get_fill_ter() const
 {
+    if (!fill_ter) {
+        return std::nullopt;
+    }
     auto ret = fill_ter->collapse_import();
     if (ret.second) {
         return ret.second;
