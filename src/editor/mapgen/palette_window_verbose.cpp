@@ -640,7 +640,12 @@ static void show_palette_header_info( State& state, Palette& p)
             state.mark_changed("palette-recursive-imported");
         }
         ImGui::HelpPopup("Same as Reimport, but also ensures all ancestors are imported.");
-        ImGui::Text("IMPORTED PALETTE, ALL CHANGES WILL BE DISCARDED ON EXPORT");
+        if (p.temp_palette) {
+            ImGui::Text("EMBEDDED PALETTE, CAN ONLY BE USED BY OWNER MAPGEN");
+        }
+        else {
+            ImGui::Text("IMPORTED PALETTE, ALL CHANGES WILL BE DISCARDED ON EXPORT");
+        }
     }
     else {
         if (ImGui::InputText("ID", &p.created_id)) {

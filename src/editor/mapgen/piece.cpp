@@ -21,6 +21,9 @@ const std::vector<std::unique_ptr<Piece>> &get_piece_templates()
     static std::vector<std::unique_ptr<Piece>> ret;
     if( ret.empty() ) {
         ret.reserve( static_cast<int>( PieceType::NumJmTypes ) );
+        REG_PIECE( PieceAltTerrain );
+        REG_PIECE( PieceAltFurniture );
+        REG_PIECE( PieceIGroup );
         REG_PIECE( PieceField );
         REG_PIECE( PieceNPC );
         REG_PIECE( PieceFaction );
@@ -30,7 +33,6 @@ const std::vector<std::unique_ptr<Piece>> &get_piece_templates()
         REG_PIECE( PieceToilet );
         REG_PIECE( PieceGaspump );
         REG_PIECE( PieceLiquid );
-        REG_PIECE( PieceIGroup );
         REG_PIECE( PieceLoot );
         REG_PIECE( PieceMGroup );
         REG_PIECE( PieceMonster );
@@ -47,8 +49,6 @@ const std::vector<std::unique_ptr<Piece>> &get_piece_templates()
         REG_PIECE( PieceZone );
         REG_PIECE( PieceNested );
         REG_PIECE( PieceAltTrap );
-        REG_PIECE( PieceAltFurniture );
-        REG_PIECE( PieceAltTerrain );
         REG_PIECE( PieceRemoveAll );
         REG_PIECE( PieceUnknown );
     }

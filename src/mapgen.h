@@ -458,6 +458,7 @@ class mapgen_function_json_base
         bool is_ready;
 
         bool editor_mode = false;
+        int editor_weight = 1000;
         std::vector<std::vector<map_key>> editor_matrix;
         std::string editor_palette_id;
         std::vector<std::string> editor_oter_list;

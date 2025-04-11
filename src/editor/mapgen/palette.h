@@ -93,6 +93,7 @@ public:
     UUID uuid;
     bool imported = false;
     bool standalone = true;
+    bool temp_palette = false;
     EID::Palette imported_id;
     std::string created_id;
     std::string name;

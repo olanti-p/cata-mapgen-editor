@@ -101,10 +101,12 @@ void emit_val( JsonOut &jo, const editor::Piece *piece )
 void emit_val( JsonOut &jo, const editor::MapObject *obj )
 {
     emit_object( jo, [&]() {
+        obj->piece->export_func( jo );
         emit( jo, "x", obj->x );
         emit( jo, "y", obj->y );
-        emit( jo, "repeat", obj->repeat );
-        obj->piece->export_func( jo );
+        if (obj->repeat.min != 1 || obj->repeat.max != 1) {
+            emit( jo, "repeat", obj->repeat );
+        }
     } );
 }
 
@@ -332,7 +334,15 @@ void PieceMGroup::export_func( JsonOut &jo ) const
 
 void PieceMonster::export_func( JsonOut &jo ) const
 {
-    // TODO
+    if (use_mongroup) {
+        ee::emit(jo,"group", group_id);
+    }
+    else {
+        ee::emit(jo, "monster", type_list);
+    }
+    if (chance.min != 100 || chance.max != 100) {
+        ee::emit(jo, "chance", chance);
+    }
 }
 
 void PieceVehicle::export_func( JsonOut &jo ) const
@@ -366,16 +376,8 @@ void PieceItem::export_func( JsonOut &jo ) const
     if( amount.min != 1 || amount.max != 1 ) {
         ee::emit( jo, "amount", amount );
     }
-    if( spawn_one ) {
-        IntRange x;
-        x.min = 100;
-        x.max = 100;
-        ee::emit( jo, "chance", x );
-    } else {
-        ee::emit( jo, "chance", chance );
-    }
-    if( !spawn_once ) {
-        ee::emit( jo, "repeat", repeat );
+    if (chance.min != 100 || chance.max != 100) {
+        ee::emit(jo, "chance", chance);
     }
 }
 
@@ -553,19 +555,41 @@ std::string get_object_category( editor::PieceType data )
  * ============= HIGH-LEVEL FUNCTIONS =============
  */
 
+using key_pieces_pair = std::pair<map_key, std::vector<const editor::Piece*>>;
+
 static void emit_palette_entries(JsonOut& jo, const editor::Palette& pal)
 {
+    if (!pal.ancestors.list.empty()) {
+        emit_array(jo, "palettes", [&]() {
+            for (const auto& sw : pal.ancestors.list) {
+                emit_val(jo, sw.options[0]);
+            }
+        });
+    }
+
     for (const auto& it : editor::get_piece_templates()) {
         editor::PieceType pt = it->get_type();
 
         std::string palette_cat = get_palette_category(pt);
 
-        std::unordered_map<map_key, std::vector<const editor::Piece*>> matching_pieces;
+        std::vector<key_pieces_pair> matching_pieces;
 
-        for (const editor::PaletteEntry& it : pal.entries) {
-            for (const auto& pc : it.pieces) {
-                if (pc->get_type() == pt) {
-                    matching_pieces[it.key].push_back(pc.get());
+        for (const editor::PaletteEntry& entry : pal.entries) {
+            for (const auto& piece : entry.pieces) {
+                if (piece->get_type() == pt) {
+                    bool found_bucket = false;
+                    for (key_pieces_pair& it : matching_pieces) {
+                        if (it.first == entry.key) {
+                            it.second.push_back(piece.get());
+                            found_bucket = true;
+                            break;
+                        }
+                    }
+                    if (!found_bucket) {
+                        std::vector< const editor::Piece*> pieces;
+                        pieces.emplace_back(piece.get());
+                        matching_pieces.emplace_back(entry.key, std::move(pieces));
+                    }
                 }
             }
         }
@@ -575,30 +599,19 @@ static void emit_palette_entries(JsonOut& jo, const editor::Palette& pal)
             continue;
         }
 
-        if (editor::is_alt_piece(pt)) {
-            emit_object(jo, palette_cat, [&]() {
-                for (const auto& it : matching_pieces) {
-                    // Alt pieces are also exclusive pieces
-                    assert(it.second.size() == 1);
-                    emit(jo, it.first.str, it.second[0]);
-                }
-                });
+        if (palette_cat.empty()) {
+            std::cerr << string_format(
+                "Tried to export piece of type %s as a mapping.",
+                io::enum_to_string(pt)
+            );
+            std::abort();
         }
-        else {
-            if (palette_cat.empty()) {
-                std::cerr << string_format(
-                    "Tried to export piece of type %s as a mapping.",
-                    io::enum_to_string(pt)
-                );
-                std::abort();
-            }
 
-            emit_object(jo, palette_cat, [&]() {
-                for (const auto& it : matching_pieces) {
-                    emit_single_or_array(jo, it.first.str, it.second);
-                }
-                });
-        }
+        emit_object(jo, palette_cat, [&]() {
+            for (const key_pieces_pair& it : matching_pieces) {
+                emit_single_or_array(jo, it.first.str, it.second);
+            }
+        });
     }
 }
 
@@ -614,7 +627,6 @@ static void emit_mapgen_contents( JsonOut &jo, const editor::Project &project,
                                   const editor::Mapgen &mapgen )
 {
     emit( jo, "type", "mapgen" );
-    emit( jo, "method", "json" );
 
     if( mapgen.mtype == editor::MapgenType::Oter ) {
         if( !mapgen.oter.matrix_mode ) {
@@ -631,12 +643,15 @@ static void emit_mapgen_contents( JsonOut &jo, const editor::Project &project,
                 }
             } );
         }
-        emit( jo, "weight", mapgen.oter.weight );
+        if( mapgen.oter.weight != editor::DEFAULT_OTER_MAPGEN_WEIGHT ) {
+            emit( jo, "weight", mapgen.oter.weight );
+        }
     } else if( mapgen.mtype == editor::MapgenType::Nested ) {
         emit( jo, "nested_mapgen_id", mapgen.nested.nested_mapgen_id );
     } else { // editor::MapgenType::Update
         emit( jo, "update_mapgen_id", mapgen.update.update_mapgen_id );
     }
+    emit(jo, "method", "json");
 
     emit_object( jo, "object", [&]() {
 
@@ -677,12 +692,12 @@ static void emit_mapgen_contents( JsonOut &jo, const editor::Project &project,
                 }
             } );
 
-            if (pal.imported) {
+            if (pal.imported && !pal.temp_palette) {
                 emit_array(jo, "palettes", [&]() {
                     emit_val(jo, pal.imported_id);
                 });
             }
-            else if (pal.standalone) {
+            else if (!pal.imported && pal.standalone) {
                 emit_array(jo, "palettes", [&]() {
                     emit_val(jo, pal.created_id);
                 });
@@ -705,7 +720,7 @@ static void emit_mapgen_contents( JsonOut &jo, const editor::Project &project,
                 }
             }
 
-            if( matching_objects.empty() ) {
+            if( matching_objects.empty() || pt == editor::PieceType::Unknown ) {
                 // Nothing to do
                 continue;
             }

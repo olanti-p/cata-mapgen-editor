@@ -20,6 +20,28 @@
 namespace editor
 {
 
+std::unique_ptr<Piece> import_simple_piece(const jmapgen_piece& piece, PaletteImportReport& report)
+{
+    std::unique_ptr<Piece> new_piece;
+    // TODO: optimize
+    for (const PieceType& type : all_enum_values<PieceType>()) {
+        new_piece = make_new_piece(type);
+        if (new_piece->try_import(piece, report)) {
+            break;
+        }
+        else {
+            new_piece.reset();
+        }
+    }
+    report.num_pieces_total += 1;
+
+    if (!new_piece) {
+        report.num_pieces_failed += 1;
+        new_piece = make_new_piece(PieceType::Unknown);
+    }
+    return new_piece;
+}
+
 static std::unique_ptr<Piece> try_import_recursive(Project& project, const jmapgen_piece& piece, PaletteImportReport& report) {
     if (piece.is_constrained()) {
         const jmapgen_piece* inner = piece.get_constrained_inner();
@@ -34,23 +56,7 @@ static std::unique_ptr<Piece> try_import_recursive(Project& project, const jmapg
         return inner_imported;
     }
     else {
-        std::unique_ptr<Piece> new_piece;
-        // TODO: optimize
-        for (const PieceType& type : all_enum_values<PieceType>()) {
-            new_piece = make_new_piece(type);
-            if (new_piece->try_import(piece, report)) {
-                break;
-            }
-            else {
-                new_piece.reset();
-            }
-        }
-        report.num_pieces_total += 1;
-
-        if (!new_piece) {
-            report.num_pieces_failed += 1;
-            new_piece = make_new_piece(PieceType::Unknown);
-        }
+        std::unique_ptr<Piece> new_piece = import_simple_piece(piece, report);
         new_piece->uuid = project.uuid_generator();
         return new_piece;
     }

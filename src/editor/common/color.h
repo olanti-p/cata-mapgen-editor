@@ -11,6 +11,7 @@ const ImVec4 col_cursor = ImVec4( 0.8f, 0.8f, 0.4f, 1.0f );
 const ImVec4 col_nest = ImVec4(0.8f, 0.2f, 0.6f, 0.5f);
 const ImVec4 col_vehicle_outline = ImVec4(0.2f, 0.8f, 0.6f, 0.5f);
 const ImVec4 col_vehicle_dir = ImVec4(1.0f, 0.6f, 0.1f, 1.0f);
+const ImVec4 col_map_object = ImVec4(1.0f, 0.6f, 0.1f, 1.0f);
 const ImVec4 col_ruler = ImVec4( 0.9f, 0.9f, 0.1f, 1.0f );
 const ImVec4 col_tool = ImVec4( 0.2f, 0.9f, 0.9f, 1.0f );
 const ImVec4 col_sel_anim_0 = ImVec4( 0.0f, 0.0f, 0.0f, 1.0f );

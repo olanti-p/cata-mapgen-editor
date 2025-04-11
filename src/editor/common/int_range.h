@@ -15,6 +15,7 @@ struct IntRange {
     int max = 0;
 
     IntRange() = default;
+    IntRange(int min_, int max_) : min(min_), max(max_) {}
     IntRange( const jmapgen_int &range );
     ~IntRange() = default;
 

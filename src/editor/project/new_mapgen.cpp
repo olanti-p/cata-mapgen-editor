@@ -1,5 +1,6 @@
 #include "new_mapgen.h"
 
+#include "common/color.h"
 #include "imgui.h"
 #include "mapgen/mapgen.h"
 #include "mapgen/palette.h"
@@ -176,6 +177,7 @@ Mapgen* import_mapgen(State& state, ImportMapgenState& mapgen)
             std::abort();
         }
         new_mapgen.name = mapgen.oter.data;
+        new_mapgen.oter.weight = ref->editor_weight;
         auto &matrix = ref->editor_matrix;
         point ms_size(matrix[0].size(), matrix.size());
         point oter_size = ms_size / 24;
@@ -208,6 +210,7 @@ Mapgen* import_mapgen(State& state, ImportMapgenState& mapgen)
             // FIXME: palettes need to be persistent in memory...
             loaded_palette = state.project().find_palette_by_string(ref->editor_palette_id);
         }
+        loaded_palette->temp_palette = true;
         new_palette = loaded_palette->uuid;
 
         // TODO: parametric fill_ter
@@ -237,7 +240,24 @@ Mapgen* import_mapgen(State& state, ImportMapgenState& mapgen)
             }
         }
 
-        // TODO: objects
+        PaletteImportReport report; // TODO: make use of this
+        for (const auto& obj : ref->objects.objects) {
+            const jmapgen_place& place = obj.first;
+            const jmapgen_piece& piece = *obj.second.get();
+            MapObject mo = MapObject();
+
+            mo.piece = import_simple_piece(piece, report);
+            mo.set_uuid(project.uuid_generator());
+            mo.x = place.x;
+            mo.y = place.y;
+            // No z coord. Screw it.
+            // TODO: maybe implement it later
+            mo.repeat = place.repeat;
+            // TODO: assign specific colors to types
+            mo.color = ImColor::HSV(rng_float(0.0f, 1.0f), 1.0f, 1.0f, 0.6f);
+
+            new_mapgen.objects.emplace_back(std::move(mo));
+        }
     }
     else if (mapgen.mtype == MapgenType::Nested) {
         // TODO

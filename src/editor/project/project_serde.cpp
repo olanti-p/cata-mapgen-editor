@@ -21,10 +21,8 @@ void serialize( const std::unique_ptr<editor::Piece> &ptr, JsonOut &jsout )
     jsout.end_object();
 }
 
-void deserialize( std::unique_ptr<editor::Piece> &ptr, const TextJsonValue &jsin )
+void deserialize( std::unique_ptr<editor::Piece> &ptr, const TextJsonObject &jo )
 {
-    JSON_OBJECT jo = jsin.get_object();
-
     editor::PieceType pt = editor::PieceType::NumJmTypes;
     jo.read( "piece_type", pt );
     editor::UUID uuid;
@@ -370,12 +368,18 @@ void PieceMGroup::deserialize( const JSON_OBJECT &jsin )
 
 void PieceMonster::serialize( JsonOut &jsout ) const
 {
-    // TODO
+    jsout.member("use_mongroup", use_mongroup);
+    jsout.member("type_list", type_list);
+    jsout.member("group_id", group_id);
+    jsout.member("chance", chance);
 }
 
 void PieceMonster::deserialize( const JSON_OBJECT &jsin )
 {
-    // TODO
+    jsin.read("use_mongroup", use_mongroup);
+    jsin.read("type_list", type_list);
+    jsin.read("group_id", group_id);
+    jsin.read("chance", chance);
 }
 
 void PieceVehicle::serialize( JsonOut &jsout ) const
@@ -402,20 +406,14 @@ void PieceItem::serialize( JsonOut &jsout ) const
 {
     jsout.member( "item_id", item_id );
     jsout.member( "amount", amount );
-    jsout.member( "spawn_one", spawn_one );
     jsout.member( "chance", chance );
-    jsout.member( "spawn_once", spawn_once );
-    jsout.member( "repeat", repeat );
 }
 
 void PieceItem::deserialize( const JSON_OBJECT &jsin )
 {
     jsin.read( "item_id", item_id );
     jsin.read( "amount", amount );
-    jsin.read( "spawn_one", spawn_one );
     jsin.read( "chance", chance );
-    jsin.read( "spawn_once", spawn_once );
-    jsin.read( "repeat", repeat );
 }
 
 void PieceTrap::serialize( JsonOut &jsout ) const
@@ -613,6 +611,7 @@ void Palette::serialize( JsonOut &jsout ) const
     jsout.member( "uuid", uuid );
     jsout.member( "imported", imported );
     jsout.member( "standalone", standalone );
+    jsout.member( "temp_palette", temp_palette );
     jsout.member( "imported_id", imported_id );
     jsout.member( "created_id", created_id );
     jsout.member( "name", name );
@@ -627,6 +626,7 @@ void Palette::deserialize( const TextJsonValue &jsin )
     jo.read( "uuid", uuid );
     jo.read( "imported", imported );
     jo.read( "standalone", standalone );
+    jo.read( "temp_palette", temp_palette );
     jo.read( "imported_id", imported_id );
     jo.read( "created_id", created_id );
     jo.read( "name", name );
@@ -654,9 +654,7 @@ void MapObject::deserialize( const TextJsonValue &jsin )
     jo.read( "repeat", repeat );
     jo.read( "color", color );
     jo.read( "visible", visible );
-    TextJsonObject obj = jo.get_object("piece");
-    piece->deserialize(obj);
-    //jo.read( "piece", piece );
+    jo.read( "piece", piece );
 }
 
 void MapgenBase::serialize( JsonOut &jsout ) const

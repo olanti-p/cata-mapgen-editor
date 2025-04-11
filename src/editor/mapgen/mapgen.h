@@ -45,12 +45,14 @@ enum class OterMapgenBase {
     _Num,
 };
 
+constexpr int DEFAULT_OTER_MAPGEN_WEIGHT = 1000;
+
 struct MapgenOter {
     bool matrix_mode = true;
     std::vector<EID::OterType> om_terrain;
     Canvas2D<EID::OterType> om_terrain_matrix =
         Canvas2D<EID::OterType>( point( 1, 1 ), EID::OterType::NULL_ID() );
-    int weight = 100;
+    int weight = DEFAULT_OTER_MAPGEN_WEIGHT;
     OterMapgenBase mapgen_base = OterMapgenBase::Rows;
     EID::Ter fill_ter = EID::Ter::NULL_ID();
     EID::OterType predecessor_mapgen;

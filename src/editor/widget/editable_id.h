@@ -94,6 +94,7 @@ using ImportMapgen = EditableID<import_mapgen_tag>;
 using Item = EditableID<itype>;
 using Liquid = EditableID<liquid_item_tag>;
 using MGroup = EditableID<MonsterGroup>;
+using Monster = EditableID<mtype>;
 using Nest = EditableID<nested_mapgen>;
 using NPCTemplate = EditableID<npc_template>;
 using Oter = EditableID<oter_t>;

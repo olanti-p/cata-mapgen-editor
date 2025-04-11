@@ -122,7 +122,14 @@ struct PieceMGroup : public Piece {
 struct PieceMonster : public Piece {
     IMPLEMENT_ME_PIECE( PieceMonster, PieceType::Monster )
 
-    // TODO
+    void init_new() override;
+
+    bool use_mongroup = false;
+    WeightedList<EID::Monster> type_list;
+    EID::MGroup group_id;
+    IntRange chance = IntRange(100,100);
+
+    // TODO: other fields
 };
 
 enum class VehicleStatus {
@@ -151,11 +158,8 @@ struct PieceItem : public Piece {
     IMPLEMENT_ME_PIECE( PieceItem, PieceType::Item )
 
     EID::Item item_id;
-    IntRange amount;
-    bool spawn_one = true;
-    IntRange chance;
-    bool spawn_once = true;
-    IntRange repeat;
+    IntRange amount = IntRange(1,1);
+    IntRange chance = IntRange(100,100);
 };
 
 struct PieceTrap : public Piece {

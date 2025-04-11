@@ -411,14 +411,48 @@ std::string PieceMGroup::fmt_data_summary() const
     return group_id.data;
 }
 
+void PieceMonster::init_new()
+{
+    type_list.entries.emplace_back();
+    type_list.entries.back().weight = 1;
+}
+
 void PieceMonster::show_ui( State &state )
 {
-    ImGui::Text( "TODO" );
+    ImGui::HelpMarkerInline("Whether to use monster group, or list of monster ids.");
+    if (ImGui::Checkbox("Use group", &use_mongroup)) {
+        state.mark_changed();
+    }
+
+    ImGui::BeginDisabled(use_mongroup);
+    ImGui::HelpMarkerInline("Monster group to spawn.");
+    if (ImGui::InputId("group_id", group_id)) {
+        state.mark_changed();
+    }
+    ImGui::EndDisabled();
+
+    ImGui::BeginDisabled(!use_mongroup);
+    show_weighted_list(state, type_list);
+    ImGui::EndDisabled();
+
+    ImGui::HelpMarkerInline("TODO");
+    if (ImGui::InputIntRange("chance", chance)) {
+        state.mark_changed("me-piece-monster-chance-input");
+    }
 }
 
 std::string PieceMonster::fmt_data_summary() const
 {
-    return "TODO";
+    if (use_mongroup) {
+        return group_id.data;
+    }
+    else {
+        std::string ret = type_list.entries[0].val.data;
+        if (type_list.entries.size() > 1) {
+            ret += string_format(" (+%d)", type_list.entries.size() - 1);
+        }
+        return ret;
+    }
 }
 
 void PieceVehicle::show_ui( State &state )
@@ -515,34 +549,18 @@ void PieceItem::show_ui( State &state )
         state.mark_changed( "me-piece-item-amount-input" );
     }
 
-    ImGui::HelpMarkerInline( "Whether to always spawn 1, or any amount with a chance." );
-    if( ImGui::Checkbox( "Spawn one", &spawn_one ) ) {
-        state.mark_changed();
-    }
-    ImGui::BeginDisabled( spawn_one );
     ImGui::HelpMarkerInline(
         "Chance to spawn item, in percent.\n\n"
-        "Accepted values: [1, 99].\n\n"
+        "Accepted values: [0, 100].\n\n"
         "The value is multiplied by ITEM_SPAWNRATE option, and in case it overflows 100 - "
         "guarantees a spawn for every full 100%.\n\n"
-        "For example: with chance of 70% and ITEM_SPAWNRATE of 4.1 the resulting chance would be "
-        "287%, which results in 2 guaranteed spawns and 1 spawn with 87% chance."
+        "For example: with chance roll of 70% and ITEM_SPAWNRATE value of 4.1 the final chance would be "
+        "287%, which results in 2 guaranteed spawns and 1 spawn with 87% chance.\n\n"
+        "If chance is rolled as 100%, exactly 1 item will spawn regardless of ITEM_SPAWNRATE."
     );
     if( ImGui::InputIntRange( "chance (%)", chance ) ) {
         state.mark_changed( "me-piece-item-chance-input" );
     }
-    ImGui::EndDisabled();
-
-    ImGui::HelpMarkerInline( "Whether to spawn once, or multiple times." );
-    if( ImGui::Checkbox( "Once", &spawn_once ) ) {
-        state.mark_changed();
-    }
-    ImGui::BeginDisabled( spawn_once );
-    ImGui::HelpMarkerInline( "TODO" );
-    if( ImGui::InputIntRange( "repeat", repeat ) ) {
-        state.mark_changed( "me-piece-item-repeat-input" );
-    }
-    ImGui::EndDisabled();
 }
 
 std::string PieceItem::fmt_data_summary() const

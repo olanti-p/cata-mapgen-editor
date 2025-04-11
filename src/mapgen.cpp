@@ -1113,8 +1113,19 @@ load_mapgen_function( const JsonObject &jio, const std::string &id_base,
         }
         JsonObject jo = jio.get_object( "object" );
         jo.allow_omitted_members();
-        return std::make_shared<mapgen_function_json>(
+        int weight_const = 0;
+        if (weight.is_constant()) {
+            weight_const = weight.constant();
+        }
+        else {
+            // TODO: support non-constant weight
+            weight_const = 1000;
+        }
+
+        auto ret = std::make_shared<mapgen_function_json>(
                    jo, std::move( weight ), "mapgen " + id_base, offset, total, editor_mode );
+        ret->editor_weight = weight_const;
+        return ret;
     } else {
         jio.throw_error_at( "method", R"(invalid value: must be "builtin" or "json")" );
     }
@@ -5336,7 +5347,7 @@ bool mapgen_function_json_base::setup_common( const JsonObject &jo )
                     debugmsg( "(json-error)\n%s", e.what() );
                 }
             }
-            if( has_placing ) {
+            if( has_placing && !editor_mode ) {
                 jmapgen_place where( p );
                 for( auto &what : fpi->second ) {
                     objects.add( where, what );
@@ -5358,6 +5369,12 @@ bool mapgen_function_json_base::setup_common( const JsonObject &jo )
 
     if( jo.has_array( "set" ) ) {
         setup_setmap( jo.get_array( "set" ) );
+    }
+
+    if (editor_mode) {
+        objects.m_offset = tripoint_rel_ms::zero;
+        objects.mapgensize = expected_dim;
+        objects.total_size = expected_dim;
     }
 
     objects.load_objects<jmapgen_remove_all>( jo, "place_remove_all", context_ );
@@ -9092,6 +9109,35 @@ bool PieceMonster::try_import( const jmapgen_piece& piece, PaletteImportReport& 
     if (!casted) {
         return false;
     }
+    if (!casted->ids.empty()) {
+        use_mongroup = false;
+
+        for (const auto& it : casted->ids) {
+            // TODO: parametric
+            auto val = it.obj.collapse_import();
+            if (val.first) {
+                report.num_values_folded++;
+            }
+            if (val.second) {
+                type_list.entries.emplace_back(EID::Monster(*val.second), it.weight);
+            }
+        }
+    }
+    else {
+        use_mongroup = true;
+
+        // TODO: parametric
+        auto val = casted->m_id.collapse_import();
+        if (val.first) {
+            report.num_values_folded++;
+        }
+        if (val.second) {
+            group_id = EID::MGroup(val.second->str());
+        }
+    }
+    if (type_list.entries.empty()) {
+        type_list.entries.emplace_back(EID::Monster(), 1);
+    }
     return true; // TODO
 }
 
@@ -9155,6 +9201,8 @@ bool PieceItem::try_import( const jmapgen_piece& piece, PaletteImportReport& rep
             item_id = EID::Item(val.second->str());
         }
     }
+    amount = casted->amount;
+    chance = casted->chance;
     return true; // TODO
 }
 

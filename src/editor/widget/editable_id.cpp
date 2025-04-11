@@ -8,6 +8,8 @@
 #include "mapgen.h"
 #include "mongroup.h"
 #include "mutation.h"
+#include "mtype.h"
+#include "monstergenerator.h"
 #include "npc.h"
 #include "omdata.h"
 #include "text_snippets.h"
@@ -99,6 +101,18 @@ const std::vector<std::string> &EditableID<MonsterGroup>::get_all_opts()
         all_opts.reserve( MonsterGroupManager::Get_all_Groups().size() );
         for( const auto &it : MonsterGroupManager::Get_all_Groups() ) {
             all_opts.push_back( it.first.str() );
+        }
+    }
+    return all_opts;
+}
+
+template<>
+const std::vector<std::string>& EditableID<mtype>::get_all_opts()
+{
+    if (all_opts.empty()) {
+        all_opts.reserve(MonsterGenerator::generator().get_all_mtypes().size());
+        for (const auto& it : MonsterGenerator::generator().get_all_mtypes()) {
+            all_opts.push_back(it.id.str());
         }
     }
     return all_opts;
