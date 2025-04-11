@@ -17,6 +17,7 @@ struct CursorSettings : public ToolSettings {
 struct Cursor : public ToolDefinition {
     std::string get_tool_display_name() const override;
     std::string get_tool_hint() const override;
+    ImGuiKey get_hotkey() const override;
 
     std::unique_ptr<ToolControl> make_control() const override {
         return std::make_unique<CursorControl>();

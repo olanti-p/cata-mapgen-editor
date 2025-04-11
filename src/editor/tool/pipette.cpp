@@ -32,4 +32,9 @@ std::string Pipette::get_tool_hint() const
     return "Pick a tile from grid to use in tools.";
 }
 
+ImGuiKey Pipette::get_hotkey() const
+{
+    return ImGuiKey_None;
+}
+
 } // namespace editor::tools

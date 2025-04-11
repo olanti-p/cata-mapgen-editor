@@ -19,6 +19,11 @@ std::string Brush::get_tool_hint() const
     return "Hold LMB to draw with selected tile.";
 }
 
+ImGuiKey Brush::get_hotkey() const
+{
+    return ImGuiKey_W;
+}
+
 void BrushControl::handle_tool_operation( ToolTarget &target )
 {
     if( !target.is_hovered_over_canvas() ) {

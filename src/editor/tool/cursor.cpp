@@ -19,4 +19,9 @@ std::string Cursor::get_tool_hint() const
         "Drag LMB to pan view.";
 }
 
+ImGuiKey Cursor::get_hotkey() const
+{
+    return ImGuiKey_C;
+}
+
 } // namespace editor::tools

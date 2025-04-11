@@ -66,6 +66,7 @@ struct ToolDefinition {
 
     virtual std::string get_tool_display_name() const = 0;
     virtual std::string get_tool_hint() const = 0;
+    virtual ImGuiKey get_hotkey() const = 0;
     virtual std::unique_ptr<ToolControl> make_control() const = 0;
     virtual std::unique_ptr<ToolSettings> make_settings() const = 0;
 };
@@ -110,6 +111,7 @@ namespace editor
 {
 struct State;
 void show_toolbar( State &state, bool &show );
+void handle_toolbar_hotkeys(State& state);
 
 } // namespace editor
 

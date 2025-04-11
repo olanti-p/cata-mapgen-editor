@@ -25,6 +25,12 @@ std::string Ruler::get_tool_hint() const
            "Press Esc while dragging to cancel.";
 }
 
+
+ImGuiKey Ruler::get_hotkey() const
+{
+    return ImGuiKey_Q;
+}
+
 void RulerControl::handle_tool_operation( ToolTarget &target )
 {
     if( !target.has_canvas ) {

@@ -23,6 +23,11 @@ std::string Rectangle::get_tool_hint() const
            "Press Esc while dragging to cancel.";
 }
 
+ImGuiKey Rectangle::get_hotkey() const
+{
+    return ImGuiKey_R;
+}
+
 void RectangleSettings::show()
 {
     ImGui::Checkbox( "Filled", &filled );

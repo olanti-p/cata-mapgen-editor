@@ -272,6 +272,11 @@ void run_ui_for_state( State &state )
         control.quick_add_state = QuickPaletteAddState();
     }
 
+    if (control.reset_focus) {
+        control.reset_focus = false;
+        ImGui::SetWindowFocus("<editor_view>");
+    }
+
     if( !state.control->has_ongoing_tool_operation() ) {
         handle_snapshot_change( *state.history );
     }

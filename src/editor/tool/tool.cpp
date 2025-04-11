@@ -78,11 +78,16 @@ void show_toolbar( State &state, bool &show )
 {
     if( !ImGui::Begin( "Toolbar", &show,
                        ImGuiWindowFlags_AlwaysAutoResize |
+                       ImGuiWindowFlags_NoNavInputs |
                        ImGuiWindowFlags_NoCollapse |
                        ImGuiWindowFlags_NoResize
                      ) ) {
         ImGui::End();
         return;
+    }
+
+    if (ImGui::IsWindowFocused()) {
+        handle_toolbar_hotkeys(state);
     }
 
     ToolsState &tools = *state.ui->tools;
@@ -92,7 +97,16 @@ void show_toolbar( State &state, bool &show )
 
     for( tools::ToolKind kind : all_tools ) {
         const tools::ToolDefinition &def = tools::get_tool_definition( kind );
-        if( ImGui::RadioButton( def.get_tool_display_name().c_str(), tools.get_tool() == kind ) ) {
+        
+        std::string disp_name = def.get_tool_display_name();
+        if (kind == tools::ToolKind::Pipette) {
+            disp_name += " Alt";
+        }
+        else if (def.get_hotkey() != ImGuiKey_None) {
+            disp_name += " ";
+            disp_name += ImGui::GetKeyName(def.get_hotkey());
+        }
+        if( ImGui::RadioButton( disp_name.c_str(), tools.get_tool() == kind ) ) {
             if( !control.has_ongoing_tool_operation() ) {
                 tools.set_tool( kind );
             }
@@ -104,5 +118,33 @@ void show_toolbar( State &state, bool &show )
     tools.get_settings( tools.get_tool() ).show();
 
     ImGui::End();
+}
+
+void handle_toolbar_hotkeys(State& state) {
+    ToolsState& tools = *state.ui->tools;
+    ControlState& control = *state.control;
+    tools::ToolControl& tool_control = state.control->get_tool_control(tools.get_tool());
+
+    if (tool_control.operation_in_progress()) {
+        return;
+    }
+
+    tools.set_is_pipette_override(ImGui::IsKeyDown(ImGuiKey_ModAlt));
+
+    auto all_tools = all_enum_values<tools::ToolKind>();
+
+    for (tools::ToolKind kind : all_tools) {
+        const tools::ToolDefinition& def = tools::get_tool_definition(kind);
+        if (def.get_hotkey() != ImGuiKey_None && !control.has_ongoing_tool_operation()) {
+            if (ImGui::IsKeyPressed(def.get_hotkey()) && 
+                !ImGui::IsKeyDown(ImGuiKey_ModCtrl) &&
+                !ImGui::IsKeyDown(ImGuiKey_ModShift) &&
+                !ImGui::IsKeyDown(ImGuiKey_ModAlt)
+                ) {
+                tools.set_tool(kind);
+            }
+        }
+        ImGui::HelpPopup(def.get_tool_hint().c_str());
+    }
 }
 } // namespace editor

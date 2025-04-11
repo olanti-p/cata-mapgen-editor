@@ -20,6 +20,11 @@ std::string Bucket::get_tool_hint() const
     return "Click LMB to fill with selected tile.";
 }
 
+ImGuiKey Bucket::get_hotkey() const
+{
+    return ImGuiKey_E;
+}
+
 void BucketSettings::show()
 {
     ImGui::Checkbox( "Global", &global );

@@ -162,6 +162,10 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
 
     bool view_hovered = ImGui::IsWindowHovered();
 
+    if (ImGui::IsWindowFocused()) {
+        handle_toolbar_hotkeys(state);
+    }
+
     if( !mapgen_ptr ) {
         ImGui::BeginDisabled();
         ImGui::TextCenteredVH( "No active mapgen" );
@@ -241,6 +245,9 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
 
     if (!tool_control.operation_in_progress() ) {
         tools.set_is_pipette_override(ImGui::IsKeyDown(ImGuiKey_ModAlt));
+        if (ImGui::IsWindowFocused()) {
+            handle_toolbar_hotkeys(state);
+        }
     }
 
     bool show_tooltip = false;

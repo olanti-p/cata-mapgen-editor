@@ -23,6 +23,11 @@ std::string Line::get_tool_hint() const
            "Press Esc while dragging to cancel.";
 }
 
+ImGuiKey Line::get_hotkey() const
+{
+    return ImGuiKey_A;
+}
+
 void LineControl::handle_tool_operation( ToolTarget &target )
 {
     if( !target.has_canvas ) {

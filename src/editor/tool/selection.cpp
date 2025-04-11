@@ -35,6 +35,11 @@ std::string Selection::get_tool_hint() const
             "Press Ctrl+V to paste from clipboard.\n";
 }
 
+ImGuiKey Selection::get_hotkey() const
+{
+    return ImGuiKey_S;
+}
+
 void SelectionSettings::show()
 {
     // TODO: selection modes
