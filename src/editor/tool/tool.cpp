@@ -15,6 +15,7 @@
 #include "tool/rectangle_tool.h"
 #include "tool/selection.h"
 #include "tool/ruler.h"
+#include "tool/pipette.h"
 #include "widget/widgets.h"
 
 #include <unordered_map>
@@ -44,6 +45,10 @@ const ToolDefinition &get_tool_definition( ToolKind kind )
         }
         case ToolKind::Ruler: {
             static Ruler tool;
+            return tool;
+        }
+        case ToolKind::Pipette: {
+            static Pipette tool;
             return tool;
         }
         case ToolKind::Line: {

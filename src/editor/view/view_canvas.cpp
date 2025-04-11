@@ -237,6 +237,11 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
             state.mark_changed();
         }
     }
+    tools.set_main_tile( target.main_tile );
+
+    if (!tool_control.operation_in_progress() ) {
+        tools.set_is_pipette_override(ImGui::IsKeyDown(ImGuiKey_ModAlt));
+    }
 
     bool show_tooltip = false;
     const ViewEntry *tooltip_entry = nullptr;
@@ -306,7 +311,7 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
             cam.scale = clamp( cam.scale + delta, MIN_SCALE, MAX_SCALE );
         }
         if( mapgen.uses_rows() ) {
-            if( ImGui::IsMouseClicked( ImGuiMouseButton_Middle ) ) {
+            if( ImGui::IsKeyDown( ImGuiKey_ModAlt ) && ImGui::IsMouseClicked( ImGuiMouseButton_Left ) ) {
                 if( is_mouse_in_bounds ) {
                     MapKey uuid = get_key_at_pos(canvas_2d, snippet, tile_pos.raw() );
                     tools.set_main_tile( uuid );

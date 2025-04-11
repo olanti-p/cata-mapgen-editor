@@ -24,6 +24,7 @@ namespace editor::tools
 enum class ToolKind {
     Cursor,
     Ruler,
+    Pipette,
     Brush,
     Bucket,
     Line,
