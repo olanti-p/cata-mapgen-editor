@@ -4,6 +4,9 @@
 
 namespace editor::tools
 {
+bool CursorControl::operation_in_progress() const {
+    return ImGui::IsMouseDown( ImGuiMouseButton_Left );
+}
 
 std::string Cursor::get_tool_display_name() const
 {
@@ -12,7 +15,8 @@ std::string Cursor::get_tool_display_name() const
 
 std::string Cursor::get_tool_hint() const
 {
-    return "Does nothing.  The true neutral choice!";
+    return "Does nothing.  The true neutral choice!\n\n"
+        "Drag LMB to pan view.";
 }
 
 } // namespace editor::tools

@@ -7,7 +7,7 @@ namespace editor::tools
 {
 
 struct CursorControl : public ToolControl {
-
+    bool operation_in_progress() const override;
 };
 
 struct CursorSettings : public ToolSettings {

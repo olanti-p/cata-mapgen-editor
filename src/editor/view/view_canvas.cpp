@@ -279,8 +279,12 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
             }
         }
 
-        if( ImGui::IsMouseDragging( ImGuiMouseButton_Right ) ) {
-            point_rel_screen drag_delta( ImGui::GetMouseDragDelta( ImGuiMouseButton_Right ) );
+        if( ImGui::IsMouseDragging( ImGuiMouseButton_Middle ) ) {
+            point_rel_screen drag_delta( ImGui::GetMouseDragDelta( ImGuiMouseButton_Middle ) );
+            cam.drag_delta = -cam.screen_to_world( drag_delta );
+        } else if( tools.get_tool() == tools::ToolKind::Cursor && ImGui::IsMouseDragging( ImGuiMouseButton_Left ) ) {
+            // FIXME: this should be part of tool control code
+            point_rel_screen drag_delta( ImGui::GetMouseDragDelta( ImGuiMouseButton_Left ) );
             cam.drag_delta = -cam.screen_to_world( drag_delta );
         } else {
             cam.pos += cam.drag_delta;
