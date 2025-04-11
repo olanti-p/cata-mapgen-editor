@@ -52,16 +52,6 @@ void ViewEntry::rebuild_sprite_cache(const Project& project) const
     sprite_cache_valid = true;
 }
 
-const std::string *ViewPalette::display_key_from_uuid( const MapKey &uuid ) const
-{
-    const ViewEntry *entry = find_entry( uuid );
-    if( entry ) {
-        return &entry->key.str;
-    }
-
-    return nullptr;
-}
-
 const ImVec4 &ViewPalette::color_from_uuid( const MapKey &uuid ) const
 {
     /* TODO: palette colors
@@ -97,7 +87,7 @@ SpritePair ViewPalette::sprite_from_uuid( const MapKey &uuid ) const
 
 ViewEntry *ViewPalette::find_entry( const MapKey&uuid )
 {
-    if (uuid.str.empty()) {
+    if (!uuid) {
         return nullptr;
     }
     if (entries.size() != entries_cache.size()) {
@@ -119,7 +109,7 @@ ViewEntry *ViewPalette::find_entry( const MapKey&uuid )
 
 const ViewEntry *ViewPalette::find_entry( const MapKey&uuid ) const
 {
-    if (uuid.str.empty()) {
+    if (!uuid) {
         return nullptr;
     }
     if (entries.size() != entries_cache.size()) {

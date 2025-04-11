@@ -56,16 +56,6 @@ const Piece* PaletteEntry::get_first_piece_of_type(PieceType pt) const
     return nullptr;
 }
 
-const std::string *Palette::display_key_from_uuid( const MapKey &uuid ) const
-{
-    const PaletteEntry *entry = find_entry( uuid );
-    if( entry ) {
-        return &entry->key.str;
-    }
-
-    return nullptr;
-}
-
 const ImVec4 &Palette::color_from_uuid( const MapKey &uuid ) const
 {
     const PaletteEntry *entry = find_entry( uuid );
@@ -97,7 +87,7 @@ const SpriteRef *Palette::sprite_from_uuid( const MapKey &uuid ) const
 
 PaletteEntry *Palette::find_entry( const MapKey&uuid )
 {
-    if (uuid.str.empty()) {
+    if (!uuid) {
         return nullptr;
     }
     if (entries.size() != entries_cache.size()) {
@@ -119,7 +109,7 @@ PaletteEntry *Palette::find_entry( const MapKey&uuid )
 
 const PaletteEntry *Palette::find_entry( const MapKey&uuid ) const
 {
-    if (uuid.str.empty()) {
+    if (!uuid) {
         return nullptr;
     }
     if (entries.size() != entries_cache.size()) {

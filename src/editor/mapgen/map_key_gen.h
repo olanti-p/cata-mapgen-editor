@@ -21,7 +21,7 @@ struct MapKeyGenerator {
         inline MapKey operator()() {
             if( opts.empty() ) {
                 // TODO: return from unicode ranges
-                return default_map_key;
+                return default_editor_map_key;
             } else {
                 return opts[0];
             }

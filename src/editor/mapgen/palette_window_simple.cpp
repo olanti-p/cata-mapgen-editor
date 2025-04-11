@@ -123,7 +123,7 @@ void show_palette_entries_simple( State &state, Palette &palette )
         if( img ) {
             btn_result = ImGui::ImageButton( "button", *img, button_sz );
         } else {
-            std::string label = string_format( "%s###button", entry.key.str );
+            std::string label = string_format( "%s###button", entry.key.str() );
             btn_result = ImGui::Button( label.c_str(), button_sz_text );
         }
         if( is_selected || is_highlighted ) {
@@ -183,7 +183,7 @@ void show_palette_entries_simple(State& state, ViewPalette& palette)
             btn_result = ImGui::ImageButton("button", *img.ter, button_sz);
         }
         else {
-            std::string label = string_format("%s###button", entry.key.str);
+            std::string label = string_format("%s###button", entry.key.str());
             btn_result = ImGui::Button(label.c_str(), button_sz_text);
         }
         if (is_selected || is_highlighted) {

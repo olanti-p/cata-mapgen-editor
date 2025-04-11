@@ -36,7 +36,7 @@ static void collapse_piece( State &state, const UUID &piece_id )
 void show_mapping( State &state, editor::Palette &p, editor::PaletteEntry &entry,
                    bool &show )
 {
-    std::string wnd_id = string_format( "Mappings##wnd-mappings-%d-%s", p.uuid, entry.key.str );
+    std::string wnd_id = string_format( "Mappings##wnd-mappings-%d-%s", p.uuid, entry.key.str() );
     ImGui::SetNextWindowSize( ImVec2( 450.0f, 300.0f ), ImGuiCond_FirstUseEver );
     ImGui::SetNextWindowPos( ImVec2( 50.0f, 50.0f ), ImGuiCond_FirstUseEver );
     if( !ImGui::Begin( wnd_id.c_str(), &show ) ) {
@@ -302,7 +302,8 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
             ImGui::BeginErrorArea();
         }
         ImGui::BeginDisabled();
-        if( ImGui::InputSymbol( "##key", list[idx].key.str, default_map_key.str.c_str() ) ) {
+        std::string buf = list[idx].key.str();
+        if( ImGui::InputSymbol( "##key", buf, default_editor_map_key.str().c_str())) {
             // FIXME: ensure unique keys
             state.mark_changed( "palette-entry-key" );
         }
@@ -424,7 +425,8 @@ static void show_palette_entries_verbose(State& state, ViewPalette& palette)
 
         ImGui::SetNextItemWidth(ImGui::GetFrameHeight());
         ImGui::BeginDisabled();
-        if (ImGui::InputSymbol("##key", list[idx].key.str, default_map_key.str.c_str())) {
+        std::string buf = list[idx].key.str();
+        if (ImGui::InputSymbol("##key", buf, default_editor_map_key.str().c_str())) {
             // FIXME: ensure unique keys, sync to ancestors
             state.mark_changed("palette-entry-key");
         }

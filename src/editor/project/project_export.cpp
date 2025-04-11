@@ -28,6 +28,7 @@ void emit_val( JsonOut &jo, float f );
 void emit_val( JsonOut &jo, bool b );
 void emit_val( JsonOut &jo, const char *str );
 void emit_val( JsonOut &jo, const std::string &str );
+//void emit_val( JsonOut &jo, const editor::MapKey &mk );
 void emit_val( JsonOut &jo, const editor::Piece *piece );
 void emit_val( JsonOut &jo, const editor::MapObject *obj );
 template<typename T>
@@ -87,6 +88,11 @@ void emit_val( JsonOut &jo, const std::string &str )
 {
     jo.write( str );
 }
+
+//void emit_val( JsonOut& jo, const editor::MapKey& mk )
+//{
+//    jo.write( mk.str() );
+//}
 
 void emit_val( JsonOut &jo, const editor::Piece *piece )
 {
@@ -610,7 +616,7 @@ static void emit_palette_entries(JsonOut& jo, const editor::Palette& pal)
 
         emit_object(jo, palette_cat, [&]() {
             for (const key_pieces_pair& it : matching_pieces) {
-                emit_single_or_array(jo, it.first.str, it.second);
+                emit_single_or_array(jo, it.first.str(), it.second);
             }
         });
     }
@@ -687,7 +693,7 @@ static void emit_mapgen_contents( JsonOut &jo, const editor::Project &project,
                     std::string s;
                     for( int x = 0; x < canvas.get_size().x; x++ ) {
                         const editor::MapKey &mk = canvas.get( point( x, y ) );
-                        s += mk.str;
+                        s += mk.str();
                     }
                     emit_val( jo, s );
                 }

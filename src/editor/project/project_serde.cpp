@@ -38,20 +38,6 @@ void deserialize( std::unique_ptr<editor::Piece> &ptr, const TextJsonObject &jo 
     ptr = std::move( val );
 }
 
-void serialize( const editor::MapKey &mk, JsonOut &jsout )
-{
-    jsout.start_object();
-    jsout.member( "str", mk.str );
-    jsout.end_object();
-}
-
-void deserialize( editor::MapKey &mk, const TextJsonValue &jsin )
-{
-    JSON_OBJECT jo = jsin.get_object();
-
-    jo.read( "str", mk.str );
-}
-
 void serialize( const ImVec4 &v, JsonOut &jsout )
 {
     jsout.start_object();
@@ -632,6 +618,16 @@ void Palette::deserialize( const TextJsonValue &jsin )
     jo.read( "created_id", created_id );
     jo.read( "name", name );
     jo.read( "entries", entries );
+}
+
+void MapKey::serialize(JsonOut& jsout) const
+{
+    jsout.write(value);
+}
+
+void MapKey::deserialize(const TextJsonValue& jsin)
+{
+    jsin.read(value);
 }
 
 void MapObject::serialize( JsonOut &jsout ) const

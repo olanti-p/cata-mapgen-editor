@@ -102,7 +102,6 @@ public:
     std::vector<PaletteEntry> entries;
     PaletteImportReport import_report;
 
-    const std::string *display_key_from_uuid( const MapKey &uuid ) const;
     const ImVec4 &color_from_uuid( const MapKey &uuid ) const;
     const SpriteRef *sprite_from_uuid( const MapKey &uuid ) const;
 

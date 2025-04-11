@@ -93,7 +93,6 @@ public:
     Project& project;
     std::vector<ViewEntry> entries;
 
-    const std::string *display_key_from_uuid( const MapKey &uuid ) const;
     const ImVec4 &color_from_uuid( const MapKey &uuid ) const;
     SpritePair sprite_from_uuid( const MapKey &uuid ) const;
 

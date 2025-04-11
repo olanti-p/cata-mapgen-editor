@@ -557,7 +557,7 @@ void HelpPopup( const char *desc )
 
 void PushID(const editor::MapKey& mk)
 {
-    PushID(mk.str.c_str());
+    PushID(mk.value);
 }
 
 static void handle_drag_drop_source( size_t idx, const char *payload_id )

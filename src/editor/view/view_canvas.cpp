@@ -132,6 +132,20 @@ static void draw_selection_mask( ImDrawList *draw_list, const SelectionMask &sel
     }
 }
 
+static MapKey get_key_at_pos(const Canvas2D<MapKey>& canvas, const editor::CanvasSnippet* snippet, point pos) {
+    if (snippet)
+    {
+        point rel_to_snippet = pos - snippet->get_pos();
+        if (snippet->get_bounds().contains(rel_to_snippet)) {
+            std::optional<MapKey> data_at = snippet->get_data_at(rel_to_snippet);
+            if (data_at) {
+                return *data_at;
+            }
+        }
+    }
+    return canvas.get(pos);
+}
+
 void show_editor_view( State &state, Mapgen *mapgen_ptr )
 {
     ImVec2 disp_size = ImGui::GetIO().DisplaySize;
@@ -233,20 +247,8 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
     std::string tooltip_error_msg;
     point_abs_etile tooltip_pos;
 
+    const Canvas2D<MapKey>& canvas_2d = mapgen.base.canvas;
     const CanvasSnippet *snippet = snippets.get_snippet( mapgen.uuid );
-    const auto get_uuid_at_pos = [&]( point pos ) -> MapKey {
-        if( snippet )
-        {
-            point rel_to_snippet = pos - snippet->get_pos();
-            if( snippet->get_bounds().contains( rel_to_snippet ) ) {
-                std::optional<MapKey> data_at = snippet->get_data_at( rel_to_snippet );
-                if( data_at ) {
-                    return *data_at;
-                }
-            }
-        }
-        return mapgen.base.canvas.get( pos );
-    };
 
     float canvas_sprite_opacity = state.ui->canvas_sprite_opacity;
     bool show_canvas_sprites = state.ui->show_canvas_sprites && canvas_sprite_opacity > 0.01f;
@@ -258,15 +260,15 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
             show_tooltip = true;
             tooltip_pos = tile_pos;
             if( is_mouse_in_bounds ) {
-                const MapKey&uuid = get_uuid_at_pos( tile_pos.raw() );
+                MapKey uuid = get_key_at_pos(canvas_2d, snippet, tile_pos.raw() );
                 tooltip_entry = pal.find_entry( uuid );
                 tooltip_entry_uuid = uuid;
                 tooltip_entry_error = !tooltip_entry;
                 if (tooltip_entry_error) {
-                    if (uuid.str.empty()) {
+                    if (!uuid) {
                         tooltip_error_msg = "No symbol assigned here";
                     }
-                    else if (has_fill_ter && ( uuid.str == " " || uuid.str == ".")) {
+                    else if (has_fill_ter && uuid.is_default_fill_ter_allowed() ) {
                         // No error - silent fill_ter fallback
                         tooltip_entry_error = false;
                         tooltip_entry_fill_ter = true;
@@ -303,7 +305,7 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
         if( mapgen.uses_rows() ) {
             if( ImGui::IsMouseClicked( ImGuiMouseButton_Middle ) ) {
                 if( is_mouse_in_bounds ) {
-                    const MapKey&uuid = get_uuid_at_pos( tile_pos.raw() );
+                    MapKey uuid = get_key_at_pos(canvas_2d, snippet, tile_pos.raw() );
                     tools.set_main_tile( uuid );
                 } else {
                     tools.set_main_tile(MapKey());
@@ -327,7 +329,7 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                 for (int y = 0; y < mapgen.mapgensize().y(); y++) {
                     for (int x = 0; x < mapgen.mapgensize().x(); x++) {
                         point_abs_etile p(x, y);
-                        const MapKey& uuid = get_uuid_at_pos(p.raw());
+                        MapKey  uuid = get_key_at_pos(canvas_2d, snippet, p.raw());
                         SpritePair img = pal.sprite_from_uuid(uuid);
                         if (!img.ter) {
                             fill_tile_sprited(draw_list, cam, p, *fill_ter_fallback);
@@ -343,7 +345,7 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                 for (int y = 0; y < mapgen.mapgensize().y(); y++) {
                     for (int x = 0; x < mapgen.mapgensize().x(); x++) {
                         point_abs_etile p(x, y);
-                        const MapKey& uuid = get_uuid_at_pos(p.raw());
+                        MapKey  uuid = get_key_at_pos(canvas_2d, snippet, p.raw());
                         if (uuid != ve.key) {
                             continue;
                         }
@@ -361,7 +363,7 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                 for (int y = 0; y < mapgen.mapgensize().y(); y++) {
                     for (int x = 0; x < mapgen.mapgensize().x(); x++) {
                         point_abs_etile p(x, y);
-                        const MapKey& uuid = get_uuid_at_pos(p.raw());
+                        MapKey  uuid = get_key_at_pos(canvas_2d, snippet, p.raw());
                         if (uuid != ve.key) {
                             continue;
                         }
@@ -374,7 +376,7 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
         for( int y = 0; y < mapgen.mapgensize().y(); y++ ) {
             for( int x = 0; x < mapgen.mapgensize().x(); x++ ) {
                 point_abs_etile p( x, y );
-                const MapKey &uuid = get_uuid_at_pos( p.raw() );
+                const MapKey &uuid = get_key_at_pos(canvas_2d, snippet, p.raw() );
                 ImVec4 col = pal.color_from_uuid( uuid );
                 bool has_img = false;
                 if (show_canvas_sprites) {
@@ -391,25 +393,30 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
             for (int y = 0; y < mapgen.mapgensize().y(); y++) {
                 for (int x = 0; x < mapgen.mapgensize().x(); x++) {
                     point_abs_etile p(x, y);
-                    const MapKey &uuid = get_uuid_at_pos(p.raw());
-                    std::string tmp;
-                    const std::string* mk = pal.display_key_from_uuid(uuid);
+                    MapKey uuid = get_key_at_pos(canvas_2d, snippet, p.raw());
+                    std::string buf;
+                    const std::string* mk;
                     bool using_fallback = false;
-                    if (!mk) {
-                        if (uuid.str.empty()) {
+                    bool has_key_in_palette = pal.find_entry(uuid);
+                    if (has_key_in_palette) {
+                        buf = uuid.str();
+                        mk = &buf;
+                    } else {
+                        using_fallback = true;
+                        if (!uuid) {
                             static std::string fallback = "#";
                             mk = &fallback;
                         }
-                        else if (has_fill_ter && (uuid.str == " " || uuid.str == ".")) {
-                            // These are special cases that use fill_ter
-                            mk = &uuid.str;
-                        } else {
-                            // FIXME: this may cause lag!
-                            tmp = "<" + uuid.str + ">";
-                            mk = &tmp;
+                        else if (has_fill_ter && uuid.is_default_fill_ter_allowed()) {
+                            buf = uuid.str();
+                            mk = &buf;
                         }
-                        using_fallback = true;
+                        else {
+                            buf = "<" + uuid.str() + ">";
+                            mk = &buf;
+                        }
                     }
+
                     point_abs_epos center = coords::project_combine(p,
                         point_etile_epos(ETILE_SIZE / 2, ETILE_SIZE / 2));
                     point_abs_screen text_center = cam.world_to_screen(center);
@@ -490,7 +497,7 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
 
     if( view_hovered ) {
         if (mapgen.uses_rows() && is_mouse_in_bounds) {
-            const MapKey& uuid = get_uuid_at_pos(tile_pos.raw());
+            MapKey  uuid = get_key_at_pos(canvas_2d, snippet, tile_pos.raw());
             ViewEntry* hovered_entry = pal.find_entry(uuid);
 
             std::unordered_set<point> nested_info;

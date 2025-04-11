@@ -195,7 +195,7 @@ Mapgen* import_mapgen(State& state, ImportMapgenState& mapgen)
 
         for (size_t y = 0; y < ms_size.y; y++) {
             for (size_t x = 0; x < ms_size.x; x++) {
-                new_mapgen.base.canvas.set(point(x, y), matrix[y][x]);
+                new_mapgen.base.canvas.set(point(x, y), MapKey( matrix[y][x] ));
             }
         }
 
