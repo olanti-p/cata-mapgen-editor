@@ -80,7 +80,6 @@ void show_camera_controls( State &state, bool &show )
             "- Drag the view with RMB to pan.\n"
             "- Scroll with the mouse wheel over the view to zoom.\n"
             "- Hold Ctrl to see summary of highlighted tile.\n"
-            "- Hold Alt to measure distance or area.\n"
             "- Hold Alt while scrolling to switch between mapgens.\n"
             "- Use widgets in this window to manually control zoom and position.\n"
             "\nIn canvas mode:\n"
