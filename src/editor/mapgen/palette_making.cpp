@@ -7,7 +7,7 @@
 
 namespace editor
 {
-map_key pick_available_key( const Palette &pal )
+MapKey pick_available_key( const Palette &pal )
 {
     MapKeyGenerator gen;
     for( const auto &it : pal.entries ) {

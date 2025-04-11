@@ -10,6 +10,7 @@
 #include "../../tools/format/format.h"
 #include "common/weighted_list.h"
 #include "widget/editable_id.h"
+#include "common/map_key.h"
 
 #include <sstream>
 
@@ -555,7 +556,7 @@ std::string get_object_category( editor::PieceType data )
  * ============= HIGH-LEVEL FUNCTIONS =============
  */
 
-using key_pieces_pair = std::pair<map_key, std::vector<const editor::Piece*>>;
+using key_pieces_pair = std::pair<editor::MapKey, std::vector<const editor::Piece*>>;
 
 static void emit_palette_entries(JsonOut& jo, const editor::Palette& pal)
 {
@@ -681,11 +682,11 @@ static void emit_mapgen_contents( JsonOut &jo, const editor::Project &project,
         if( mapgen.uses_rows() ) {
             const editor::Palette &pal = *project.get_palette( mapgen.base.palette );
             emit_array( jo, "rows", [&]() {
-                const editor::Canvas2D<map_key> &canvas = mapgen.base.canvas;
+                const editor::Canvas2D<editor::MapKey> &canvas = mapgen.base.canvas;
                 for( int y = 0; y < canvas.get_size().y; y++ ) {
                     std::string s;
                     for( int x = 0; x < canvas.get_size().x; x++ ) {
-                        const map_key &mk = canvas.get( point( x, y ) );
+                        const editor::MapKey &mk = canvas.get( point( x, y ) );
                         s += mk.str;
                     }
                     emit_val( jo, s );

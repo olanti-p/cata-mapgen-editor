@@ -15,7 +15,7 @@
 
 namespace editor
 {
-static int find_dragged_idx( const Palette &palette, map_key uuid )
+static int find_dragged_idx( const Palette &palette, MapKey uuid )
 {
     for( size_t i = 0; i < palette.entries.size(); i++ ) {
         if( palette.entries[i].key == uuid ) {
@@ -86,7 +86,7 @@ bool handle_palette_entry_drag_and_drop( Project &project, Palette &palette, int
 
 void show_palette_entries_simple( State &state, Palette &palette )
 {
-    const map_key &selected = state.ui->tools->get_main_tile();
+    const MapKey &selected = state.ui->tools->get_main_tile();
     ImGuiStyle &style = ImGui::GetStyle();
     int buttons_count = palette.entries.size();
     float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
@@ -152,7 +152,7 @@ void show_palette_entries_simple( State &state, Palette &palette )
 // FIXME: this is an almost complete dupe of the other function
 void show_palette_entries_simple(State& state, ViewPalette& palette)
 {
-    const map_key& selected = state.ui->tools->get_main_tile();
+    const MapKey& selected = state.ui->tools->get_main_tile();
     ImGuiStyle& style = ImGui::GetStyle();
     int buttons_count = palette.entries.size();
     float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;

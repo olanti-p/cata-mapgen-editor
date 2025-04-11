@@ -17,7 +17,7 @@ MapKeyGenerator::MapKeyGenerator()
     }
 }
 
-void MapKeyGenerator::blacklist( const map_key &opt )
+void MapKeyGenerator::blacklist( const MapKey &opt )
 {
     opts.erase( std::remove(opts.begin(), opts.end(), opt), opts.end() );
 }

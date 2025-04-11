@@ -38,7 +38,7 @@ void LineControl::handle_tool_operation( ToolTarget &target )
             // Stroke end
             point_abs_etile p1 = *start;
             point_abs_etile p2 = get_line_end( target );
-            Canvas2D<map_key> &canvas = target.mapgen.base.canvas;
+            Canvas2D<MapKey> &canvas = target.mapgen.base.canvas;
             std::vector<point> line = make_line( p1, p2 );
             apply( canvas, line, target.main_tile );
             start.reset();
@@ -70,7 +70,7 @@ std::vector<point> LineControl::make_line( point_abs_etile p1, point_abs_etile p
     return editor::line_bresenham( p1.raw(), p2.raw() );
 }
 
-void LineControl::apply( Canvas2D<map_key> &canvas, const std::vector<point> &line, map_key new_value )
+void LineControl::apply( Canvas2D<MapKey> &canvas, const std::vector<point> &line, MapKey new_value )
 {
     for( const auto &p : line ) {
         if( canvas.get_bounds().contains( p ) ) {

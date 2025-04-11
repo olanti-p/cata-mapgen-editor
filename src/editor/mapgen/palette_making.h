@@ -11,7 +11,7 @@ namespace editor
 struct Mapgen;
 struct Project;
 
-map_key pick_available_key( const Palette &pal );
+MapKey pick_available_key( const Palette &pal );
 
 PaletteEntry make_simple_entry( Project &project, Palette &palette, const EID::Ter* ter, const EID::Furn* furn );
 

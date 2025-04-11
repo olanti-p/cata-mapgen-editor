@@ -2,6 +2,7 @@
 
 #include "common/canvas_2d_serde.h"
 #include "common/weighted_list_serde.h"
+#include "common/map_key.h"
 #include "imgui.h"
 #include "json.h"
 #include "mapgen.h"
@@ -37,14 +38,14 @@ void deserialize( std::unique_ptr<editor::Piece> &ptr, const TextJsonObject &jo 
     ptr = std::move( val );
 }
 
-void serialize( const map_key &mk, JsonOut &jsout )
+void serialize( const editor::MapKey &mk, JsonOut &jsout )
 {
     jsout.start_object();
     jsout.member( "str", mk.str );
     jsout.end_object();
 }
 
-void deserialize( map_key &mk, const TextJsonValue &jsin )
+void deserialize( editor::MapKey &mk, const TextJsonValue &jsin )
 {
     JSON_OBJECT jo = jsin.get_object();
 

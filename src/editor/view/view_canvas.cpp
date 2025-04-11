@@ -227,19 +227,19 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
 
     bool show_tooltip = false;
     const ViewEntry *tooltip_entry = nullptr;
-    map_key tooltip_entry_uuid;
+    MapKey tooltip_entry_uuid;
     bool tooltip_entry_error = false;
     bool tooltip_entry_fill_ter = false;
     std::string tooltip_error_msg;
     point_abs_etile tooltip_pos;
 
     const CanvasSnippet *snippet = snippets.get_snippet( mapgen.uuid );
-    const auto get_uuid_at_pos = [&]( point pos ) -> map_key {
+    const auto get_uuid_at_pos = [&]( point pos ) -> MapKey {
         if( snippet )
         {
             point rel_to_snippet = pos - snippet->get_pos();
             if( snippet->get_bounds().contains( rel_to_snippet ) ) {
-                std::optional<map_key> data_at = snippet->get_data_at( rel_to_snippet );
+                std::optional<MapKey> data_at = snippet->get_data_at( rel_to_snippet );
                 if( data_at ) {
                     return *data_at;
                 }
@@ -258,7 +258,7 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
             show_tooltip = true;
             tooltip_pos = tile_pos;
             if( is_mouse_in_bounds ) {
-                const map_key&uuid = get_uuid_at_pos( tile_pos.raw() );
+                const MapKey&uuid = get_uuid_at_pos( tile_pos.raw() );
                 tooltip_entry = pal.find_entry( uuid );
                 tooltip_entry_uuid = uuid;
                 tooltip_entry_error = !tooltip_entry;
@@ -303,10 +303,10 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
         if( mapgen.uses_rows() ) {
             if( ImGui::IsMouseClicked( ImGuiMouseButton_Middle ) ) {
                 if( is_mouse_in_bounds ) {
-                    const map_key&uuid = get_uuid_at_pos( tile_pos.raw() );
+                    const MapKey&uuid = get_uuid_at_pos( tile_pos.raw() );
                     tools.set_main_tile( uuid );
                 } else {
-                    tools.set_main_tile(map_key());
+                    tools.set_main_tile(MapKey());
                 }
             }
         }
@@ -327,7 +327,7 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                 for (int y = 0; y < mapgen.mapgensize().y(); y++) {
                     for (int x = 0; x < mapgen.mapgensize().x(); x++) {
                         point_abs_etile p(x, y);
-                        const map_key& uuid = get_uuid_at_pos(p.raw());
+                        const MapKey& uuid = get_uuid_at_pos(p.raw());
                         SpritePair img = pal.sprite_from_uuid(uuid);
                         if (!img.ter) {
                             fill_tile_sprited(draw_list, cam, p, *fill_ter_fallback);
@@ -343,7 +343,7 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                 for (int y = 0; y < mapgen.mapgensize().y(); y++) {
                     for (int x = 0; x < mapgen.mapgensize().x(); x++) {
                         point_abs_etile p(x, y);
-                        const map_key& uuid = get_uuid_at_pos(p.raw());
+                        const MapKey& uuid = get_uuid_at_pos(p.raw());
                         if (uuid != ve.key) {
                             continue;
                         }
@@ -361,7 +361,7 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                 for (int y = 0; y < mapgen.mapgensize().y(); y++) {
                     for (int x = 0; x < mapgen.mapgensize().x(); x++) {
                         point_abs_etile p(x, y);
-                        const map_key& uuid = get_uuid_at_pos(p.raw());
+                        const MapKey& uuid = get_uuid_at_pos(p.raw());
                         if (uuid != ve.key) {
                             continue;
                         }
@@ -374,7 +374,7 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
         for( int y = 0; y < mapgen.mapgensize().y(); y++ ) {
             for( int x = 0; x < mapgen.mapgensize().x(); x++ ) {
                 point_abs_etile p( x, y );
-                const map_key &uuid = get_uuid_at_pos( p.raw() );
+                const MapKey &uuid = get_uuid_at_pos( p.raw() );
                 ImVec4 col = pal.color_from_uuid( uuid );
                 bool has_img = false;
                 if (show_canvas_sprites) {
@@ -391,7 +391,7 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
             for (int y = 0; y < mapgen.mapgensize().y(); y++) {
                 for (int x = 0; x < mapgen.mapgensize().x(); x++) {
                     point_abs_etile p(x, y);
-                    const map_key &uuid = get_uuid_at_pos(p.raw());
+                    const MapKey &uuid = get_uuid_at_pos(p.raw());
                     std::string tmp;
                     const std::string* mk = pal.display_key_from_uuid(uuid);
                     bool using_fallback = false;
@@ -490,7 +490,7 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
 
     if( view_hovered ) {
         if (mapgen.uses_rows() && is_mouse_in_bounds) {
-            const map_key& uuid = get_uuid_at_pos(tile_pos.raw());
+            const MapKey& uuid = get_uuid_at_pos(tile_pos.raw());
             ViewEntry* hovered_entry = pal.find_entry(uuid);
 
             std::unordered_set<point> nested_info;

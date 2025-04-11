@@ -14,10 +14,10 @@
 #include "common/int_range.h"
 #include "common/sprite_ref.h"
 #include "common/uuid.h"
+#include "common/map_key.h"
 
 #include "calendar.h"
 
-class map_key;
 class nc_color;
 struct jmapgen_int;
 class jmapgen_place;
@@ -112,7 +112,7 @@ void HelpMarker( const char *desc );
 void HelpMarkerInline( const char *desc );
 void HelpPopup( const char *desc );
 
-void PushID(const map_key& mk);
+void PushID(const editor::MapKey& mk);
 
 bool PaletteSelector( const char *label, editor::UUID &current_item,
                       std::vector<editor::Palette> &options );

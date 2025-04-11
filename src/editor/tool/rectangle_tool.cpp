@@ -44,7 +44,7 @@ void RectangleControl::handle_tool_operation( ToolTarget &target )
             // Stroke end
             point_abs_etile p1 = *start;
             point_abs_etile p2 = get_rectangle_end( target );
-            Canvas2D<map_key> &canvas = target.mapgen.base.canvas;
+            Canvas2D<MapKey> &canvas = target.mapgen.base.canvas;
 
             std::vector<point> rect = make_rectangle( p1, p2, settings.filled );
             apply( canvas, rect, target.main_tile );
@@ -103,8 +103,8 @@ std::vector<point> RectangleControl::make_rectangle( point_abs_etile p1, point_a
     return ret;
 }
 
-void RectangleControl::apply( Canvas2D<map_key> &canvas, const std::vector<point> &rect,
-                              map_key new_value )
+void RectangleControl::apply( Canvas2D<MapKey> &canvas, const std::vector<point> &rect,
+                              MapKey new_value )
 {
     for( const auto &p : rect ) {
         if( canvas.get_bounds().contains( p ) ) {

@@ -8,7 +8,7 @@
 #include "common/uuid.h"
 #include "mapgen/selection_mask.h"
 #include "point.h"
-#include "mapgen_map_key.h"
+#include "common/map_key.h"
 
 namespace editor
 {
@@ -17,7 +17,7 @@ struct CanvasSnippet {
     public:
         CanvasSnippet()
             : data( point_zero ), mask( point_zero ), pos( point_zero ) {}
-        CanvasSnippet( Canvas2D<map_key> &&data, Canvas2D<Bool> &&mask, point pos )
+        CanvasSnippet( Canvas2D<MapKey> &&data, Canvas2D<Bool> &&mask, point pos )
             : data( data ), mask( SelectionMask( std::move( mask ) ) ), pos( pos ) {}
         ~CanvasSnippet() = default;
 
@@ -36,7 +36,7 @@ struct CanvasSnippet {
             pos = new_pos;
         }
 
-        inline std::optional<map_key> get_data_at( point pos ) const {
+        inline std::optional<MapKey> get_data_at( point pos ) const {
             if( mask.get( pos ) ) {
                 return data.get( pos );
             } else {
@@ -56,12 +56,12 @@ struct CanvasSnippet {
         void deserialize( const TextJsonValue &jsin );
 
     private:
-        Canvas2D<map_key> data;
+        Canvas2D<MapKey> data;
         SelectionMask mask;
         point pos;
 };
 
-CanvasSnippet make_snippet( const Canvas2D<map_key> &canvas, const SelectionMask &selection );
+CanvasSnippet make_snippet( const Canvas2D<MapKey> &canvas, const SelectionMask &selection );
 
 } // namespace editor
 

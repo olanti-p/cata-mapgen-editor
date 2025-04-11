@@ -3,7 +3,7 @@
 namespace editor
 {
 
-CanvasSnippet make_snippet( const Canvas2D<map_key> &canvas, const SelectionMask &selection )
+CanvasSnippet make_snippet( const Canvas2D<MapKey> &canvas, const SelectionMask &selection )
 {
     assert( canvas.get_size() == selection.get_size() );
     assert( selection.has_selected() );
@@ -26,7 +26,7 @@ CanvasSnippet make_snippet( const Canvas2D<map_key> &canvas, const SelectionMask
 
     point p_min( x_min, y_min );
     point p_max( x_max, y_max );
-    Canvas2D<map_key> new_data( p_max - p_min + point( 1, 1 ), map_key() );
+    Canvas2D<MapKey> new_data( p_max - p_min + point( 1, 1 ), MapKey() );
     Canvas2D<Bool> new_mask( p_max - p_min + point( 1, 1 ), Bool( false ) );
 
     for( int y = p_min.y; y <= p_max.y; y++ ) {

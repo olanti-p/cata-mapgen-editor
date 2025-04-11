@@ -40,7 +40,7 @@ void UiState::toggle_show_palette_preview( UUID uuid )
     open_palette_previews.back().uuid = uuid;
 }
 
-void UiState::toggle_show_mapping( UUID palette, map_key uuid )
+void UiState::toggle_show_mapping( UUID palette, MapKey uuid )
 {
     for( auto &it : open_mappings ) {
         if( it.uuid == uuid && it.palette == palette ) {

@@ -8,7 +8,7 @@
 #include <optional>
 
 #include "imgui.h"
-#include "mapgen_map_key.h"
+#include "common/map_key.h"
 #include "palette_import_report.h"
 
 #include "piece_type.h"
@@ -31,7 +31,7 @@ struct ViewPiece {
 };
 
 struct ViewEntry {
-    map_key key;
+    MapKey key;
     std::vector<ViewPiece> pieces;
 
     ViewEntry() = default;
@@ -93,12 +93,12 @@ public:
     Project& project;
     std::vector<ViewEntry> entries;
 
-    const std::string *display_key_from_uuid( const map_key &uuid ) const;
-    const ImVec4 &color_from_uuid( const map_key &uuid ) const;
-    SpritePair sprite_from_uuid( const map_key &uuid ) const;
+    const std::string *display_key_from_uuid( const MapKey &uuid ) const;
+    const ImVec4 &color_from_uuid( const MapKey &uuid ) const;
+    SpritePair sprite_from_uuid( const MapKey &uuid ) const;
 
-    ViewEntry *find_entry( const map_key &uuid );
-    const ViewEntry *find_entry( const map_key &uuid ) const;
+    ViewEntry *find_entry( const MapKey &uuid );
+    const ViewEntry *find_entry( const MapKey &uuid ) const;
 
     int num_pieces_total() const;
 
@@ -111,7 +111,7 @@ public:
 
 private:
     std::vector<Palette*> palettes;
-    mutable std::unordered_map<map_key, size_t> entries_cache;
+    mutable std::unordered_map<MapKey, size_t> entries_cache;
     void rebuild_cache() const;
 };
 

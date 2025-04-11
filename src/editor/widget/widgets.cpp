@@ -11,6 +11,7 @@
 #include "imgui.h"
 #include "mapgen.h"
 #include "mapgen/palette.h"
+#include "common/map_key.h"
 #include "sdl_utils.h"
 #include "sdltiles.h"
 
@@ -274,7 +275,7 @@ bool InputSymbol( const char *label, std::string &input, const char *fallback )
             input = fallback;
         } else {
             // TODO: optionally forbid wide characters
-            // TODO: accept combining characters (or remove combining chars support from map_key)
+            // TODO: accept combining characters (or remove combining chars support from MapKey)
             std::u32string s32 = utf8_to_utf32( input );
             input = utf32_to_utf8( s32[0] );
         }
@@ -554,7 +555,7 @@ void HelpPopup( const char *desc )
     help_popup_common( desc, ImGuiHoveredFlags_DelayNormal );
 }
 
-void PushID(const map_key& mk)
+void PushID(const editor::MapKey& mk)
 {
     PushID(mk.str.c_str());
 }

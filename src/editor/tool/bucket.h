@@ -27,12 +27,12 @@ struct BucketControl : public ToolControl {
 
     std::vector<point> find_affected_tiles(
         BucketSettings &settings,
-        Canvas2D<map_key> &canvas,
+        Canvas2D<MapKey> &canvas,
         SelectionMask &selection,
         point pos,
-        map_key new_value
+        MapKey new_value
     ) const;
-    static void apply( Canvas2D<map_key> &canvas, const std::vector<point> &tiles, map_key new_value );
+    static void apply( Canvas2D<MapKey> &canvas, const std::vector<point> &tiles, MapKey new_value );
 };
 
 struct Bucket : public ToolDefinition {

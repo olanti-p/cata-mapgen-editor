@@ -7,7 +7,7 @@
 #include <memory>
 
 #include "imgui.h"
-#include "mapgen_map_key.h"
+#include "common/map_key.h"
 #include "palette_import_report.h"
 
 #include "piece.h"
@@ -27,7 +27,7 @@ struct Mapgen;
 struct Project;
 
 struct PaletteEntry {
-    map_key key;
+    MapKey key;
     ImVec4 color;
     std::string name;
     std::vector<std::unique_ptr<Piece>> pieces;
@@ -102,12 +102,12 @@ public:
     std::vector<PaletteEntry> entries;
     PaletteImportReport import_report;
 
-    const std::string *display_key_from_uuid( const map_key &uuid ) const;
-    const ImVec4 &color_from_uuid( const map_key &uuid ) const;
-    const SpriteRef *sprite_from_uuid( const map_key &uuid ) const;
+    const std::string *display_key_from_uuid( const MapKey &uuid ) const;
+    const ImVec4 &color_from_uuid( const MapKey &uuid ) const;
+    const SpriteRef *sprite_from_uuid( const MapKey &uuid ) const;
 
-    PaletteEntry *find_entry( const map_key &uuid );
-    const PaletteEntry *find_entry( const map_key &uuid ) const;
+    PaletteEntry *find_entry( const MapKey &uuid );
+    const PaletteEntry *find_entry( const MapKey &uuid ) const;
 
     std::string display_name() const;
     int num_pieces_total() const;
@@ -116,7 +116,7 @@ public:
     void deserialize(const TextJsonValue& jsin);
 
 private:
-    mutable std::unordered_map<map_key, size_t> entries_cache;
+    mutable std::unordered_map<MapKey, size_t> entries_cache;
     void rebuild_cache() const;
 };
 

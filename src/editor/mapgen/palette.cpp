@@ -1,7 +1,7 @@
 #include "palette.h"
 
 #include "mapgen/piece_impl.h"
-#include "mapgen_map_key.h"
+#include "common/map_key.h"
 
 namespace editor
 {
@@ -56,7 +56,7 @@ const Piece* PaletteEntry::get_first_piece_of_type(PieceType pt) const
     return nullptr;
 }
 
-const std::string *Palette::display_key_from_uuid( const map_key &uuid ) const
+const std::string *Palette::display_key_from_uuid( const MapKey &uuid ) const
 {
     const PaletteEntry *entry = find_entry( uuid );
     if( entry ) {
@@ -66,7 +66,7 @@ const std::string *Palette::display_key_from_uuid( const map_key &uuid ) const
     return nullptr;
 }
 
-const ImVec4 &Palette::color_from_uuid( const map_key &uuid ) const
+const ImVec4 &Palette::color_from_uuid( const MapKey &uuid ) const
 {
     const PaletteEntry *entry = find_entry( uuid );
     if( entry ) {
@@ -77,7 +77,7 @@ const ImVec4 &Palette::color_from_uuid( const map_key &uuid ) const
     return default_color;
 }
 
-const SpriteRef *Palette::sprite_from_uuid( const map_key &uuid ) const
+const SpriteRef *Palette::sprite_from_uuid( const MapKey &uuid ) const
 {
     const PaletteEntry *entry = find_entry( uuid );
     if( entry ) {
@@ -95,7 +95,7 @@ const SpriteRef *Palette::sprite_from_uuid( const map_key &uuid ) const
     return nullptr;
 }
 
-PaletteEntry *Palette::find_entry( const map_key&uuid )
+PaletteEntry *Palette::find_entry( const MapKey&uuid )
 {
     if (uuid.str.empty()) {
         return nullptr;
@@ -117,7 +117,7 @@ PaletteEntry *Palette::find_entry( const map_key&uuid )
     return &entries[it->second];
 }
 
-const PaletteEntry *Palette::find_entry( const map_key&uuid ) const
+const PaletteEntry *Palette::find_entry( const MapKey&uuid ) const
 {
     if (uuid.str.empty()) {
         return nullptr;

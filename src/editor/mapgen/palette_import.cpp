@@ -3,7 +3,7 @@
 #include "palette_making.h"
 
 #include "mapgen/palette.h"
-#include "mapgen_map_key.h"
+#include "common/map_key.h"
 #include "type_id.h"
 #include "widget/editable_id.h"
 #include "project/project.h"
@@ -76,12 +76,12 @@ static void import_palette_data_internal( Project &project, Palette &palette,
     }
     palette.ancestors = list;
 
-    std::unordered_set<map_key> all_keys;
+    std::unordered_set<MapKey> all_keys;
 
     for( const auto &it : source.format_placings ) {
         all_keys.insert( it.first );
     }
-    for( const map_key &key : all_keys ) {
+    for( const MapKey &key : all_keys ) {
         editor::PaletteEntry entry = make_simple_entry( project, palette, nullptr, nullptr );
         entry.key = key;
         {

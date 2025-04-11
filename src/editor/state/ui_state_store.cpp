@@ -10,6 +10,7 @@
 #include "tool/selection.h"
 #include "tools_state.h"
 #include "ui_state.h"
+#include "common/map_key.h"
 
 #include <iostream>
 #include <map>
@@ -22,8 +23,8 @@
 #include "imgui_internal.h"
 
 // FIXME: move to some header
-void serialize(const map_key& mk, JsonOut& jsout);
-void deserialize(map_key& mk, const TextJsonValue& jsin);
+void serialize(const editor::MapKey& mk, JsonOut& jsout);
+void deserialize(editor::MapKey& mk, const TextJsonValue& jsin);
 
 namespace editor
 {

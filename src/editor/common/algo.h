@@ -3,7 +3,7 @@
 
 #include "uuid.h"
 #include "canvas_2d.h"
-#include "mapgen_map_key.h"
+#include "common/map_key.h"
 #include "cuboid_rectangle.h"
 
 #include <vector>
@@ -15,17 +15,17 @@ namespace editor
  * Find all tiles that match predicate.
 */
 std::vector<point> find_tiles_via_global(
-    const Canvas2D<map_key> &canvas,
-    std::function<bool( point p, const map_key& )> predicate
+    const Canvas2D<MapKey> &canvas,
+    std::function<bool( point p, const MapKey& )> predicate
 );
 
 /**
  * Find via floodfill all tiles that match predicate.
 */
 std::vector<point> find_tiles_via_floodfill(
-    const Canvas2D<map_key> &canvas,
+    const Canvas2D<MapKey> &canvas,
     const point &initial_pos,
-    std::function<bool( point p, const map_key& )> predicate
+    std::function<bool( point p, const MapKey& )> predicate
 );
 
 std::vector<point> line_bresenham( point a, point b );

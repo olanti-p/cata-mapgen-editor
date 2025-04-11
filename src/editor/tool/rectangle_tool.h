@@ -17,7 +17,7 @@ struct RectangleControl : public ToolControl {
     }
 
     std::vector<point> make_rectangle( point_abs_etile p1, point_abs_etile p2, bool filled ) const;
-    void apply( Canvas2D<map_key> &canvas, const std::vector<point> &rect, map_key new_value );
+    void apply( Canvas2D<MapKey> &canvas, const std::vector<point> &rect, MapKey new_value );
     point_abs_etile get_rectangle_end( ToolTarget &target ) const;
 
     void show_tooltip( ToolTarget &target ) override;

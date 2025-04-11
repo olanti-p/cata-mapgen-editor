@@ -1,7 +1,7 @@
 #ifndef CATA_SRC_EDITOR_MAP_KEY_GEN_H
 #define CATA_SRC_EDITOR_MAP_KEY_GEN_H
 
-#include "mapgen_map_key.h"
+#include "common/map_key.h"
 
 #include <vector>
 
@@ -10,15 +10,15 @@ namespace editor
 
 struct MapKeyGenerator {
     private:
-        std::vector<map_key> opts;
+        std::vector<MapKey> opts;
 
     public:
         MapKeyGenerator();
         ~MapKeyGenerator() = default;
 
-        void blacklist( const map_key &opt );
+        void blacklist( const MapKey &opt );
 
-        inline map_key operator()() {
+        inline MapKey operator()() {
             if( opts.empty() ) {
                 // TODO: return from unicode ranges
                 return default_map_key;

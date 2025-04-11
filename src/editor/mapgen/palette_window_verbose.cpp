@@ -243,10 +243,10 @@ static bool show_palette_add_entry_section( State &state, Palette &palette,
 static void show_palette_entries_verbose( State &state, Palette &palette )
 {
     std::vector<PaletteEntry> &list = palette.entries;
-    std::unordered_set<map_key> checked;
-    std::unordered_set<map_key> dupe_symbols;
+    std::unordered_set<MapKey> checked;
+    std::unordered_set<MapKey> dupe_symbols;
 
-    // FIXME: this dupe check is not relevant anymore after UUID -> map_key migration
+    // FIXME: this dupe check is not relevant anymore after UUID -> MapKey migration
     for( const editor::PaletteEntry &entry : list ) {
         if( checked.count( entry.key ) > 0 ) {
             dupe_symbols.insert( entry.key );
@@ -273,14 +273,14 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
         list.insert( std::next( list.cbegin(), idx + 1 ), std::move(new_entry) );
     } )
     .with_delete( [&]( size_t idx ) {
-        const map_key &uuid = list[ idx ].key;
+        const MapKey &uuid = list[ idx ].key;
         /*
         for( Mapgen &mapgen : proj.mapgens ) {
             mapgen.base.remove_usages( uuid );
         }
         */
         if( tools.get_main_tile() == uuid ) {
-            tools.set_main_tile( map_key() );
+            tools.set_main_tile( MapKey() );
         }
         list.erase( std::next( list.cbegin(), idx ) );
     } )
@@ -367,7 +367,7 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
         ImGui::PopStyleVar();
         if (clicked) {
             if (selected) {
-                tools.set_main_tile(map_key());
+                tools.set_main_tile(MapKey());
             }
             else {
                 tools.set_main_tile(list[idx].key);
@@ -486,7 +486,7 @@ static void show_palette_entries_verbose(State& state, ViewPalette& palette)
         ImGui::PopStyleVar();
         if (clicked) {
             if (selected) {
-                tools.set_main_tile(map_key());
+                tools.set_main_tile(MapKey());
             }
             else {
                 tools.set_main_tile(list[idx].key);

@@ -3,7 +3,7 @@
 #include <algorithm>
 
 #include "mapgen/piece_impl.h"
-#include "mapgen_map_key.h"
+#include "common/map_key.h"
 
 #include "project/project.h"
 #include "state/state.h"
@@ -52,7 +52,7 @@ void ViewEntry::rebuild_sprite_cache(const Project& project) const
     sprite_cache_valid = true;
 }
 
-const std::string *ViewPalette::display_key_from_uuid( const map_key &uuid ) const
+const std::string *ViewPalette::display_key_from_uuid( const MapKey &uuid ) const
 {
     const ViewEntry *entry = find_entry( uuid );
     if( entry ) {
@@ -62,7 +62,7 @@ const std::string *ViewPalette::display_key_from_uuid( const map_key &uuid ) con
     return nullptr;
 }
 
-const ImVec4 &ViewPalette::color_from_uuid( const map_key &uuid ) const
+const ImVec4 &ViewPalette::color_from_uuid( const MapKey &uuid ) const
 {
     /* TODO: palette colors
     const ViewEntry*entry = find_entry( uuid );
@@ -75,7 +75,7 @@ const ImVec4 &ViewPalette::color_from_uuid( const map_key &uuid ) const
     return default_color;
 }
 
-SpritePair ViewPalette::sprite_from_uuid( const map_key &uuid ) const
+SpritePair ViewPalette::sprite_from_uuid( const MapKey &uuid ) const
 {
     SpritePair ret;
 
@@ -95,7 +95,7 @@ SpritePair ViewPalette::sprite_from_uuid( const map_key &uuid ) const
     return ret;
 }
 
-ViewEntry *ViewPalette::find_entry( const map_key&uuid )
+ViewEntry *ViewPalette::find_entry( const MapKey&uuid )
 {
     if (uuid.str.empty()) {
         return nullptr;
@@ -117,7 +117,7 @@ ViewEntry *ViewPalette::find_entry( const map_key&uuid )
     return &entries[it->second];
 }
 
-const ViewEntry *ViewPalette::find_entry( const map_key&uuid ) const
+const ViewEntry *ViewPalette::find_entry( const MapKey&uuid ) const
 {
     if (uuid.str.empty()) {
         return nullptr;
@@ -171,7 +171,7 @@ void ViewPalette::add_palette( Palette& pal)
     palettes.emplace_back(&pal);
 
     for (const PaletteEntry& entry : pal.entries) {
-        const map_key& key = entry.key;
+        const MapKey& key = entry.key;
         ViewEntry* vm;
         if (entries_cache.count(key) == 0) {
             entries.emplace_back();

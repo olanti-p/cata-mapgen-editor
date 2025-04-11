@@ -62,13 +62,13 @@ static std::optional<CanvasSnippet> try_import_snippet_from_clipboard() {
         return std::nullopt;
     }
     point size(size_x, size_y);
-    Canvas2D<map_key> data(size, map_key());
+    Canvas2D<MapKey> data(size, MapKey());
     Canvas2D<Bool> mask(size, Bool(false));
     for (size_t y = 0; y < matrix.size(); y++) {
         const std::vector<std::string_view>& row = matrix[y];
         for (size_t x = 0; x < row.size(); x++) {
             point pos(x, y);
-            data.set(pos, map_key(row[x]));
+            data.set(pos, MapKey(row[x]));
             mask.set(pos, Bool(true));
         }
     }

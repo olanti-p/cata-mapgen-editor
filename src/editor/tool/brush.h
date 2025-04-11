@@ -22,7 +22,7 @@ struct BrushControl : public ToolControl {
 
     void start_stroke();
     void end_stroke( ToolTarget &target );
-    void apply( Canvas2D<map_key> &canvas, point pos, map_key new_value );
+    void apply( Canvas2D<MapKey> &canvas, point pos, MapKey new_value );
 };
 
 struct Brush : public ToolDefinition {
