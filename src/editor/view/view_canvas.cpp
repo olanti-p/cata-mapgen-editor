@@ -324,8 +324,8 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
             // Run this for separate layers, then for each entry individually
             // to avoid draw command fragmentation from using different sprites
             if (fill_ter_fallback) {
-                for (int x = 0; x < mapgen.mapgensize().x(); x++) {
-                    for (int y = 0; y < mapgen.mapgensize().y(); y++) {
+                for (int y = 0; y < mapgen.mapgensize().y(); y++) {
+                    for (int x = 0; x < mapgen.mapgensize().x(); x++) {
                         point_abs_etile p(x, y);
                         const map_key& uuid = get_uuid_at_pos(p.raw());
                         SpritePair img = pal.sprite_from_uuid(uuid);
@@ -340,8 +340,8 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                 if (!img.ter) {
                     continue;
                 }
-                for (int x = 0; x < mapgen.mapgensize().x(); x++) {
-                    for (int y = 0; y < mapgen.mapgensize().y(); y++) {
+                for (int y = 0; y < mapgen.mapgensize().y(); y++) {
+                    for (int x = 0; x < mapgen.mapgensize().x(); x++) {
                         point_abs_etile p(x, y);
                         const map_key& uuid = get_uuid_at_pos(p.raw());
                         if (uuid != ve.key) {
@@ -358,8 +358,8 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                 if (!img.furn) {
                     continue;
                 }
-                for (int x = 0; x < mapgen.mapgensize().x(); x++) {
-                    for (int y = 0; y < mapgen.mapgensize().y(); y++) {
+                for (int y = 0; y < mapgen.mapgensize().y(); y++) {
+                    for (int x = 0; x < mapgen.mapgensize().x(); x++) {
                         point_abs_etile p(x, y);
                         const map_key& uuid = get_uuid_at_pos(p.raw());
                         if (uuid != ve.key) {
@@ -371,8 +371,8 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
             }
         }
 
-        for( int x = 0; x < mapgen.mapgensize().x(); x++ ) {
-            for( int y = 0; y < mapgen.mapgensize().y(); y++ ) {
+        for( int y = 0; y < mapgen.mapgensize().y(); y++ ) {
+            for( int x = 0; x < mapgen.mapgensize().x(); x++ ) {
                 point_abs_etile p( x, y );
                 const map_key &uuid = get_uuid_at_pos( p.raw() );
                 ImVec4 col = pal.color_from_uuid( uuid );
@@ -388,10 +388,10 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
         }
 
         if (show_canvas_symbols) {
-            for (int x = 0; x < mapgen.mapgensize().x(); x++) {
-                for (int y = 0; y < mapgen.mapgensize().y(); y++) {
+            for (int y = 0; y < mapgen.mapgensize().y(); y++) {
+                for (int x = 0; x < mapgen.mapgensize().x(); x++) {
                     point_abs_etile p(x, y);
-                    map_key uuid = get_uuid_at_pos(p.raw());
+                    const map_key &uuid = get_uuid_at_pos(p.raw());
                     std::string tmp;
                     const std::string* mk = pal.display_key_from_uuid(uuid);
                     bool using_fallback = false;
