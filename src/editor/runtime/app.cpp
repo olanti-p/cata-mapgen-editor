@@ -1,7 +1,7 @@
 #include "app.h"
 
 #include "editor_engine.h"
-#include "imgui.h"
+#include <imgui/imgui.h>
 #include "title_screen.h"
 
 #include "state/control_state.h"

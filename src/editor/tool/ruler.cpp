@@ -5,7 +5,7 @@
 #include "common/algo.h"
 #include "common/color.h"
 #include "coordinates.h"
-#include "imgui.h"
+#include <imgui/imgui.h>
 #include "line.h"
 #include "mapgen/mapgen.h"
 #include "point.h"

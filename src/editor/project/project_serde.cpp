@@ -3,7 +3,7 @@
 #include "common/canvas_2d_serde.h"
 #include "common/weighted_list_serde.h"
 #include "common/map_key.h"
-#include "imgui.h"
+#include <imgui/imgui.h>
 #include "json.h"
 #include "mapgen.h"
 #include "mapgen/mapgen.h"

@@ -1,7 +1,8 @@
 #include "title_screen.h"
 
-#include "imgui.h"
-#include "imgui_stdlib.h"
+#include <imgui/imgui.h>
+#include <imgui/imgui_stdlib.h>
+
 #include "widget/widgets.h"
 #include "widget/ImGuiFileDialog.h"
 

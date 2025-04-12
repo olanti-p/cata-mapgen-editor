@@ -2,9 +2,9 @@
 
 #include "app.h"
 #include "state/ui_state_store.h"
-#include "imgui_impl_sdl2.h"
-#include "imgui_impl_sdlrenderer2.h"
-#include "imgui.h"
+#include <imgui/imgui_impl_sdl2.h>
+#include <imgui/imgui_impl_sdlrenderer2.h>
+#include <imgui/imgui.h>
 
 #include "game.h"
 #include "ui_manager.h"
@@ -14,14 +14,14 @@
 #include "input.h"
 
 #include <stdio.h>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include <thread>
 
 #ifdef DebugLog
 #  undef DebugLog
 #endif
 
-#include "imgui_internal.h"
+#include <imgui/imgui_internal.h>
 
 #if !SDL_VERSION_ATLEAST(2,0,17)
 #error This backend requires SDL 2.0.17+ because of SDL_RenderGeometry() function

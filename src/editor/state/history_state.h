@@ -6,7 +6,7 @@
 #include <string>
 #include <optional>
 
-#include "imgui.h"
+#include <imgui/imgui.h>
 
 namespace editor
 {

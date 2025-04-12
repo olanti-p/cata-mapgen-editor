@@ -1,6 +1,6 @@
 #include "pipette.h"
 
-#include "imgui.h"
+#include <imgui/imgui.h>
 #include "mapgen/mapgen.h"
 #include "common/canvas_2d.h"
 

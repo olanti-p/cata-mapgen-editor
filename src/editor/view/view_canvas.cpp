@@ -9,7 +9,7 @@
 #include "common/uuid.h"
 #include "coordinates.h"
 #include "drawing.h"
-#include "imgui.h"
+#include <imgui/imgui.h>
 #include "mapgen/canvas_snippet.h"
 #include "mapgen/mapgen.h"
 #include "mapgen/palette.h"

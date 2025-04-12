@@ -1,7 +1,7 @@
 #include "new_mapgen.h"
 
 #include "common/color.h"
-#include "imgui.h"
+#include <imgui/imgui.h>
 #include "mapgen/mapgen.h"
 #include "mapgen/palette.h"
 #include "state/state.h"

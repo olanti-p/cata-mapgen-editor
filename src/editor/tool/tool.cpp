@@ -2,7 +2,7 @@
 
 #include "all_enum_values.h"
 #include "common/canvas_2d.h"
-#include "imgui.h"
+#include <imgui/imgui.h>
 #include "mapgen/mapgen.h"
 #include "state/control_state.h"
 #include "state/state.h"

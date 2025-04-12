@@ -3,7 +3,7 @@
 
 #include "coordinates.h"
 
-#include "imgui.h"
+#include <imgui/imgui.h>
 
 struct SpriteRef;
 

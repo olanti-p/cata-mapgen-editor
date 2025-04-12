@@ -6,7 +6,7 @@
 #include "common/color.h"
 #include "common/math.h"
 #include "common/sprite_ref.h"
-#include "imgui.h"
+#include <imgui/imgui.h>
 #include "units.h"
 
 namespace editor

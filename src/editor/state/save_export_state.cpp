@@ -4,7 +4,7 @@
 
 #include "common/timestamp.h"
 #include "history_state.h"
-#include "imgui.h"
+#include <imgui/imgui.h>
 #include "path_info.h"
 #include "project/project.h"
 #include "project/project_export.h"

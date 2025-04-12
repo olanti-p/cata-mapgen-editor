@@ -1,7 +1,7 @@
 #ifndef CATA_SRC_EDITOR_EDITOR_ENGINE_H
 #define CATA_SRC_EDITOR_EDITOR_ENGINE_H
 
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 #include <string>
 

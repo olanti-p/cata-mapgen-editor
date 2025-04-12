@@ -7,7 +7,7 @@
 
 #include "common/canvas_2d.h"
 #include "common/uuid.h"
-#include "imgui.h"
+#include <imgui/imgui.h>
 #include "mapgen/canvas_snippet.h"
 #include "mapgen/palette.h"
 #include "point.h"

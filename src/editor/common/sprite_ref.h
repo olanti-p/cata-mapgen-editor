@@ -4,7 +4,7 @@
 #include <string>
 #include <utility>
 
-#include "imgui.h"
+#include <imgui/imgui.h>
 
 struct SpriteRef {
     int tile_idx = -1;

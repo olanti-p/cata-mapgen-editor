@@ -5,7 +5,7 @@
 #include "view/mouse.h"
 #include "control_state.h"
 #include "history_state.h"
-#include "imgui.h"
+#include <imgui/imgui.h>
 #include "mapgen/palette.h"
 #include "mapgen/palette_window.h"
 #include "mapgen/mapgen.h"

@@ -1,6 +1,6 @@
 #include "camera.h"
 
-#include "imgui.h"
+#include <imgui/imgui.h>
 
 namespace editor
 {

@@ -2,7 +2,7 @@
 
 #include "common/timestamp.h"
 #include "common/uuid.h"
-#include "imgui.h"
+#include <imgui/imgui.h>
 #include "mapgen/mapgen.h"
 #include "mapgen/palette.h"
 #include "mapgen/palette_making.h"

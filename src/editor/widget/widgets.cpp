@@ -8,7 +8,7 @@
 #include "color.h"
 #include "common/color.h"
 #include "common/uuid.h"
-#include "imgui.h"
+#include <imgui/imgui.h>
 #include "mapgen.h"
 #include "mapgen/palette.h"
 #include "common/map_key.h"
@@ -18,7 +18,7 @@
 #ifdef DebugLog
 #  undef DebugLog
 #endif
-#include "imgui_internal.h"
+#include <imgui/imgui_internal.h>
 
 SpriteRef::SpriteRef( const std::string &id )
 {

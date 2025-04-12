@@ -1,7 +1,7 @@
 #ifndef CATA_SRC_EDITOR_STYLE_H
 #define CATA_SRC_EDITOR_STYLE_H
 
-#include "imgui.h"
+#include <imgui/imgui.h>
 
 namespace editor
 {

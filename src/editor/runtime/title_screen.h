@@ -3,7 +3,7 @@
 
 #include "options.h"
 
-#include "imgui.h"
+#include <imgui/imgui.h>
 
 namespace editor
 {

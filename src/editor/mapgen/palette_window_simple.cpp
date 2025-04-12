@@ -1,6 +1,6 @@
 #include "palette.h"
 
-#include "imgui.h"
+#include <imgui/imgui.h>
 #include "common/color.h"
 #include "project/project.h"
 #include "state/control_state.h"

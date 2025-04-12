@@ -13,11 +13,11 @@
 // Posted in issue: https://github.com/ocornut/imgui/issues/1658#issuecomment-1086193100
 
 #define IMGUI_DEFINE_MATH_OPERATORS
-#include "imgui_internal.h"
+#include <imgui/imgui_internal.h>
 
 #include "fts_fuzzy_match.h"
 #include "widget_combofilter.h"
-#include "imgui.h"
+#include <imgui/imgui.h>
 
 #include <algorithm>
 #include <utility>

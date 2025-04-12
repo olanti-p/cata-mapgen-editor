@@ -1,7 +1,7 @@
 #include "new_palette.h"
 
 #include "common/uuid.h"
-#include "imgui.h"
+#include <imgui/imgui.h>
 #include "mapgen/palette_making.h"
 #include "mapgen/palette.h"
 #include "project.h"

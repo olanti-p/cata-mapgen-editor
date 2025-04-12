@@ -7,7 +7,7 @@
 #include <memory>
 #include <optional>
 
-#include "imgui.h"
+#include <imgui/imgui.h>
 #include "common/map_key.h"
 #include "palette_import_report.h"
 

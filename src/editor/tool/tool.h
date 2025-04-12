@@ -5,7 +5,7 @@
 #include "common/uuid.h"
 #include "coordinates.h"
 #include "enum_traits.h"
-#include "imgui.h"
+#include <imgui/imgui.h>
 
 #include <cassert>
 #include <memory>
