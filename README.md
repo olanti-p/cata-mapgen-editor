@@ -1,6 +1,6 @@
-# Bright Nights Mapping Tool
+# Mapgen Editor Tool
 
-Map making tool for [Cataclysm: Bright Nights](https://github.com/cataclysmbnteam/Cataclysm-BN).
+Map making & editing tool for [Cataclysm: Dark Days Ahead](https://github.com/CleverRaven/Cataclysm-DDA).
 
 ![readme pic](doc/BNMT/assets/readme_pic.png "readme_pic")
 
@@ -11,16 +11,19 @@ See [INSTALL.md](doc/BNMT/INSTALL.md)
 See [COMPILING.md](doc/BNMT/COMPILING.md)
 
 ## How to use
-See [TUTORIAL.md](doc/BNMT/TUTORIAL.md)
+(Outdated) See [TUTORIAL.md](doc/BNMT/TUTORIAL.md)
+
+(Outdated) Video example: https://www.youtube.com/watch?v=V4d-4qh2-nQ
 
 ## Features
 List of currently implemented features.
 
-Features marked with `*` are implemented only partially (some planned functionality is missing, or there may be bugs).
+As this is a WIP tool, some of the functionality may be bugged, half-implemented or partially disabled.
+Such functionality is marked with (*).
 
-- Creating, saving and loading projects
-- Exporting projects into mapgen
-- Drawing with mouse
+- Create, save and load projects
+- *Import existing palettes and mapgens
+- Draw symbols with mouse
    - Brush (hold mouse button to draw)
    - Pipette (pick tile from canvas)
    - Line drawing tool
@@ -28,30 +31,34 @@ Features marked with `*` are implemented only partially (some planned functional
    - Bucket tool (flood fill, global fill, fill in selection)
    - Ruler tool (measure distance and area)
 - Copy/cut/paste tiles
-- Work on multiple mapgens at once
-- Use different palettes for mapgens in single project
-- Autocomplete and fuzzy search for identifiers
 - Undo/redo support
-- UI retains its state between sessions
-- Can be used with mods
-- *Autosaves
-- *Support for big mapgens (e.g. 48x48, 72x72 - any multiple of 24)
-- *Import existing palettes from game files
+- Work on multiple mapgens at once
+- Work with multiple palettes at once
+- Automatic resolution of palette inheritance
+- *Configurable resolution for parametric palettes
+- Autocomplete, fuzzy search and validation for identifiers
+- *UI retains its state between sessions
+- Configurable autosaves
+- Support for big mapgens (e.g. 48x48, 48x72 - any multiple of 24)
+- Export palettes and mapgens into JSON
+- Automatic JSON formatting on export
 - *Assign different mappings to symbols (terrain/furniture/items/fields/graffiti/vehicle/monster/NPC/other)
-- *Mapgen objects (spawning objects within an area)
-- *Update-type mapgens
-- *Nested-type mapgens
+- *Mapgen objects (aka `place_*` functions, i.e. objects placed within an area)
 - *QoL UI features (hotkeys, tooltips)
+- Tooltip preview for symbol contents when editing
+- Visual preview for terrain and furniture
+- Configurable display options (sprites, symbols, OMT boundaries)
+- *Visual preview for vehicle and nested placement boundaries
 
 ## Bugs and limitations
 See [TODO.md](doc/BNMT/TODO.md) for list of planned features.
 
 See [BUGS.md](doc/BNMT/BUGS.md) for list of known bugs.
 
-If you don't see your issue there, please open a ticket or contact me on Discord.
+If you don't see your issue there, feel free to open a ticket or contact me on Discord.
 
 ## Feedback
-I'm available on official Bright Nights Discord server: https://discord.gg/XW7XhXuZ89 , user id `olanti_p`.
+General feedback is appreciated. Feel free to open an issue, or contact me on Discord. I'm available on various Cataclysm related servers, user id `olanti_p`.
 
 ## License
-BNMT is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License.
+This tool is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License.

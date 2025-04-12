@@ -1,5 +1,7 @@
 # Usage (short tutorial)
 
+WARNING: Things have changed since the tutorial was written. It should work for the most part, but UI will look and work quite different.
+
 ## Starting up
 
 Launch `bnmt` executable. This is a modified game instance that should be roughly equivalent to vanilla executable,

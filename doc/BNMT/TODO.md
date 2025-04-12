@@ -1,38 +1,34 @@
-# Bright Nights Mapping Tool
+# TODO list
 
-These changes would be great to have in the editor.
+Vague list of what is planned, and what would just be nice to have but not guaranteed.
 
 
 ## UX
-- Make "Rows" the default mapgen base
-- Make "Brush" the default tool
-- Automatically switch palette depending on what mapgen is active (so it's impossible to use wrong palette)
-- Allow switching palettes (without migrating tiles?)
-- Fill 'empty' tiles with the graphical fill_ter tile (can be toggled with a switch)
-- Switch to toggle visibility of symbols on canvas
-- Switch to toggle visibility of graphical tiles on canvas
+- Easier copy/paste operations
+- Make all ids selectable
+- Automatic window sizing
+- Better palette and mapgen import selection dialogue
 
 
 ## Features
-
+- Configure mod list on start
+- Edit Nested-type mapgens
+- Edit Update-type mapgens
+- Allow editing palette symbol (+propagate changes)
 - Quick test of mapgen in game (press button -> be spawned in game next to your building)
 - Implement all mapgen pieces
-- Palette inheritance
-- Update mapgen, blueprint autocalc
+- Blueprint autocalc
 - Item group editor & tester
-- Vehicle placement preview (boundaries around placement point)
-- Import existing mapgens
-- Import from pixels
-- Import from Excel/text
+- Better vehicle placement preview (graphical tiles; choose which vehicle is visualized)
+- Better nested placement preview (recursive placement; graphical tiles and tooltip data; choose which nested is visualized)
 - Design simple overmap specials that use the mapgen
 
 
 ## UI
 - "Discard changes?" when closing game window with Alt+F4 (right now only asks when closing project with `Ctrl+Q`)
 - Draw & manipulate mapgenobjects with mouse
-- Show terrain underneath furniture in preview
 - Localization (may be hard to deal with text layout and rendering)
-- Hotkey customization (have to create new hotkey management system; and what about ImGui hotkeys?)
+- Hotkey customization
 
 
 ## Bugs
