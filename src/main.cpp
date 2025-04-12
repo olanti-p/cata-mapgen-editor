@@ -901,16 +901,6 @@ int main( int argc, const char *argv[] )
     world_generator->init();
     const std::string bnmt_world_id( "BNMT-world" );
     const mod_id bnmt_mod_id( "me_interface" );
-    std::vector<mod_id> bnmt_modlist;
-    if( world_generator->has_world( bnmt_world_id ) ) {
-        bnmt_modlist = world_generator->get_world( bnmt_world_id )->active_mod_order;
-    } else {
-        bnmt_modlist = {{
-                mod_id("dda"),
-                bnmt_mod_id,
-            }
-        };
-    }
 
     // It's best to recreate world from scratch to avoid side effects
     const auto &remake_world = [&]() -> WORLD* {
@@ -918,7 +908,9 @@ int main( int argc, const char *argv[] )
         {
             world_generator->delete_world( bnmt_world_id, true );
         }
-        return world_generator->make_new_world_bnmt( bnmt_world_id, bnmt_modlist );
+        std::vector<mod_id> mod_list = world_generator->get_mod_manager().get_default_mods();
+        mod_list.push_back(bnmt_mod_id);
+        return world_generator->make_new_world_bnmt( bnmt_world_id, mod_list );
     };
 
     while( true ) {
