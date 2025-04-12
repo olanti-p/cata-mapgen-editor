@@ -243,17 +243,6 @@ static bool show_palette_add_entry_section( State &state, Palette &palette,
 static void show_palette_entries_verbose( State &state, Palette &palette )
 {
     std::vector<PaletteEntry> &list = palette.entries;
-    std::unordered_set<MapKey> checked;
-    std::unordered_set<MapKey> dupe_symbols;
-
-    // FIXME: this dupe check is not relevant anymore after UUID -> MapKey migration
-    for( const editor::PaletteEntry &entry : list ) {
-        if( checked.count( entry.key ) > 0 ) {
-            dupe_symbols.insert( entry.key );
-        } else {
-            checked.insert( entry.key );
-        }
-    }
 
     ImGui::Text("%d symbols  %d mappings", list.size(), palette.num_pieces_total());
     ImGui::Separator();
@@ -274,11 +263,6 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
     } )
     .with_delete( [&]( size_t idx ) {
         const MapKey &uuid = list[ idx ].key;
-        /*
-        for( Mapgen &mapgen : proj.mapgens ) {
-            mapgen.base.remove_usages( uuid );
-        }
-        */
         if( tools.get_main_tile() == uuid ) {
             tools.set_main_tile( MapKey() );
         }
@@ -296,41 +280,103 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
             ImGui::SameLine();
         }
 
-        ImGui::SetNextItemWidth( ImGui::GetFrameHeight() );
-        bool is_dupe_symbol = dupe_symbols.count( list[idx].key ) > 0;
-        if( is_dupe_symbol ) {
-            ImGui::BeginErrorArea();
+        // Use dim colors so it's not distracting
+        ImVec4 c = ImGui::GetStyleColorVec4(ImGuiCol_Button);
+        c.w *= 0.6f;
+        ImGui::PushStyleColor(ImGuiCol_Button, c);
+        c = ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered);
+        c.w *= 0.6f;
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, c);
+        c = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
+        c.w *= 0.6f;
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, c);
+
+        std::string buf = list[idx].key.str() + "###edit-key-button";
+        // TODO: move these statics to control state or something
+        static std::string symbol_edit_buffer;
+        static bool grab_input_focus = false;
+        static std::string symbol_error_msg;
+        if (ImGui::Button(buf.c_str(), ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight()))) {
+            ImGui::OpenPopup("edit-key-popup");
+            symbol_edit_buffer = list[idx].key.str();
+            grab_input_focus = true;
+            symbol_error_msg.clear();
         }
-        ImGui::BeginDisabled();
-        std::string buf = list[idx].key.str();
-        if( ImGui::InputSymbol( "##key", buf, default_editor_map_key.str().c_str())) {
-            // FIXME: ensure unique keys
-            state.mark_changed( "palette-entry-key" );
+        if (ImGui::BeginPopup("edit-key-popup")) {
+            if (grab_input_focus) {
+                grab_input_focus = false;
+                ImGui::SetKeyboardFocusHere();
+            }
+            ImGui::InputSymbol("New symbol", symbol_edit_buffer);
+            bool apply = false;
+            bool apply_everywhere = false;
+            if (ImGui::IsItemDeactivatedAfterEdit()) {
+                apply = true;
+            }
+            if (ImGui::IsKeyDown(ImGuiKey_ModCtrl) && ImGui::IsKeyPressed(ImGuiKey_Enter)) {
+                apply_everywhere = true;
+            }
+            if (ImGui::Button("Cancel [Esc]") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Apply [Enter]")) {
+                apply = true;
+            }
+            ImGui::HelpPopup("Change to new symbol in this palette.");
+            /** FIXME: implement
+            if (ImGui::Button("Apply everywhere [Ctrl+Enter]")) {
+                apply_everywhere = true;
+            }
+            ImGui::HelpPopup("Change to new symbol in this palette,\nin all mapgens that use this palette, and in all palettes that\ninherit from this palette or are inherited by this palette.");
+            */
+            if (!symbol_error_msg.empty()) {
+                ImGui::PushStyleColor(ImGuiCol_Text, col_error_text);
+                ImGui::Text("%s", symbol_error_msg.c_str());
+                ImGui::PopStyleColor();
+            }
+
+            if (apply || apply_everywhere) {
+                std::u32string u32s = utf8_to_utf32(symbol_edit_buffer);
+                MapKey new_key = MapKey(symbol_edit_buffer);
+                bool symbol_exists = false;
+                for (const auto& entry : list) {
+                    if (&entry == &list[idx]) {
+                        continue;
+                    }
+                    if (entry.key == new_key) {
+                        symbol_exists = true;
+                        break;
+                    }
+                }
+                if (symbol_edit_buffer.empty()) {
+                    symbol_error_msg = "Symbol cannot be empty";
+                    grab_input_focus = true;
+                } else if (symbol_exists) {
+                    symbol_error_msg = "Symbol " + new_key.str() + " is already in use";
+                    grab_input_focus = true;
+                } else if (u32s.size() != 1) {
+                    // FIXME: this won't show up because the widget already truncates
+                    symbol_error_msg = "Must be 1 unicode character";
+                    grab_input_focus = true;
+                } else if (new_key == list[idx].key) {
+                    // No changes
+                    ImGui::CloseCurrentPopup();
+                } else {
+                    list[idx].key = new_key;
+                    state.mark_changed();
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+            ImGui::EndPopup();
         }
-        ImGui::EndDisabled();
-        ImGui::HelpPopup( "Symbol to use on canvas." );
-        if( is_dupe_symbol ) {
-            ImGui::EndErrorArea();
-        }
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 0));
+        ImGui::HelpPopup( "Symbol to use on canvas.\nClick to change." );
         if (selected) {
             // Highlight entry
             ImVec4 c = col_selected_palette_entry;
             c.w *= 0.6f;
             ImGui::PushStyleColor(ImGuiCol_Button, c);
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, c);
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, c);
-        }
-        else {
-            // Use dim colors so it's not distracting
-            ImVec4 c = ImGui::GetStyleColorVec4(ImGuiCol_Button);
-            c.w *= 0.6f;
-            ImGui::PushStyleColor(ImGuiCol_Button, c);
-            c = ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered);
-            c.w *= 0.6f;
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, c);
-            c = ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive);
-            c.w *= 0.6f;
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, c);
         }
         bool clicked = false;
@@ -356,6 +402,8 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
             if(piece_disp_furn) {
                 text = piece_disp_furn->fmt_data_summary();
             }
+            // Reduce gap between ter and furn widgets
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 0));
             ImGui::SameLine();
             ImGui::PushID("furn");
             clicked = ImGui::Button(
@@ -363,9 +411,12 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
                 ImVec2( ImGui::GetFrameHeight() * 8.0f, 0.0f )
             ) || clicked;
             ImGui::PopID();
+            ImGui::PopStyleVar();
+        }
+        if (selected) {
+            ImGui::PopStyleColor(3);
         }
         ImGui::PopStyleColor(3);
-        ImGui::PopStyleVar();
         if (clicked) {
             if (selected) {
                 tools.set_main_tile(MapKey());
