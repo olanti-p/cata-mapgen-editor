@@ -56,97 +56,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Windows Tiles x64 MSVC
+          - name: Windows Tiles Sounds x64 MSVC
             artifact: windows-with-graphics-x64
             arch: x64
             os: windows-2019
             mxe: none
             ext: zip
             content: application/zip
-            sound: 0
-          - name: Windows Tiles Sounds x64 MSVC
-            artifact: windows-with-graphics-and-sounds-x64
-            arch: x64
-            os: windows-2019
-            mxe: none
-            ext: zip
-            content: application/zip
             sound: 1
-          - name: Linux Tiles x64
-            os: ubuntu-20.04
-            mxe: none
-            android: none
-            libbacktrace: 1
-            tiles: 1
-            sound: 0
-            artifact: linux-with-graphics-x64
-            ext: tar.gz
-            content: application/gzip
-          - name: Linux Tiles Sounds x64
-            os: ubuntu-20.04
-            mxe: none
-            android: none
-            libbacktrace: 1
-            tiles: 1
-            sound: 1
-            artifact: linux-with-graphics-and-sounds-x64
-            ext: tar.gz
-            content: application/gzip
-          - name: Linux Curses x64
-            os: ubuntu-20.04
-            mxe: none
-            android: none
-            libbacktrace: 1
-            tiles: 0
-            sound: 0
-            artifact: linux-terminal-only-x64
-            ext: tar.gz
-            content: application/gzip
-          - name: macOS Curses Universal Binary (x64 and arm64)
-            os: macos-13
-            mxe: none
-            tiles: 0
-            sound: 0
-            artifact: osx-terminal-only-universal
-            ext: dmg
-            content: application/x-apple-diskimage
-          - name: macOS Tiles Universal Binary (x64 and arm64)
-            os: macos-13
-            mxe: none
-            tiles: 1
-            sound: 0
-            artifact: osx-with-graphics-universal
-            ext: dmg
-            content: application/x-apple-diskimage
-          - name: Android x64
-            os: ubuntu-latest
-            mxe: none
-            android: arm64
-            artifact: android-x64
-            ext: apk
-            content: application/apk
-          - name: Android x32
-            os: ubuntu-latest
-            mxe: none
-            android: arm32
-            artifact: android-x32
-            ext: apk
-            content: application/apk 
-          - name: Android Bundle
-            os: ubuntu-latest
-            mxe: none
-            android: bundle
-            artifact: android-bundle
-            ext: aab
-            content: application/aap
-          - name: WebAssembly Bundle
-            os: ubuntu-latest
-            mxe: none
-            artifact: wasm
-            ext: zip
-            content: application/zip
-            sound: 0
-            wasm: true
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     permissions: write-all
