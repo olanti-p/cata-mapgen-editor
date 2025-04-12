@@ -22,6 +22,7 @@ As this is a WIP tool, some of the functionality may be bugged, half-implemented
 Such functionality is marked with (*).
 
 - Create, save and load projects
+- Create and edit new mapgens and palettes
 - *Import existing palettes and mapgens
 - Draw symbols with mouse
    - Brush (hold mouse button to draw)
@@ -30,7 +31,7 @@ Such functionality is marked with (*).
    - Rectangle tool
    - Bucket tool (flood fill, global fill, fill in selection)
    - Ruler tool (measure distance and area)
-- Copy/cut/paste tiles
+- Copy/cut/paste tiles, paste symbols from OS clipboard
 - Undo/redo support
 - Work on multiple mapgens at once
 - Work with multiple palettes at once
@@ -39,7 +40,7 @@ Such functionality is marked with (*).
 - Autocomplete, fuzzy search and validation for identifiers
 - *UI retains its state between sessions
 - Configurable autosaves
-- Support for big mapgens (e.g. 48x48, 48x72 - any multiple of 24)
+- Support for big mapgens (e.g. 48x48, 72x96 - any multiple of 24)
 - Export palettes and mapgens into JSON
 - Automatic JSON formatting on export
 - *Assign different mappings to symbols (terrain/furniture/items/fields/graffiti/vehicle/monster/NPC/other)
@@ -49,6 +50,7 @@ Such functionality is marked with (*).
 - Visual preview for terrain and furniture
 - Configurable display options (sprites, symbols, OMT boundaries)
 - *Visual preview for vehicle and nested placement boundaries
+- *Mod support (edit default mod list to configure what data will be loaded)
 
 ## Bugs and limitations
 See [TODO.md](doc/BNMT/TODO.md) for list of planned features.
