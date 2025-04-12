@@ -83,15 +83,15 @@ struct UiState {
     bool show_autosave_params = true;       // Whether to show autosave settings
 
     bool warn_on_import_issues = true;      // Whether to warn when import concludes with issues
-    bool show_omt_grid = false;             // Whether to show omt grid on canvas
-    bool show_canvas_symbols = false;       // Whether to show symbols on canvas
-    bool show_canvas_sprites = false;       // Whether to show sprites on canvas
-    bool show_fill_ter_sprites = false;       // Whether to show fill_ter sprites as fallback
-    float canvas_sprite_opacity = 0.4f;     // Opacity for sprites on canvas
+    bool show_omt_grid = true;              // Whether to show omt grid on canvas
+    bool show_canvas_symbols = true;        // Whether to show symbols on canvas
+    bool show_canvas_sprites = true;        // Whether to show sprites on canvas
+    bool show_fill_ter_sprites = true;      // Whether to show fill_ter sprites as fallback
+    float canvas_sprite_opacity = 0.6f;     // Opacity for sprites on canvas
 
     bool autosave_enabled = true;
-    int autosave_interval = 10;             // Seconds
-    int autosave_limit = 5;                 // Amount of autosaves to keep
+    int autosave_interval = 15;             // Seconds
+    int autosave_limit = 30;                // Amount of autosaves to keep
 
     std::optional<UUID> active_mapgen_id;   // UUID of active mapgen
 
