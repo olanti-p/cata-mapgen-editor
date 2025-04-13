@@ -299,7 +299,12 @@ void PieceToilet::show_ui( State &state )
 
 std::string PieceToilet::fmt_data_summary() const
 {
-    return "TODO";
+    if (use_default_amount) {
+        return "default";
+    }
+    else {
+        return string_format( "[%d,%d]", amount.min, amount.max );
+    }
 }
 
 void PieceGaspump::show_ui( State &state )

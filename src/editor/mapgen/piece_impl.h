@@ -79,6 +79,7 @@ struct PieceToilet : public Piece {
 
     bool use_default_amount = true;
     IntRange amount;
+    // TODO: display furniture on canvas
 };
 
 enum class GasPumpFuel {
