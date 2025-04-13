@@ -68,6 +68,7 @@ void show_main_menu_bar( State &state )
             ImGui::MenuItem( "Show OMT grid", nullptr, &state.ui->show_omt_grid );
             ImGui::MenuItem( "Show symbols on canvas", nullptr, &state.ui->show_canvas_symbols );
             ImGui::MenuItem( "Show sprites on canvas", nullptr, &state.ui->show_canvas_sprites );
+            ImGui::MenuItem( "Show placements on canvas", nullptr, &state.ui->show_canvas_objects );
             ImGui::MenuItem( "Show fill_ter sprites", nullptr, &state.ui->show_fill_ter_sprites);
             ImGui::SliderFloat("Sprite opacity", &state.ui->canvas_sprite_opacity, 0.0, 1.0);
             ImGui::EndMenu();

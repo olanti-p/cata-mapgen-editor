@@ -194,6 +194,7 @@ void UiState::serialize( JsonOut &jsout ) const
     jsout.member( "show_omt_grid", show_omt_grid );
     jsout.member( "show_canvas_symbols", show_canvas_symbols );
     jsout.member( "show_canvas_sprites", show_canvas_sprites );
+    jsout.member( "show_canvas_objects", show_canvas_objects );
     jsout.member( "show_fill_ter_sprites", show_fill_ter_sprites );
     jsout.member( "canvas_sprite_opacity", canvas_sprite_opacity );
     jsout.member( "autosave_enabled", autosave_enabled );
@@ -230,6 +231,7 @@ void UiState::deserialize( JSON_IN &jsin )
     jo.read( "show_omt_grid", show_omt_grid );
     jo.read( "show_canvas_symbols", show_canvas_symbols );
     jo.read( "show_canvas_sprites", show_canvas_sprites );
+    jo.read( "show_canvas_objects", show_canvas_objects );
     jo.read( "show_fill_ter_sprites", show_fill_ter_sprites );
     jo.read( "canvas_sprite_opacity", canvas_sprite_opacity );
     jo.read( "autosave_enabled", autosave_enabled );

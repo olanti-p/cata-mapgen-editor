@@ -87,6 +87,7 @@ struct UiState {
     bool show_omt_grid = true;              // Whether to show omt grid on canvas
     bool show_canvas_symbols = true;        // Whether to show symbols on canvas
     bool show_canvas_sprites = true;        // Whether to show sprites on canvas
+    bool show_canvas_objects = true;        // Whether to show objects on canvas
     bool show_fill_ter_sprites = true;      // Whether to show fill_ter sprites as fallback
     float canvas_sprite_opacity = 0.6f;     // Opacity for sprites on canvas
 

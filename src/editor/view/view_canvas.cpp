@@ -475,31 +475,33 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
         );
     }
 
-    for( const MapObject &obj : mapgen.objects ) {
-        if( !obj.visible ) {
-            continue;
+    if( !state.ui->show_canvas_objects ) {
+        for( const MapObject &obj : mapgen.objects ) {
+            if( !obj.visible ) {
+                continue;
+            }
+
+            point_abs_etile p1( obj.x.min, obj.y.min );
+            point_abs_etile p2( obj.x.max, obj.y.max );
+            ImVec4 col_border = obj.color;
+            ImVec4 col_text = obj.color;
+            col_text.w = 1.0f;
+            ImVec4 col_bg = obj.color;
+            col_bg.w *= 0.4f;
+            highlight_region( draw_list, cam, p1, p2, col_bg, col_border );
+
+            std::string label = obj.piece->fmt_summary();
+            point_abs_epos pos1 = coords::project_combine( p1, point_etile_epos( ETILE_SIZE / 2,
+                                  ETILE_SIZE / 2 ) );
+            point_abs_epos pos2 = coords::project_combine( p2, point_etile_epos( ETILE_SIZE / 2,
+                                  ETILE_SIZE / 2 ) );
+            point_abs_epos center( ( pos1.raw() + pos2.raw() ) / 2 );
+            point_abs_screen text_center = cam.world_to_screen( center );
+            point_rel_screen text_size( ImGui::CalcTextSize( label.c_str() ) );
+            point_abs_screen text_pos = text_center - text_size.raw() / 2;
+            ImGui::SetCursorPos( text_pos.raw() );
+            ImGui::TextColored( col_text, "%s", label.c_str() );
         }
-
-        point_abs_etile p1( obj.x.min, obj.y.min );
-        point_abs_etile p2( obj.x.max, obj.y.max );
-        ImVec4 col_border = obj.color;
-        ImVec4 col_text = obj.color;
-        col_text.w = 1.0f;
-        ImVec4 col_bg = obj.color;
-        col_bg.w *= 0.4f;
-        highlight_region( draw_list, cam, p1, p2, col_bg, col_border );
-
-        std::string label = obj.piece->fmt_summary();
-        point_abs_epos pos1 = coords::project_combine( p1, point_etile_epos( ETILE_SIZE / 2,
-                              ETILE_SIZE / 2 ) );
-        point_abs_epos pos2 = coords::project_combine( p2, point_etile_epos( ETILE_SIZE / 2,
-                              ETILE_SIZE / 2 ) );
-        point_abs_epos center( ( pos1.raw() + pos2.raw() ) / 2 );
-        point_abs_screen text_center = cam.world_to_screen( center );
-        point_rel_screen text_size( ImGui::CalcTextSize( label.c_str() ) );
-        point_abs_screen text_pos = text_center - text_size.raw() / 2;
-        ImGui::SetCursorPos( text_pos.raw() );
-        ImGui::TextColored( col_text, "%s", label.c_str() );
     }
 
     if( snippet ) {
