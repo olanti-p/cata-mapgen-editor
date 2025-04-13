@@ -9066,7 +9066,11 @@ bool PieceGaspump::try_import( const jmapgen_piece& piece, PaletteImportReport& 
         fuel = GasPumpFuel::Gasoline;
     } else if( fuel_raw.str() == "diesel" ) {
         fuel = GasPumpFuel::Diesel;
-    } else {
+    } else if( fuel_raw.str() == "jp8" ) {
+        fuel = GasPumpFuel::JP8;
+    } else if( fuel_raw.str() == "avgas" ) {
+        fuel = GasPumpFuel::AvGas;
+    } else{
         fuel = GasPumpFuel::Random;
     }
     return true;

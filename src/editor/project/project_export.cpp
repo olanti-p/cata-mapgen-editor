@@ -331,6 +331,10 @@ void PieceGaspump::export_func( JsonOut &jo ) const
         ee::emit( jo, "fuel", "gasoline" );
     } else if( fuel == GasPumpFuel::Diesel ) {
         ee::emit( jo, "fuel", "diesel" );
+    } else if( fuel == GasPumpFuel::JP8 ) {
+        ee::emit( jo, "fuel", "jp8" );
+    } else if( fuel == GasPumpFuel::AvGas ) {
+        ee::emit( jo, "fuel", "avgas" );
     }
 }
 

@@ -101,6 +101,8 @@ std::string enum_to_string<editor::GasPumpFuel>( editor::GasPumpFuel data )
         case editor::GasPumpFuel::Random: return "Random";
         case editor::GasPumpFuel::Diesel: return "Diesel";
         case editor::GasPumpFuel::Gasoline: return "Gasoline";
+        case editor::GasPumpFuel::JP8: return "JP8";
+        case editor::GasPumpFuel::AvGas: return "AvGas";
         // *INDENT-ON*
         case editor::GasPumpFuel::_Num:
             break;

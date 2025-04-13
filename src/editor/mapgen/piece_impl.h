@@ -86,6 +86,8 @@ enum class GasPumpFuel {
     Random,
     Gasoline,
     Diesel,
+    JP8,
+    AvGas,
 
     _Num,
 };
@@ -96,6 +98,7 @@ struct PieceGaspump : public Piece {
     bool use_default_amount = true;
     IntRange amount;
     GasPumpFuel fuel;
+    // TODO: display furniture on canvas
 };
 
 struct PieceLiquid : public Piece {

@@ -329,7 +329,7 @@ void PieceGaspump::show_ui( State &state )
         "Setting it to 'Random' will choose randomly between diesel (25% chance) and gasoline (75% chance)."
     );
     ImGui::Text( "Fuel type:" );
-    if( ImGui::RadioButton( "Random", fuel == GasPumpFuel::Random ) ) {
+    if( ImGui::RadioButton( "Random Diesel or Gasoline", fuel == GasPumpFuel::Random ) ) {
         fuel = GasPumpFuel::Random;
     }
     if( ImGui::RadioButton( "Diesel", fuel == GasPumpFuel::Diesel ) ) {
@@ -338,11 +338,31 @@ void PieceGaspump::show_ui( State &state )
     if( ImGui::RadioButton( "Gasoline", fuel == GasPumpFuel::Gasoline ) ) {
         fuel = GasPumpFuel::Gasoline;
     }
+    if( ImGui::RadioButton( "JP8", fuel == GasPumpFuel::JP8 ) ) {
+        fuel = GasPumpFuel::JP8;
+    }
+    if( ImGui::RadioButton( "AvGas", fuel == GasPumpFuel::AvGas ) ) {
+        fuel = GasPumpFuel::AvGas;
+    }
 }
 
 std::string PieceGaspump::fmt_data_summary() const
 {
-    return "TODO";
+    switch (fuel) {
+    case GasPumpFuel::Random:
+        return "diesel/gasoline";
+    case GasPumpFuel::Diesel:
+        return "diesel";
+    case GasPumpFuel::Gasoline:
+        return "gasoline";
+    case GasPumpFuel::JP8:
+        return "jp8";
+    case GasPumpFuel::AvGas:
+        return "avgas";
+    }
+    // Shouldn't happen
+    std::abort();
+    return "";
 }
 
 void PieceLiquid::show_ui( State &state )
