@@ -638,16 +638,6 @@ std::string PieceSealeditem::fmt_data_summary() const
     return "TODO";
 }
 
-void PieceTranslate::show_ui( State &state )
-{
-    ImGui::Text( "TODO" );
-}
-
-std::string PieceTranslate::fmt_data_summary() const
-{
-    return "TODO";
-}
-
 void PieceZone::show_ui( State &state )
 {
     ImGui::Text( "TODO" );

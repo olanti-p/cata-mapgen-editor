@@ -29,7 +29,6 @@ enum class PieceType : int {
     MakeRubble,
     Computer,
     SealedItem,
-    Translate,
     Zone,
     Nested,
     AltTrap,

@@ -204,12 +204,6 @@ struct PieceSealeditem : public Piece {
     // TODO
 };
 
-struct PieceTranslate : public Piece {
-    IMPLEMENT_ME_PIECE( PieceTranslate, PieceType::Translate )
-
-    // TODO
-};
-
 struct PieceZone : public Piece {
     IMPLEMENT_ME_PIECE( PieceZone, PieceType::Zone )
 

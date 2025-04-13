@@ -9100,12 +9100,36 @@ bool PieceIGroup::try_import( const jmapgen_piece& piece, PaletteImportReport& r
 
 bool PieceLoot::try_import( const jmapgen_piece& piece, PaletteImportReport& report )
 {
-    return false; // TODO
+    const jmapgen_loot* casted = dynamic_cast<const jmapgen_loot*>(&piece);
+    if (!casted) {
+        return false;
+    }
+    return true; // TODO
 }
 
 bool PieceMGroup::try_import( const jmapgen_piece& piece, PaletteImportReport& report )
 {
-    return false; // TODO
+    const jmapgen_monster_group* casted = dynamic_cast<const jmapgen_monster_group*>(&piece);
+    if (!casted) {
+        return false;
+    }
+    {
+        // TODO: parametric
+        auto val = casted->id.collapse_import();
+        if (val.first) {
+            report.num_values_folded++;
+        }
+        if (val.second) {
+            group_id = EID::MGroup(*val.second);
+        }
+    }
+    chance = casted->chance;
+    if (chance.min == 100 && chance.max == 100) {
+        spawn_always = true;
+    }
+    density = casted->density;
+    use_default_density = density == -1.0f;
+    return true;
 }
 
 bool PieceMonster::try_import( const jmapgen_piece& piece, PaletteImportReport& report )
@@ -9228,32 +9252,47 @@ bool PieceTerrain::try_import( const jmapgen_piece& piece, PaletteImportReport& 
 
 bool PieceTerFurnTransform::try_import( const jmapgen_piece& piece, PaletteImportReport& report )
 {
-    return false; // TODO
+    const jmapgen_ter_furn_transform* casted = dynamic_cast<const jmapgen_ter_furn_transform*>(&piece);
+    if (!casted) {
+        return false;
+    }
+    return true; // TODO
 }
 
 bool PieceMakeRubble::try_import( const jmapgen_piece& piece, PaletteImportReport& report )
 {
-    return false; // TODO
+    const jmapgen_make_rubble* casted = dynamic_cast<const jmapgen_make_rubble*>(&piece);
+    if (!casted) {
+        return false;
+    }
+    return true; // TODO
 }
 
 bool PieceComputer::try_import( const jmapgen_piece& piece, PaletteImportReport& report )
 {
-    return false; // TODO
+    const jmapgen_computer* casted = dynamic_cast<const jmapgen_computer*>(&piece);
+    if (!casted) {
+        return false;
+    }
+    return true; // TODO
 }
 
 bool PieceSealeditem::try_import( const jmapgen_piece& piece, PaletteImportReport& report )
 {
-    return false; // TODO
-}
-
-bool PieceTranslate::try_import( const jmapgen_piece& piece, PaletteImportReport& report )
-{
-    return false; // TODO
+    const jmapgen_sealed_item* casted = dynamic_cast<const jmapgen_sealed_item*>(&piece);
+    if (!casted) {
+        return false;
+    }
+    return true; // TODO
 }
 
 bool PieceZone::try_import( const jmapgen_piece& piece, PaletteImportReport& report )
 {
-    return false; // TODO
+    const jmapgen_zone* casted = dynamic_cast<const jmapgen_zone*>(&piece);
+    if (!casted) {
+        return false;
+    }
+    return true; // TODO
 }
 
 bool PieceNested::try_import( const jmapgen_piece& piece, PaletteImportReport& report )

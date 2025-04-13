@@ -153,7 +153,6 @@ std::string enum_to_string<editor::PieceType>( editor::PieceType data )
         case editor::PieceType::MakeRubble: return "MakeRubble";
         case editor::PieceType::Computer: return "Computer";
         case editor::PieceType::SealedItem: return "SealedItem";
-        case editor::PieceType::Translate: return "Translate";
         case editor::PieceType::Zone: return "Zone";
         case editor::PieceType::Nested: return "Nested";
         case editor::PieceType::AltTrap: return "AltTrap";
@@ -469,16 +468,6 @@ void PieceSealeditem::serialize( JsonOut &jsout ) const
 }
 
 void PieceSealeditem::deserialize( const JSON_OBJECT &jsin )
-{
-    // TODO
-}
-
-void PieceTranslate::serialize( JsonOut &jsout ) const
-{
-    // TODO
-}
-
-void PieceTranslate::deserialize( const JSON_OBJECT &jsin )
 {
     // TODO
 }

@@ -423,11 +423,6 @@ void PieceSealeditem::export_func( JsonOut &jo ) const
     // TODO
 }
 
-void PieceTranslate::export_func( JsonOut &jo ) const
-{
-    // TODO
-}
-
 void PieceZone::export_func( JsonOut &jo ) const
 {
     // TODO
@@ -490,7 +485,6 @@ std::string get_palette_category( editor::PieceType data )
         case editor::PieceType::MakeRubble: return "rubble";
         case editor::PieceType::Computer: return "computers";
         case editor::PieceType::SealedItem: return "sealed_item";
-        case editor::PieceType::Translate: return "translate";
         case editor::PieceType::Zone: return "zones";
         case editor::PieceType::Nested: return "nested";
         case editor::PieceType::AltTrap: return "trap";
@@ -538,7 +532,6 @@ std::string get_object_category( editor::PieceType data )
         case editor::PieceType::TerFurnTransform: return "place_ter_furn_transforms";
         case editor::PieceType::MakeRubble: return "place_rubble";
         case editor::PieceType::Computer: return "place_computers";
-        case editor::PieceType::Translate: return "translate_ter";
         case editor::PieceType::Zone: return "place_zones";
         case editor::PieceType::Nested: return "place_nested";
         // These cannot exist as objects

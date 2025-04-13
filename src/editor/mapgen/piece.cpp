@@ -45,7 +45,6 @@ const std::vector<std::unique_ptr<Piece>> &get_piece_templates()
         REG_PIECE( PieceMakeRubble );
         REG_PIECE( PieceComputer );
         REG_PIECE( PieceSealeditem );
-        REG_PIECE( PieceTranslate );
         REG_PIECE( PieceZone );
         REG_PIECE( PieceNested );
         REG_PIECE( PieceAltTrap );
