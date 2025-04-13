@@ -1,12 +1,12 @@
 [
-    {
-        "type": "snippet",
-        "category": "me_interface",
-        "text": [
-            {
-                "id": "me_auto_map_keys",
-                "text": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*_-+/=[]{}()<>|:;',`~"
-            }
-        ]
-    }
+  {
+    "type": "snippet",
+    "category": "me_interface",
+    "text": [
+      {
+        "id": "me_auto_map_keys",
+        "text": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*_-+/=[]{}()<>|:;',`~абвгдеЁжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
+      }
+    ]
+  }
 ]
