@@ -51,6 +51,7 @@ void show_main_menu_bar( State &state )
             ImGui::MenuItem( "Mapgen Info", nullptr, &state.ui->show_mapgen_info );
             ImGui::MenuItem( "Active Palette", nullptr, &state.ui->show_mapgen_palette_simple );
             ImGui::MenuItem( "Active Palette Details", nullptr, &state.ui->show_mapgen_palette_verbose );
+            ImGui::MenuItem( "Active Placements", nullptr, &state.ui->show_mapgen_objects );
             ImGui::MenuItem( "History", nullptr, &state.ui->show_history );
             ImGui::MenuItem( "Toolbar", nullptr, &state.ui->show_toolbar );
             ImGui::MenuItem( "Camera Controls", nullptr, &state.ui->show_camera_controls );

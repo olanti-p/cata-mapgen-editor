@@ -170,6 +170,9 @@ void run_ui_for_state( State &state )
             uistate.show_mapgen_palette_verbose = false;
         }
     }
+    if (uistate.show_mapgen_objects && active_mapgen) {
+        show_mapobjects(state, *active_mapgen, true, uistate.show_mapgen_objects);
+    }
     if( uistate.show_project_overview ) {
         show_project_overview_ui( state, proj, uistate.show_project_overview );
     }
@@ -234,7 +237,7 @@ void run_ui_for_state( State &state )
         }
         Mapgen *f = proj.get_mapgen( it.uuid );
         if( f ) {
-            show_mapobjects( state, *f, it.open );
+            show_mapobjects( state, *f, false, it.open );
         } else {
             it.open = false;
         }

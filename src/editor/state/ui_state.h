@@ -77,6 +77,7 @@ struct UiState {
     bool show_mapgen_info = true;           // Whether to show mapgen info
     bool show_mapgen_palette_simple = true; // Whether to show mapgen palette (simple)
     bool show_mapgen_palette_verbose = true;// Whether to show mapgen palette (verbose)
+    bool show_mapgen_objects = true;        // Whether to show mapgen objects
     bool show_history = true;               // Whether to show undo/redo history
     bool show_camera_controls = true;       // Whether to show camera controls
     bool show_toolbar = true;               // Whether to show canvas toolbar

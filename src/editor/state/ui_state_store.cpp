@@ -185,6 +185,7 @@ void UiState::serialize( JsonOut &jsout ) const
     jsout.member( "show_mapgen_info", show_mapgen_info );
     jsout.member( "show_mapgen_palette_simple", show_mapgen_palette_simple );
     jsout.member( "show_mapgen_palette_verbose", show_mapgen_palette_verbose );
+    jsout.member( "show_mapgen_objects", show_mapgen_objects );
     jsout.member( "show_history", show_history );
     jsout.member( "show_camera_controls", show_camera_controls );
     jsout.member( "show_toolbar", show_toolbar );
@@ -220,6 +221,7 @@ void UiState::deserialize( JSON_IN &jsin )
     jo.read( "show_mapgen_info", show_mapgen_info );
     jo.read( "show_mapgen_palette_simple", show_mapgen_palette_simple );
     jo.read( "show_mapgen_palette_verbose", show_mapgen_palette_verbose );
+    jo.read( "show_mapgen_objects", show_mapgen_objects );
     jo.read( "show_history", show_history );
     jo.read( "show_camera_controls", show_camera_controls );
     jo.read( "show_toolbar", show_toolbar );

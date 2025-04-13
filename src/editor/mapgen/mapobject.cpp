@@ -59,12 +59,18 @@ static void collapse_object( State &state, const UUID &object_id )
     state.ui->expanded_mapobjects.erase( object_id );
 }
 
-void show_mapobjects( State &state, Mapgen &f, bool &show )
+void show_mapobjects( State &state, Mapgen &f, bool is_active, bool &show )
 {
     ImGui::SetNextWindowSize( ImVec2( 420.0f, 300.0f ), ImGuiCond_FirstUseEver );
     ImGui::SetNextWindowPos( ImVec2( 50.0f, 50.0f ), ImGuiCond_FirstUseEver );
 
-    std::string wnd_id = string_format( "Objects list##mapobjects-%d", f.uuid );
+    std::string wnd_id;
+    if (is_active) {
+        wnd_id = "Active placements";
+    }
+    else {
+        wnd_id = string_format("Placements of %s###mapobjects-%d", f.display_name(), f.uuid);
+    }
     if( !ImGui::Begin( wnd_id.c_str(), &show ) ) {
         ImGui::End();
         return;
@@ -72,6 +78,7 @@ void show_mapobjects( State &state, Mapgen &f, bool &show )
     ImGui::PushID( f.uuid );
 
     std::vector<MapObject> &list = f.objects;
+    ImGui::Text("%d placements", list.size());
 
     bool changed = ImGui::VectorWidget()
     .with_add( [&]() -> bool {

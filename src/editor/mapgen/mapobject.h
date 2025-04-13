@@ -39,7 +39,7 @@ struct MapObject {
 /**
  * =============== Windows ===============
  */
-void show_mapobjects( State &state, Mapgen &f, bool &show );
+void show_mapobjects( State &state, Mapgen &f, bool is_active, bool &show );
 
 } // namespace editor
 
