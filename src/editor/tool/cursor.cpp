@@ -4,10 +4,6 @@
 
 namespace editor::tools
 {
-bool CursorControl::operation_in_progress() const {
-    return ImGui::IsMouseDown( ImGuiMouseButton_Left );
-}
-
 std::string Cursor::get_tool_display_name() const
 {
     return "Cursor";
