@@ -241,6 +241,9 @@ Mapgen* import_mapgen(State& state, ImportMapgenState& mapgen)
         }
 
         PaletteImportReport report; // TODO: make use of this
+        int color_counter = 0;
+        int num_colors = 19;
+        int color_step = 11;
         for (const auto& obj : ref->objects.objects) {
             const jmapgen_place& place = obj.first;
             const jmapgen_piece& piece = *obj.second.get();
@@ -254,7 +257,10 @@ Mapgen* import_mapgen(State& state, ImportMapgenState& mapgen)
             // TODO: maybe implement it later
             mo.repeat = place.repeat;
             // TODO: assign specific colors to types
-            mo.color = ImColor::HSV(rng_float(0.0f, 1.0f), 1.0f, 1.0f, 0.6f);
+            int color_fraction = (color_counter * color_step) % num_colors;
+            float h = float(color_fraction) / float(num_colors);
+            color_counter++;
+            mo.color = ImColor::HSV(h, 1.0f, 1.0f, 0.6f);
 
             new_mapgen.objects.emplace_back(std::move(mo));
         }
