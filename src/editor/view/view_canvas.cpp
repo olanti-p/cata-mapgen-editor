@@ -38,7 +38,9 @@ namespace editor
 
 static void handle_view_change_hotkey( State &state )
 {
-    if( state.control->has_ongoing_tool_operation() ) {
+    // TODO: move this check into tool property or something
+    bool is_pipette = tools::ToolKind::Pipette == state.ui->tools->get_tool();
+    if( !is_pipette && state.control->has_ongoing_tool_operation() ) {
         return;
     }
     ImGuiIO &io = ImGui::GetIO();
