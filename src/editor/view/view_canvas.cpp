@@ -475,7 +475,7 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
         );
     }
 
-    if( !state.ui->show_canvas_objects ) {
+    if( state.ui->show_canvas_objects ) {
         for( const MapObject &obj : mapgen.objects ) {
             if( !obj.visible ) {
                 continue;
