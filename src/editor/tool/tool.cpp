@@ -90,10 +90,6 @@ void show_toolbar( State &state, bool &show )
         handle_toolbar_hotkeys(state);
     }
 
-    // Quick hack so hovering over window bar does not show help popups.
-    // FIXME: fix it so hovering over window bar does not trigger help popups
-    ImGui::Separator();
-
     ToolsState &tools = *state.ui->tools;
     ControlState &control = *state.control;
 
@@ -127,9 +123,8 @@ void show_toolbar( State &state, bool &show )
 void handle_toolbar_hotkeys(State& state) {
     ToolsState& tools = *state.ui->tools;
     ControlState& control = *state.control;
-    tools::ToolControl& tool_control = state.control->get_tool_control(tools.get_tool());
 
-    if (tool_control.operation_in_progress()) {
+    if (control.has_ongoing_tool_operation()) {
         return;
     }
 
@@ -139,7 +134,7 @@ void handle_toolbar_hotkeys(State& state) {
 
     for (tools::ToolKind kind : all_tools) {
         const tools::ToolDefinition& def = tools::get_tool_definition(kind);
-        if (def.get_hotkey() != ImGuiKey_None && !control.has_ongoing_tool_operation()) {
+        if (def.get_hotkey() != ImGuiKey_None) {
             if (ImGui::IsKeyPressed(def.get_hotkey()) && 
                 !ImGui::IsKeyDown(ImGuiKey_ModCtrl) &&
                 !ImGui::IsKeyDown(ImGuiKey_ModShift) &&
@@ -148,7 +143,6 @@ void handle_toolbar_hotkeys(State& state) {
                 tools.set_tool(kind);
             }
         }
-        ImGui::HelpPopup(def.get_tool_hint().c_str());
     }
 }
 } // namespace editor
