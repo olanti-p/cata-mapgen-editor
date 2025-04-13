@@ -33,6 +33,7 @@ struct PieceNPC : public Piece {
     EID::NPCTemplate npc_class;
     bool target = false;
     std::vector<EID::Trait> traits;
+    std::string unique_id;
 };
 
 struct PieceFaction : public Piece {

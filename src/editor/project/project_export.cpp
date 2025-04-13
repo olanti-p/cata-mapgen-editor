@@ -262,12 +262,11 @@ void PieceNPC::export_func( JsonOut &jo ) const
     if( target ) {
         ee::emit( jo, "target", target );
     }
+    if (!unique_id.empty()) {
+        ee::emit(jo, "unique_id", unique_id);
+    }
     if( !traits.empty() ) {
-        ee::emit_array( jo, "add_trait", [&]() {
-            for( const auto &it : traits ) {
-                ee::emit_val( jo, it );
-            }
-        } );
+        ee::emit_single_or_array( jo, "add_trait", traits );
     }
 }
 

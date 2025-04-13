@@ -127,6 +127,10 @@ void PieceNPC::show_ui( State &state )
     if( ImGui::Checkbox( "target", &target ) ) {
         state.mark_changed();
     }
+    ImGui::HelpMarkerInline("Unique id of this NPC (leave empty for nmo unique id).");
+    if (ImGui::InputText("unique_id", &unique_id)) {
+        state.mark_changed("me-piece-npc-unique-id-text");
+    }
     ImGui::HelpMarkerInline( "List of additional character traits applied on spawn." );
     ImGui::Text( "traits:" );
     ImGui::Indent( style::list_indent );

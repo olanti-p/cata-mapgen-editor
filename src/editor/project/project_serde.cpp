@@ -211,6 +211,7 @@ void PieceNPC::serialize( JsonOut &jsout ) const
     jsout.member( "npc_class", npc_class );
     jsout.member( "target", target );
     jsout.member( "traits", traits );
+    jsout.member( "unique_id", unique_id );
 }
 
 void PieceNPC::deserialize( const JSON_OBJECT &jsin )
@@ -218,6 +219,7 @@ void PieceNPC::deserialize( const JSON_OBJECT &jsin )
     jsin.read( "npc_class", npc_class );
     jsin.read( "target", target );
     jsin.read( "traits", traits );
+    jsin.read( "unique_id", unique_id );
 }
 
 void PieceFaction::serialize( JsonOut &jsout ) const

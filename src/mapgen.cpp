@@ -8943,6 +8943,7 @@ bool PieceNPC::try_import( const jmapgen_piece& piece, PaletteImportReport& repo
             npc_class = *val.second;
         }
     }
+    unique_id = casted->unique_id;
     target = casted->target;
     traits.clear();
     for( const trait_id &trait : casted->traits ) {
