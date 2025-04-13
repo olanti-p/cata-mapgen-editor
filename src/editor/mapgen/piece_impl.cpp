@@ -654,32 +654,51 @@ std::string PieceItem::fmt_data_summary() const
 
 void PieceTrap::show_ui( State &state )
 {
-    ImGui::Text( "TODO" );
+    ImGui::HelpMarkerInline("Whether this will place specied trap or remove any trap.");
+    if (ImGui::Checkbox("remove", &remove)) {
+        state.mark_changed("piece-trap-remove-switch");
+    }
+    ImGui::BeginDisabled(remove);
+    ImGui::HelpMarkerInline("Trap type to spawn.");
+    if (ImGui::InputId("trap", id)) {
+        state.mark_changed("piece-trap-id");
+    }
+    ImGui::EndDisabled();
 }
 
 std::string PieceTrap::fmt_data_summary() const
 {
-    return "TODO";
+    if( remove ) {
+        return "<remove>";
+    } else {
+        return id.data;
+    }
 }
 
 void PieceFurniture::show_ui( State &state )
 {
-    ImGui::Text( "TODO" );
+    ImGui::HelpMarkerInline("Furniture type to spawn.");
+    if (ImGui::InputId("furniture", id)) {
+        state.mark_changed("piece-furn-id");
+    }
 }
 
 std::string PieceFurniture::fmt_data_summary() const
 {
-    return "TODO";
+    return id.data;
 }
 
 void PieceTerrain::show_ui( State &state )
 {
-    ImGui::Text( "TODO" );
+    ImGui::HelpMarkerInline("Terrain type to spawn.");
+    if (ImGui::InputId("terrain", id)) {
+        state.mark_changed("piece-ter-id");
+    }
 }
 
 std::string PieceTerrain::fmt_data_summary() const
 {
-    return "TODO";
+    return id.data;
 }
 
 void PieceTerFurnTransform::show_ui( State &state )

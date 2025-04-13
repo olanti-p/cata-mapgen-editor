@@ -424,32 +424,34 @@ void PieceItem::deserialize( const JSON_OBJECT &jsin )
 
 void PieceTrap::serialize( JsonOut &jsout ) const
 {
-    // TODO
+    jsout.member("id", id);
+    jsout.member("remove", remove);
 }
 
 void PieceTrap::deserialize( const JSON_OBJECT &jsin )
 {
-    // TODO
+    jsin.read("id", id);
+    jsin.read("remove", remove);
 }
 
 void PieceFurniture::serialize( JsonOut &jsout ) const
 {
-    // TODO
+    jsout.member("id", id);
 }
 
 void PieceFurniture::deserialize( const JSON_OBJECT &jsin )
 {
-    // TODO
+    jsin.read("id", id);
 }
 
 void PieceTerrain::serialize( JsonOut &jsout ) const
 {
-    // TODO
+    jsout.member("id", id);
 }
 
 void PieceTerrain::deserialize( const JSON_OBJECT &jsin )
 {
-    // TODO
+    jsin.read("id", id);
 }
 
 void PieceTerFurnTransform::serialize( JsonOut &jsout ) const

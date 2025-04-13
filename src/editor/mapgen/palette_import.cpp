@@ -19,12 +19,37 @@
 
 namespace editor
 {
+static const std::vector<PieceType>& get_mapping_pieces() {
+    static std::vector<PieceType> ret;
+    if (ret.empty()) {
+        for (const PieceType& type : all_enum_values<PieceType>()) {
+            if (is_available_as_mapping(type)) {
+                ret.push_back(type);
+            }
+        }
+    }
+    return ret;
+}
 
-std::unique_ptr<Piece> import_simple_piece(const jmapgen_piece& piece, PaletteImportReport& report)
+static const std::vector<PieceType>& get_object_pieces() {
+    static std::vector<PieceType> ret;
+    if (ret.empty()) {
+        for (const PieceType& type : all_enum_values<PieceType>()) {
+            if (is_available_as_mapobject(type)) {
+                ret.push_back(type);
+            }
+        }
+    }
+    return ret;
+}
+
+
+std::unique_ptr<Piece> import_simple_piece(const jmapgen_piece& piece, PaletteImportReport& report, bool is_object )
 {
     std::unique_ptr<Piece> new_piece;
-    // TODO: optimize
-    for (const PieceType& type : all_enum_values<PieceType>()) {
+    // TODO: optimize (avoid allocating new pieces)
+    const std::vector<PieceType>& available_types = is_object ? get_object_pieces() : get_mapping_pieces();
+    for (const PieceType& type : available_types) {
         new_piece = make_new_piece(type);
         if (new_piece->try_import(piece, report)) {
             break;
@@ -56,7 +81,7 @@ static std::unique_ptr<Piece> try_import_recursive(Project& project, const jmapg
         return inner_imported;
     }
     else {
-        std::unique_ptr<Piece> new_piece = import_simple_piece(piece, report);
+        std::unique_ptr<Piece> new_piece = import_simple_piece(piece, report, false);
         new_piece->uuid = project.uuid_generator();
         return new_piece;
     }

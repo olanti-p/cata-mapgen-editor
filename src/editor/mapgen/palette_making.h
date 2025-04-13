@@ -18,7 +18,7 @@ PaletteEntry make_simple_entry( Project &project, Palette &palette, const EID::T
 std::vector<std::vector<std::string>>
 calc_palette_ancestors(const mapgen_palette& source);
 
-std::unique_ptr<Piece> import_simple_piece(const jmapgen_piece& piece, PaletteImportReport& report);
+std::unique_ptr<Piece> import_simple_piece(const jmapgen_piece& piece, PaletteImportReport& report, bool is_object);
 
 void import_palette_data_and_report(State& state, Palette& destination, EID::Palette source);
 void reimport_palette(State& state, Palette& p);

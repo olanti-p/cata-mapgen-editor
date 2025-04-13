@@ -249,7 +249,7 @@ Mapgen* import_mapgen(State& state, ImportMapgenState& mapgen)
             const jmapgen_piece& piece = *obj.second.get();
             MapObject mo = MapObject();
 
-            mo.piece = import_simple_piece(piece, report);
+            mo.piece = import_simple_piece(piece, report, true);
             mo.set_uuid(project.uuid_generator());
             mo.x = place.x;
             mo.y = place.y;

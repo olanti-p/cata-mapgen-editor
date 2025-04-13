@@ -9254,17 +9254,54 @@ bool PieceItem::try_import( const jmapgen_piece& piece, PaletteImportReport& rep
 
 bool PieceTrap::try_import( const jmapgen_piece& piece, PaletteImportReport& report )
 {
-    return false; // TODO
+    const jmapgen_trap* casted = dynamic_cast<const jmapgen_trap*>(&piece);
+    if (!casted) {
+        return false;
+    }
+    // TODO: parametric
+    auto val = casted->id.collapse_import();
+    if (val.first) {
+        report.num_values_folded++;
+    }
+    if (val.second) {
+        id = EID::Trap(val.second->str());
+    }
+    remove = casted->remove;
+    return true;
 }
 
 bool PieceFurniture::try_import( const jmapgen_piece& piece, PaletteImportReport& report )
 {
-    return false; // TODO
+    const jmapgen_furniture* casted = dynamic_cast<const jmapgen_furniture*>(&piece);
+    if (!casted) {
+        return false;
+    }
+    // TODO: parametric
+    auto val = casted->id.collapse_import();
+    if (val.first) {
+        report.num_values_folded++;
+    }
+    if (val.second) {
+        id = EID::Furn(val.second->str());
+    }
+    return true;
 }
 
 bool PieceTerrain::try_import( const jmapgen_piece& piece, PaletteImportReport& report )
 {
-    return false; // TODO
+    const jmapgen_terrain* casted = dynamic_cast<const jmapgen_terrain*>(&piece);
+    if (!casted) {
+        return false;
+    }
+    // TODO: parametric
+    auto val = casted->id.collapse_import();
+    if (val.first) {
+        report.num_values_folded++;
+    }
+    if (val.second) {
+        id = EID::Ter(val.second->str());
+    }
+    return true;
 }
 
 bool PieceTerFurnTransform::try_import( const jmapgen_piece& piece, PaletteImportReport& report )
@@ -9379,6 +9416,7 @@ bool import_alternatively( editor::WeightedList<E> &list, const jmapgen_piece& p
 
 bool PieceAltTrap::try_import( const jmapgen_piece& piece, PaletteImportReport& report )
 {
+    // TODO: 'remove' flag
     return import_alternatively<EID::Trap, jmapgen_trap>(list, piece, report);
 }
 

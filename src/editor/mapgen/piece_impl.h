@@ -182,19 +182,23 @@ struct PieceItem : public Piece {
 struct PieceTrap : public Piece {
     IMPLEMENT_ME_PIECE( PieceTrap, PieceType::Trap )
 
-    // TODO
+    bool remove = false;
+    EID::Trap id;
+    // TODO: show on canvas
 };
 
 struct PieceFurniture : public Piece {
     IMPLEMENT_ME_PIECE( PieceFurniture, PieceType::Furniture )
 
-    // TODO
+    EID::Furn id;
+    // TODO: show on canvas
 };
 
 struct PieceTerrain : public Piece {
     IMPLEMENT_ME_PIECE( PieceTerrain, PieceType::Terrain )
 
-    // TODO
+    EID::Ter id;
+    // TODO: show on canvas
 };
 
 struct PieceTerFurnTransform : public Piece {

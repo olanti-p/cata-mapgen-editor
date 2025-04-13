@@ -425,17 +425,22 @@ void PieceItem::export_func( JsonOut &jo ) const
 
 void PieceTrap::export_func( JsonOut &jo ) const
 {
-    // TODO
+    if (remove) {
+        ee::emit(jo, "remove", true);
+    }
+    else {
+        ee::emit(jo, "trap", id);
+    }
 }
 
 void PieceFurniture::export_func( JsonOut &jo ) const
 {
-    // TODO
+    ee::emit(jo, "furn", id);
 }
 
 void PieceTerrain::export_func( JsonOut &jo ) const
 {
-    // TODO
+    ee::emit(jo, "ter", id);
 }
 
 void PieceTerFurnTransform::export_func( JsonOut &jo ) const
