@@ -2586,9 +2586,8 @@ class jmapgen_faction : public jmapgen_piece
  */
 class jmapgen_sign : public jmapgen_piece_with_has_vehicle_collision
 {
-    private:
-        furn_id sign_furniture;
     public:
+        furn_id sign_furniture;
         translation signage;
         std::string snippet;
         jmapgen_sign( const JsonObject &jsi, const std::string_view/*context*/ ) :
@@ -8984,6 +8983,7 @@ bool PieceSign::try_import( const jmapgen_piece& piece, PaletteImportReport& rep
         snippet = casted->snippet;
         use_snippet = true;
     }
+    furniture = EID::SignageFurn(casted->sign_furniture.id().str());
     return true;
 }
 

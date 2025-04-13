@@ -39,6 +39,9 @@ struct EditableID {
         inline bool operator==( const EditableID<T> &rhs ) const {
             return data == rhs.data;
         }
+        inline bool operator!=(const EditableID<T>& rhs) const {
+            return data != rhs.data;
+        }
 
         bool is_valid() const {
             return string_id<T>( data ).is_valid();
@@ -82,6 +85,7 @@ struct liquid_item_tag {};
 struct item_group_tag {};
 struct temp_palette_tag {};
 struct import_mapgen_tag {};
+struct signage_furn_tag {};
 
 // EditableID specified for types
 namespace EID
@@ -100,6 +104,7 @@ using NPCTemplate = EditableID<npc_template>;
 using Oter = EditableID<oter_t>;
 using OterType = EditableID<oter_type_t>;
 using Palette = EditableID<mapgen_palette>;
+using SignageFurn = EditableID<signage_furn_tag>;
 using TempPalette = EditableID<temp_palette_tag>;
 using SnippetCategory = EditableID<snippet_category_tag>;
 using Ter = EditableID<ter_t>;

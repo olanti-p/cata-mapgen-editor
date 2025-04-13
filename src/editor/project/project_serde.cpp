@@ -237,6 +237,7 @@ void PieceSign::serialize( JsonOut &jsout ) const
     jsout.member( "use_snippet", use_snippet );
     jsout.member( "snippet", snippet );
     jsout.member( "text", text );
+    jsout.member( "furniture", furniture);
 }
 
 void PieceSign::deserialize( const JSON_OBJECT &jsin )
@@ -244,6 +245,7 @@ void PieceSign::deserialize( const JSON_OBJECT &jsin )
     jsin.read( "use_snippet", use_snippet );
     jsin.read( "snippet", snippet );
     jsin.read( "text", text );
+    jsin.read( "furniture", furniture);
 }
 
 void PieceGraffiti::serialize( JsonOut &jsout ) const

@@ -179,6 +179,21 @@ const std::vector<std::string> &EditableID<mapgen_palette>::get_all_opts()
 }
 
 template<>
+const std::vector<std::string>& EditableID<signage_furn_tag>::get_all_opts()
+{
+    if (all_opts.empty()) {
+        all_opts.reserve(furn_t::get_all().size());
+        for (const furn_t& it : furn_t::get_all().get_all()) {
+            if (!it.has_flag(ter_furn_flag::TFLAG_SIGN)) {
+                continue;
+            }
+            all_opts.push_back(it.id.str());
+        }
+    }
+    return all_opts;
+}
+
+template<>
 const std::vector<std::string>& EditableID<temp_palette_tag>::get_all_opts()
 {
     if (all_opts.empty()) {
@@ -273,7 +288,8 @@ bool string_id<editor::snippet_category_tag>::is_valid() const
 template<>
 bool string_id<editor::liquid_item_tag>::is_valid() const
 {
-    return itype_id( this->str() ).is_valid();
+    itype_id id(this->str());
+    return id.is_valid() && id->phase == phase_id::LIQUID;
 }
 
 template<>
@@ -292,4 +308,11 @@ template<>
 bool string_id<editor::import_mapgen_tag>::is_valid() const
 {
     return editor_mapgen_refs.count(this->str()) > 0;
+}
+
+template<>
+bool string_id<editor::signage_furn_tag>::is_valid() const
+{
+    furn_str_id id(this->str());
+    return id.is_valid() && id->has_flag(ter_furn_flag::TFLAG_SIGN);
 }

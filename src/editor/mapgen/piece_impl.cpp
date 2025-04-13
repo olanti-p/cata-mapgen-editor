@@ -206,6 +206,11 @@ static void sign_or_graffiti(
 void PieceSign::show_ui( State &state )
 {
     sign_or_graffiti( state, true, use_snippet, snippet, text );
+
+    ImGui::HelpMarkerInline("Furniture tile to use. Must have SIGN flag.");
+    if (ImGui::InputId("furniture", furniture)) {
+        state.mark_changed();
+    }
 }
 
 std::string PieceSign::fmt_data_summary() const

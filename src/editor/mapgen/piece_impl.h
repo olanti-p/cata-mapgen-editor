@@ -48,6 +48,10 @@ struct PieceSign : public Piece {
     bool use_snippet = false;
     EID::SnippetCategory snippet;
     std::string text;
+    bool use_furniture = false;
+    const EID::SignageFurn default_furniture = EID::SignageFurn("f_sign");
+    EID::SignageFurn furniture = default_furniture;
+    // TODO: display furniture on canvas
 };
 
 struct PieceGraffiti : public Piece {

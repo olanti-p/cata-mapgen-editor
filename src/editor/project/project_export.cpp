@@ -282,6 +282,9 @@ void PieceSign::export_func( JsonOut &jo ) const
     } else {
         ee::emit( jo, "signage", text );
     }
+    if (furniture != default_furniture) {
+        ee::emit(jo, "furniture", furniture);
+    }
 }
 
 void PieceGraffiti::export_func( JsonOut &jo ) const
