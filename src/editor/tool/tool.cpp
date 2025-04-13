@@ -90,6 +90,10 @@ void show_toolbar( State &state, bool &show )
         handle_toolbar_hotkeys(state);
     }
 
+    // Quick hack so hovering over window bar does not show help popups.
+    // FIXME: fix it so hovering over window bar does not trigger help popups
+    ImGui::Separator();
+
     ToolsState &tools = *state.ui->tools;
     ControlState &control = *state.control;
 
