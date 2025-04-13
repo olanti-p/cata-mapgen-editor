@@ -9009,6 +9009,9 @@ bool PieceVendingMachine::try_import( const jmapgen_piece& piece, PaletteImportR
     if( !casted ) {
         return false;
     }
+    lootable = casted->lootable;
+    powered = casted->powered;
+    networked = casted->networked;
     reinforced = casted->reinforced;
     {
         // TODO: parametric

@@ -238,6 +238,18 @@ std::string PieceGraffiti::fmt_data_summary() const
 
 void PieceVendingMachine::show_ui( State &state )
 {
+    ImGui::HelpMarkerInline( "Whether this vending machine is lootable." );
+    if( ImGui::Checkbox( "lootable", &lootable ) ) {
+        state.mark_changed();
+    }
+    ImGui::HelpMarkerInline( "Whether this vending machine is powered." );
+    if( ImGui::Checkbox( "powered", &powered ) ) {
+        state.mark_changed();
+    }
+    ImGui::HelpMarkerInline( "Whether this vending machine is networked." );
+    if( ImGui::Checkbox( "networked", &networked ) ) {
+        state.mark_changed();
+    }
     ImGui::HelpMarkerInline( "Whether this vending machine is reinforced." );
     if( ImGui::Checkbox( "reinforced", &reinforced ) ) {
         state.mark_changed();

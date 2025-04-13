@@ -264,6 +264,9 @@ void PieceGraffiti::deserialize( const JSON_OBJECT &jsin )
 
 void PieceVendingMachine::serialize( JsonOut &jsout ) const
 {
+    jsout.member( "lootable", lootable );
+    jsout.member( "powered", powered );
+    jsout.member( "networked", networked );
     jsout.member( "reinforced", reinforced );
     jsout.member( "use_default_group", use_default_group );
     jsout.member( "item_group", item_group );
@@ -271,6 +274,9 @@ void PieceVendingMachine::serialize( JsonOut &jsout ) const
 
 void PieceVendingMachine::deserialize( const JSON_OBJECT &jsin )
 {
+    jsin.read( "lootable", lootable );
+    jsin.read( "powered", powered );
+    jsin.read( "networked", networked );
     jsin.read( "reinforced", reinforced );
     jsin.read( "use_default_group", use_default_group );
     jsin.read( "item_group", item_group );

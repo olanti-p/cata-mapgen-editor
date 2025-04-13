@@ -298,6 +298,15 @@ void PieceGraffiti::export_func( JsonOut &jo ) const
 
 void PieceVendingMachine::export_func( JsonOut &jo ) const
 {
+    if( lootable ) {
+        ee::emit( jo, "lootable", lootable );
+    }
+    if( powered ) {
+        ee::emit( jo, "powered", powered );
+    }
+    if( networked ) {
+        ee::emit( jo, "networked", networked );
+    }
     if( reinforced ) {
         ee::emit( jo, "reinforced", reinforced );
     }

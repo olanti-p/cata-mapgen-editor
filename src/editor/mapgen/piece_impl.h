@@ -65,9 +65,13 @@ struct PieceGraffiti : public Piece {
 struct PieceVendingMachine : public Piece {
     IMPLEMENT_ME_PIECE( PieceVendingMachine, PieceType::VendingMachine )
 
+    bool lootable = false;
+    bool powered = false;
+    bool networked = false;
     bool reinforced = false;
     bool use_default_group = true;
     EID::IGroup item_group;
+    // TODO: display furniture on canvas
 };
 
 struct PieceToilet : public Piece {
