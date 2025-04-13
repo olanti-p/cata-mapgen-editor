@@ -256,7 +256,6 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
     bool tooltip_entry_error = false;
     bool tooltip_entry_fill_ter = false;
     std::string tooltip_error_msg;
-    point_abs_etile tooltip_pos;
 
     const Canvas2D<MapKey>& canvas_2d = mapgen.base.canvas;
     const CanvasSnippet *snippet = snippets.get_snippet( mapgen.uuid );
@@ -269,7 +268,6 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
     if( view_hovered ) {
         if( ImGui::IsKeyDown( ImGuiKey_ModCtrl ) ) {
             show_tooltip = true;
-            tooltip_pos = tile_pos;
             if( is_mouse_in_bounds ) {
                 MapKey uuid = get_key_at_pos(canvas_2d, snippet, tile_pos.raw() );
                 tooltip_entry = pal.find_entry( uuid );
@@ -510,12 +508,42 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
         draw_selection_mask( draw_list, *selection, point_abs_etile(), cam, false );
     }
 
+    std::vector<const MapObject*> hovered_objects;
+
     if( view_hovered ) {
+        for (const MapObject& obj : mapgen.objects) {
+            if (obj.x.max < tile_pos.x() ||
+                obj.y.max < tile_pos.y() ||
+                obj.x.min > tile_pos.x() ||
+                obj.y.min > tile_pos.y()
+                ) {
+                continue;
+            }
+            hovered_objects.push_back(&obj);
+        }
+
+        std::unordered_set<point> nested_info;
+        std::unordered_set<point> vehicle_info;
+        std::unordered_set<int> vehicle_rotations;
+
+        for (const MapObject* obj : hovered_objects) {
+            const PieceNested* nested = dynamic_cast<const PieceNested*>(obj->piece.get());
+            if (nested) {
+                std::unordered_set<point> sil = nested->silhouette();
+                nested_info.insert(sil.begin(), sil.end());
+            }
+            const PieceVehicle* vehicle = dynamic_cast<const PieceVehicle*>(obj->piece.get());
+            if (vehicle) {
+                vehicle_rotations.insert(vehicle->allowed_rotations.begin(), vehicle->allowed_rotations.end());
+                std::unordered_set<point> sil = vehicle->silhouette();
+                vehicle_info.insert(sil.begin(), sil.end());
+            }
+        }
+
         if (mapgen.uses_rows() && is_mouse_in_bounds) {
             MapKey  uuid = get_key_at_pos(canvas_2d, snippet, tile_pos.raw());
             ViewEntry* hovered_entry = pal.find_entry(uuid);
 
-            std::unordered_set<point> nested_info;
             if (hovered_entry) {
                 for (const ViewPiece& piece : hovered_entry->pieces) {
                     const PieceNested* nested = dynamic_cast<const PieceNested*>(piece.piece);
@@ -523,25 +551,6 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                         std::unordered_set<point> sil = nested->silhouette();
                         nested_info.insert(sil.begin(), sil.end());
                     }
-                }
-            }
-            bool show_nest = false;
-            if (nested_info.size() > 1) {
-                show_nest = true;
-            }
-            else if (nested_info.size() == 1) {
-                show_nest = *nested_info.begin() != point_zero;
-            }
-            if (show_nest) {
-                for (const point& delta : nested_info) {
-                    fill_tile(draw_list, cam, tile_pos + delta, col_nest);
-                }
-            }
-
-            std::unordered_set<point> vehicle_info;
-            std::unordered_set<int> vehicle_rotations;
-            if (hovered_entry) {
-                for (const ViewPiece& piece : hovered_entry->pieces) {
                     const PieceVehicle* vehicle = dynamic_cast<const PieceVehicle*>(piece.piece);
                     if (vehicle) {
                         vehicle_rotations.insert(vehicle->allowed_rotations.begin(), vehicle->allowed_rotations.end());
@@ -550,16 +559,29 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                     }
                 }
             }
-            bool show_vehicle = !vehicle_info.empty();
-            if (show_vehicle) {
-                for (const point& delta : vehicle_info) {
-                    fill_tile(draw_list, cam, tile_pos + delta, col_vehicle_outline);
-                }
-                for (int angle : vehicle_rotations) {
-                    // Reminder: 0 degrees means east, rotations are clockwise
-                    int angle_normalized = (angle - 90 + 360) % 360;
-                    draw_ray(draw_list, cam, tile_pos, units::from_degrees(angle_normalized), 1.4f, col_vehicle_dir);
-                }
+        }
+        bool show_nest = false;
+        if (nested_info.size() > 1) {
+            show_nest = true;
+        }
+        else if (nested_info.size() == 1) {
+            show_nest = *nested_info.begin() != point_zero;
+        }
+        if (show_nest) {
+            for (const point& delta : nested_info) {
+                fill_tile(draw_list, cam, tile_pos + delta, col_nest);
+            }
+        }
+
+        bool show_vehicle = !vehicle_info.empty();
+        if (show_vehicle) {
+            for (const point& delta : vehicle_info) {
+                fill_tile(draw_list, cam, tile_pos + delta, col_vehicle_outline);
+            }
+            for (int angle : vehicle_rotations) {
+                // Reminder: 0 degrees means east, rotations are clockwise
+                int angle_normalized = (angle - 90 + 360) % 360;
+                draw_ray(draw_list, cam, tile_pos, units::from_degrees(angle_normalized), 1.4f, col_vehicle_dir);
             }
         }
 
@@ -598,19 +620,7 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
     state.control->highlight_entry_in_palette = tooltip_entry_uuid;
 
     if( show_tooltip ) {
-        std::vector<const MapObject *> objects;
-        for( const MapObject &obj : mapgen.objects ) {
-            if( obj.x.max < tooltip_pos.x() ||
-                obj.y.max < tooltip_pos.y() ||
-                obj.x.min > tooltip_pos.x() ||
-                obj.y.min > tooltip_pos.y()
-              ) {
-                continue;
-            }
-            objects.push_back( &obj );
-        }
-
-        if( tooltip_entry || tooltip_entry_error || (tooltip_entry_fill_ter && show_fill_ter_fallback) || !objects.empty() ) {
+        if( tooltip_entry || tooltip_entry_error || (tooltip_entry_fill_ter && show_fill_ter_fallback) || !hovered_objects.empty() ) {
             ImGui::BeginTooltip();
             if( tooltip_needs_separator ) {
                 ImGui::SeparatorText( "Info" );
@@ -622,7 +632,7 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                 std::string text = "ERROR: " + tooltip_error_msg;
                 ImGui::Text( text.c_str() );
             }
-            for( const MapObject *obj : objects ) {
+            for( const MapObject *obj : hovered_objects) {
                 ImGui::TextDisabled( "OBJ" );
                 ImGui::SameLine();
                 ImGui::Text( "%s", obj->piece->fmt_summary().c_str() );
