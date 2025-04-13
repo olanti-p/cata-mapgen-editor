@@ -24,6 +24,7 @@ Vague list of what changes are planned, and what changes would be nice to have b
 - Better vehicle placement preview (graphical tiles; choose which vehicle is visualized)
 - Better nested placement preview (recursive placement; graphical tiles and tooltip data; choose which nested is visualized)
 - Design simple overmap specials that use the mapgen (like in Hostile Architect)
+- Support "set"-based placement
 
 
 ## UI
@@ -45,3 +46,9 @@ Vague list of what changes are planned, and what changes would be nice to have b
 
 ## Bugs
 See BUGS.md
+
+
+## Not Planned
+Things definitely not planned:
+
+- Replicating full mapgen functionality and handling all corner cases
