@@ -1,6 +1,7 @@
 #include "piece_impl.h"
 
 #include "common/algo.h"
+#include "common/color.h"
 #include "widget/style.h"
 #include "state/state.h"
 #include "widget/widgets.h"
@@ -64,19 +65,56 @@ void PieceField::show_ui( State &state )
     if( ImGui::InputId( "ftype", ftype ) ) {
         state.mark_changed();
     }
-    ImGui::HelpMarkerInline( "Intensity of the field." );
-    if( ImGui::InputIntClamped( "intensity", intensity, 1, 3 ) ) {
+    ImGui::HelpMarkerInline("Spawn chance, in percent.");
+    if (ImGui::InputIntClamped("chance (%)", chance, 0, 100)) {
+        state.mark_changed("me-piece-field-chance-input");
+    }
+    ImGui::HelpMarkerInline("Whether this will place field or remove field with matching id.");
+    if (ImGui::Checkbox("remove", &remove)) {
         state.mark_changed();
+    }
+
+    ImGui::BeginDisabled(remove);
+    ImGui::HelpMarkerInline( "Possible intensities of the field being placed." );
+    ImGui::Text("intensity");
+    ImGui::SameLine();
+    ImVec2 sz(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
+    ImGui::SetNextItemWidth(.3f );
+    if (ImGui::Selectable("1", &int_1, ImGuiSelectableFlags_None, sz)) {
+        state.mark_changed();
+    }
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(.3f);
+    if (ImGui::Selectable("2", &int_2, ImGuiSelectableFlags_None, sz)) {
+        state.mark_changed();
+    }
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(.3f);
+    if (ImGui::Selectable("3", &int_3, ImGuiSelectableFlags_None, sz)) {
+        state.mark_changed();
+    }
+    bool is_error = !remove && !int_1 && !int_2 && !int_3;
+    if (is_error) {
+        ImGui::SameLine();
+        ImGui::PushStyleColor(ImGuiCol_Text, col_error_text);
+        ImGui::Text("Must select at least one");
+        ImGui::PopStyleColor();
     }
     ImGui::HelpMarkerInline( "Age of the field at the moment of spawn.  Affects decay rate." );
     if( ImGui::InputDuration( "age", age ) ) {
         state.mark_changed();
     }
+    ImGui::EndDisabled();
 }
 
 std::string PieceField::fmt_data_summary() const
 {
-    return string_format( "%s:%d", ftype.data, intensity );
+    if (remove) {
+        return string_format( "%s:remove", ftype.data );
+    }
+    else {
+        return string_format( "%s:%s%s%s", ftype.data, int_1 ? "1" : "", int_2 ? "2" : "", int_3 ? "3" : "" );
+    }
 }
 
 void PieceNPC::show_ui( State &state )

@@ -19,8 +19,12 @@ struct PieceField : public Piece {
     IMPLEMENT_ME_PIECE( PieceField, PieceType::Field )
 
     EID::Field ftype;
-    int intensity = 1;
+    bool int_1 = true;
+    bool int_2 = false;
+    bool int_3 = false;
     time_duration age = 0_seconds;
+    int chance = 100;
+    bool remove = false;
 };
 
 struct PieceNPC : public Piece {

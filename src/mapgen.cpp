@@ -8900,8 +8900,16 @@ bool PieceField::try_import( const jmapgen_piece& piece, PaletteImportReport& re
     if( !casted ) {
         return false;
     }
-    if (casted->intensities.size() != 1) {
-        return false; // TODO: multiple intensities
+    for (int i : casted->intensities) {
+        if (i == 1) {
+            int_1 = true;
+        }
+        if (i == 2) {
+            int_2 = true;
+        }
+        if (i == 3) {
+            int_3 = true;
+        }
     }
     {
         // TODO: parametric
@@ -8913,8 +8921,9 @@ bool PieceField::try_import( const jmapgen_piece& piece, PaletteImportReport& re
             ftype = EID::Field(*val.second);
         }
     }
-    intensity = casted->intensities[0];
     age = casted->age;
+    chance = casted->chance;
+    remove = casted->remove;
     return true;
 }
 

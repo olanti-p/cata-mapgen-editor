@@ -187,14 +187,22 @@ void PieceConstraint::serialize( JsonOut &jsout ) const
 void PieceField::serialize( JsonOut &jsout ) const
 {
     jsout.member( "ftype", ftype );
-    jsout.member( "intensity", intensity );
+    jsout.member( "chance", chance );
+    jsout.member( "remove", remove );
+    jsout.member( "int_1", int_1 );
+    jsout.member( "int_2", int_2 );
+    jsout.member( "int_3", int_3 );
     jsout.member( "age", age );
 }
 
 void PieceField::deserialize( const JSON_OBJECT &jsin )
 {
     jsin.read( "ftype", ftype );
-    jsin.read( "intensity", intensity );
+    jsin.read( "chance", chance );
+    jsin.read( "remove", remove );
+    jsin.read( "int_1", int_1 );
+    jsin.read( "int_2", int_2 );
+    jsin.read( "int_3", int_3 );
     jsin.read( "age", age );
 }
 

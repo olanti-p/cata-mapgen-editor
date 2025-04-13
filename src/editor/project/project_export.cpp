@@ -228,11 +228,31 @@ namespace ee = editor_export;
 void PieceField::export_func( JsonOut &jo ) const
 {
     ee::emit( jo, "field", ftype );
-    if( intensity != 1 ) {
-        ee::emit( jo, "intensity", intensity );
+    if (remove) {
+        ee::emit(jo, "remove", true);
     }
-    if( age != 0_turns ) {
-        ee::emit( jo, "age", to_turns<int>( age ) );
+    else {
+        std::vector<int> ints;
+        if (int_1) {
+            ints.push_back(1);
+        }
+        if (int_2) {
+            ints.push_back(2);
+        }
+        if (int_3) {
+            ints.push_back(3);
+        }
+        if (ints.empty()) {
+            // May happen if user leaves invalid selection
+            ints.push_back(1);
+        }
+        ee::emit_single_or_array(jo, "intensity", ints);
+        if( age != 0_turns ) {
+            ee::emit( jo, "age", to_turns<int>( age ) );
+        }
+    }
+    if (chance != 100) {
+        ee::emit(jo, "chance", chance);
     }
 }
 
