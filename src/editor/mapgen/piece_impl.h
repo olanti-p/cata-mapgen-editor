@@ -170,6 +170,8 @@ struct PieceVehicle : public Piece {
     bool random_fuel_amount = true;
     int fuel = 100;
     std::set<int> allowed_rotations;
+    const EID::Faction default_faction = EID::Faction("no_faction");
+    EID::Faction faction = default_faction;
 
     std::unordered_set<point> silhouette() const;
 };

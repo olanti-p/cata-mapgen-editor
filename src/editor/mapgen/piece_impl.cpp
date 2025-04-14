@@ -614,6 +614,11 @@ void PieceVehicle::show_ui( State &state )
     if( ImGui::VehicleDirSet( allowed_rotations ) ) {
         state.mark_changed( "me-piece-vehicle-allowed-rotations-input" );
     }
+
+    ImGui::HelpMarkerInline("Owner faction. Leave as 'no_faction' to omit.");
+    if (ImGui::InputId("faction", faction)) {
+        state.mark_changed("me-piece-vehicle-faction");
+    }
 }
 
 std::string PieceVehicle::fmt_data_summary() const

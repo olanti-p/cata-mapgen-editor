@@ -398,6 +398,7 @@ void PieceVehicle::serialize( JsonOut &jsout ) const
     jsout.member( "random_fuel_amount", random_fuel_amount );
     jsout.member( "fuel", fuel );
     jsout.member( "allowed_rotations", allowed_rotations );
+    jsout.member( "faction", faction );
 }
 
 void PieceVehicle::deserialize( const JSON_OBJECT &jsin )
@@ -408,6 +409,7 @@ void PieceVehicle::deserialize( const JSON_OBJECT &jsin )
     jsin.read( "random_fuel_amount", random_fuel_amount );
     jsin.read( "fuel", fuel );
     jsin.read( "allowed_rotations", allowed_rotations );
+    jsin.read( "faction", faction );
 }
 
 void PieceItem::serialize( JsonOut &jsout ) const

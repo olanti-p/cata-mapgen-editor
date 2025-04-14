@@ -445,6 +445,9 @@ void PieceVehicle::export_func( JsonOut &jo ) const
     if( !rots.empty() ) {
         ee::emit_single_or_array( jo, "rotation", rots );
     }
+    if (faction != default_faction) {
+        ee::emit(jo, "faction", faction);
+    }
 }
 
 void PieceItem::export_func( JsonOut &jo ) const

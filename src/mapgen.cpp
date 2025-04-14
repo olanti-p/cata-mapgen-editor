@@ -9235,7 +9235,9 @@ bool PieceVehicle::try_import( const jmapgen_piece& piece, PaletteImportReport& 
     else if (casted->status == 2) {
         status = VehicleStatus::Pristine;
     }
-    // TODO: faction
+    if (!casted->faction.empty()) {
+        faction = EID::Faction( casted->faction );
+    }
     return true;
 }
 
