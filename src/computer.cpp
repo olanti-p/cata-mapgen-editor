@@ -423,16 +423,6 @@ std::string enum_to_string<computer_failure_type>( const computer_failure_type f
 }
 } // namespace io
 
-template<>
-struct enum_traits<computer_action> {
-    static constexpr computer_action last = NUM_COMPUTER_ACTIONS;
-};
-
-template<>
-struct enum_traits<computer_failure_type> {
-    static constexpr computer_failure_type last = NUM_COMPUTER_FAILURES;
-};
-
 computer_option computer_option::from_json( const JsonObject &jo )
 {
     translation name;
