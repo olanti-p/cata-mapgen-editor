@@ -250,6 +250,7 @@ Mapgen* import_mapgen(State& state, ImportMapgenState& mapgen)
             MapObject mo = MapObject();
 
             mo.piece = import_simple_piece(piece, report, true);
+            mo.piece->is_object = true;
             mo.set_uuid(project.uuid_generator());
             mo.x = place.x;
             mo.y = place.y;

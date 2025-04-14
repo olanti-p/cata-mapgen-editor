@@ -113,6 +113,7 @@ void show_mapobjects( State &state, Mapgen &f, bool is_active, bool &show )
                 obj.piece = editor::make_new_piece( object_opts[new_object_type - 1].second );
                 UUID uuid = state.project().uuid_generator();
                 obj.piece->uuid = uuid;
+                obj.piece->is_object = true;
                 obj.piece->init_new();
                 list.push_back( std::move( obj ) );
                 expand_object( state, uuid );

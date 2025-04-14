@@ -59,6 +59,9 @@ struct Piece {
 
     UUID uuid = UUID_INVALID;
     std::optional<PieceConstraint> constraint;
+    
+    // True for pieces used as mapgen objects
+    bool is_object = false;
 
     virtual std::unique_ptr<Piece> clone() const = 0;
 

@@ -449,16 +449,19 @@ void PieceIGroup::show_ui( State &state )
         state.mark_changed( "me-piece-igroup-chance-input" );
     }
 
-    ImGui::HelpMarkerInline( "Whether to spawn once, or multiple times." );
-    if( ImGui::Checkbox( "Once", &spawn_once ) ) {
-        state.mark_changed();
-    }
-    ImGui::BeginDisabled( spawn_once );
-    ImGui::HelpMarkerInline( "TODO" );
-    if( ImGui::InputIntRange( "repeat", repeat ) ) {
-        state.mark_changed( "me-piece-igroup-repeat-input" );
-    }
-    ImGui::EndDisabled();
+	if (!is_object) {
+		// IGroup having its own 'repeat' that duplicates into placement mode 'repeat' is so stupid...
+		ImGui::HelpMarkerInline( "Whether to spawn once, or multiple times." );
+		if( ImGui::Checkbox( "Once", &spawn_once ) ) {
+			state.mark_changed();
+		}
+		ImGui::BeginDisabled( spawn_once );
+		ImGui::HelpMarkerInline( "TODO" );
+		if( ImGui::InputIntRange( "repeat", repeat ) ) {
+			state.mark_changed( "me-piece-igroup-repeat-input" );
+		}
+		ImGui::EndDisabled();
+	}
 
     // TODO: inline item groups
     ImGui::HelpMarkerInline( "Item group to spawn." );

@@ -834,6 +834,10 @@ void Mapgen::deserialize( const TextJsonValue &jsin )
     jo.read( "nested", nested );
     jo.read( "objects", objects );
     jo.read( "selection_mask", selection_mask );
+
+    for (const MapObject& obj : objects) {
+        obj.piece->is_object = true;
+    }
 }
 
 void Project::serialize( JsonOut &jsout ) const

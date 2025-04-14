@@ -385,7 +385,7 @@ void PieceIGroup::export_func( JsonOut &jo ) const
 {
     ee::emit( jo, "item", group_id );
     ee::emit( jo, "chance", chance );
-    if( !spawn_once ) {
+    if( !is_object && !spawn_once ) {
         ee::emit( jo, "repeat", repeat );
     }
     if( faction != default_faction ) {
