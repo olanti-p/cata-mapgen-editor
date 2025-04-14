@@ -9330,6 +9330,28 @@ bool PieceMakeRubble::try_import( const jmapgen_piece& piece, PaletteImportRepor
     if (!casted) {
         return false;
     }
+    overwrite = casted->overwrite;
+    items = casted->items;
+    {
+        // TODO: parametric
+        auto val = casted->rubble_type.collapse_import();
+        if (val.first) {
+            report.num_values_folded++;
+        }
+        if (val.second) {
+            rubble_type = EID::Furn(val.second->str());
+        }
+    }
+    {
+        // TODO: parametric
+        auto val = casted->floor_type.collapse_import();
+        if (val.first) {
+            report.num_values_folded++;
+        }
+        if (val.second) {
+            floor_type = EID::Ter(val.second->str());
+        }
+    }
     return true; // TODO
 }
 

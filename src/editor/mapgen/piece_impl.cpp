@@ -716,12 +716,27 @@ std::string PieceTerFurnTransform::fmt_data_summary() const
 
 void PieceMakeRubble::show_ui( State &state )
 {
-    ImGui::Text( "TODO" );
+    ImGui::HelpMarkerInline("Terrain id to use as floor.");
+    if (ImGui::InputId("floor_type", floor_type)) {
+        state.mark_changed("piece-rubble-floor-id");
+    }
+    ImGui::HelpMarkerInline("Furniture id to use for the pile.");
+    if (ImGui::InputId("rubble_type", rubble_type)) {
+        state.mark_changed("piece-rubble-rubble-type");
+    }
+    ImGui::HelpMarkerInline("Whether this will spawn items.");
+    if (ImGui::Checkbox("items", &items)) {
+        state.mark_changed();
+    }
+    ImGui::HelpMarkerInline("By default, rubble is generated from existing terrain and furniture.\nSetting it to overwrite will erase existing ter/furn before placing rubble.");
+    if (ImGui::Checkbox("overwrite", &overwrite)) {
+        state.mark_changed();
+    }
 }
 
 std::string PieceMakeRubble::fmt_data_summary() const
 {
-    return "TODO";
+    return rubble_type.data;
 }
 
 void PieceComputer::show_ui( State &state )

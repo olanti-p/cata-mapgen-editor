@@ -211,7 +211,13 @@ struct PieceTerFurnTransform : public Piece {
 struct PieceMakeRubble : public Piece {
     IMPLEMENT_ME_PIECE( PieceMakeRubble, PieceType::MakeRubble )
 
-    // TODO
+    bool items = false;
+    bool overwrite = false;
+    const EID::Furn default_rubble_type = EID::Furn("f_rubble");
+    EID::Furn rubble_type = default_rubble_type;
+    const EID::Ter default_floor_type = EID::Ter("t_dirt");
+    EID::Ter floor_type = default_floor_type;
+    // TODO: show on canvas
 };
 
 struct PieceComputer : public Piece {

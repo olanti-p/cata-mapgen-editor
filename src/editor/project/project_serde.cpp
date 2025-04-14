@@ -466,12 +466,18 @@ void PieceTerFurnTransform::deserialize( const JSON_OBJECT &jsin )
 
 void PieceMakeRubble::serialize( JsonOut &jsout ) const
 {
-    // TODO
+    jsout.member("items", items);
+    jsout.member("overwrite", overwrite);
+    jsout.member("rubble_type", rubble_type);
+    jsout.member("floor_type", floor_type);
 }
 
 void PieceMakeRubble::deserialize( const JSON_OBJECT &jsin )
 {
-    // TODO
+    jsin.read("items", items);
+    jsin.read("overwrite", overwrite);
+    jsin.read("rubble_type", rubble_type);
+    jsin.read("floor_type", floor_type);
 }
 
 void PieceComputer::serialize( JsonOut &jsout ) const

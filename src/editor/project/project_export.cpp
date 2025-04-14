@@ -450,7 +450,18 @@ void PieceTerFurnTransform::export_func( JsonOut &jo ) const
 
 void PieceMakeRubble::export_func( JsonOut &jo ) const
 {
-    // TODO
+    if (rubble_type != default_rubble_type) {
+        ee::emit(jo, "rubble_type", rubble_type);
+    }
+    if (floor_type != default_floor_type) {
+        ee::emit(jo, "floor_type", floor_type);
+    }
+    if (items) {
+        ee::emit(jo, "items", items);
+    }
+    if (overwrite) {
+        ee::emit(jo, "overwrite", overwrite);
+    }
 }
 
 void PieceComputer::export_func( JsonOut &jo ) const
