@@ -34,6 +34,8 @@ void emit_val( JsonOut &jo, const editor::MapObject *obj );
 template<typename T>
 void emit_val( JsonOut &jo, const editor::EditableID<T> &eid );
 void emit_val( JsonOut &jo, const editor::IntRange &r );
+void emit_val( JsonOut &jo, const editor::ComputerOption &c );
+void emit_val( JsonOut &jo, const editor::ComputerFailure &c );
 template<typename T>
 void emit_val( JsonOut &jo, const editor::WeightedList<T> &list );
 
@@ -44,6 +46,8 @@ template<typename F>
 void emit_array( JsonOut &jo, F func );
 template<typename F>
 void emit_array( JsonOut &jo, const std::string &key, F func );
+template<typename T>
+void emit_array( JsonOut &jo, const std::vector<T>& vals );
 
 template<typename F>
 void emit_object( JsonOut &jo, F func );
@@ -135,6 +139,24 @@ void emit_val( JsonOut &jo, const editor::IntRange &r )
     }
 }
 
+void emit_val(JsonOut& jo, const editor::ComputerOption& c)
+{
+    emit_object(jo, [&]() {
+        emit(jo, "name", c.name);
+        emit(jo, "action", io::enum_to_string( c.action ) );
+        if (c.security != 0) {
+            emit(jo, "security", c.security);
+        }
+    } );
+}
+
+void emit_val(JsonOut& jo, const editor::ComputerFailure& c)
+{
+    emit_object(jo, [&]() {
+        emit(jo, "action", io::enum_to_string(c.action) );
+    } );
+}
+
 template<typename T>
 void emit_val( JsonOut &jo, const editor::WeightedList<T> &list )
 {
@@ -176,6 +198,16 @@ void emit_array( JsonOut &jo, const std::string &key, F func )
 {
     emit_key( jo, key );
     emit_array( jo, func );
+}
+
+template<typename T>
+void emit_array( JsonOut &jo, const std::vector<T>& vals )
+{
+    emit_array( jo, [&]() {
+        for( const T &itm : vals ) {
+            emit_val( jo, itm );
+        }
+    } );
 }
 
 template<typename F>
@@ -466,7 +498,30 @@ void PieceMakeRubble::export_func( JsonOut &jo ) const
 
 void PieceComputer::export_func( JsonOut &jo ) const
 {
-    // TODO
+    if (!name.empty()) {
+        ee::emit(jo, "name", name);
+    }
+    if (!access_denied.empty()) {
+        ee::emit(jo, "access_denied", access_denied);
+    }
+    if (security != 0) {
+        ee::emit(jo, "security", security);
+    }
+    if (target) {
+        ee::emit(jo, "target", target);
+    }
+    if (!options.empty()) {
+        ee::emit_array(jo, "options", options);
+    }
+    if (!failures.empty()) {
+        ee::emit_array(jo, "failures", failures);
+    }
+    if (!chat_topics.empty()) {
+        ee::emit_array(jo, "chat_topics", chat_topics);
+    }
+    if (!eocs.empty()) {
+        ee::emit_array(jo, "eocs", eocs);
+    }
 }
 
 void PieceSealeditem::export_func( JsonOut &jo ) const

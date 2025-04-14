@@ -4,6 +4,7 @@
 #include "piece.h"
 
 #include "calendar.h"
+#include "computer_enums.h"
 #include "enum_traits.h"
 // FIXME: conflicts with include paths
 #include "editor/widget/editable_id.h"
@@ -220,10 +221,34 @@ struct PieceMakeRubble : public Piece {
     // TODO: show on canvas
 };
 
+struct ComputerOption {
+    std::string name;
+    computer_action action = computer_action::COMPACT_NULL;
+    int security = 0;
+
+    void serialize(JsonOut& jsout) const;
+    void deserialize(const TextJsonObject& jsin);
+};
+
+struct ComputerFailure {
+    computer_failure_type action = computer_failure_type::COMPFAIL_NULL;
+
+    void serialize(JsonOut& jsout) const;
+    void deserialize(const TextJsonObject& jsin);
+};
+
 struct PieceComputer : public Piece {
     IMPLEMENT_ME_PIECE( PieceComputer, PieceType::Computer )
 
-    // TODO
+    std::string name;
+    std::string access_denied;
+    int security = 0;
+    bool target = false;
+    std::vector<ComputerOption> options;
+    std::vector<ComputerFailure> failures;
+    std::vector<std::string> chat_topics;
+    std::vector<EID::EOC> eocs;
+    // TODO: show on canvas
 };
 
 struct PieceSealeditem : public Piece {

@@ -480,14 +480,56 @@ void PieceMakeRubble::deserialize( const JSON_OBJECT &jsin )
     jsin.read("floor_type", floor_type);
 }
 
+void ComputerOption::serialize(JsonOut& jsout) const
+{
+    jsout.start_object();
+    jsout.member("name", name);
+    jsout.member_as_string("action", action);
+    jsout.member("security", security);
+    jsout.end_object();
+}
+
+void ComputerOption::deserialize(const TextJsonObject& jsin)
+{
+    jsin.read("name", name);
+    jsin.read("action", action);
+    jsin.read("security", security);
+}
+
+void ComputerFailure::serialize(JsonOut& jsout) const
+{
+    jsout.start_object();
+    jsout.member_as_string("action", action);
+    jsout.end_object();
+}
+
+void ComputerFailure::deserialize(const TextJsonObject& jsin)
+{
+    jsin.read("action", action);
+}
+
 void PieceComputer::serialize( JsonOut &jsout ) const
 {
-    // TODO
+    jsout.member("name", name);
+    jsout.member("access_denied", access_denied);
+    jsout.member("security", security);
+    jsout.member("target", target);
+    jsout.member("options", options);
+    jsout.member("failures", failures);
+    jsout.member("chat_topics", chat_topics);
+    jsout.member("eocs", eocs);
 }
 
 void PieceComputer::deserialize( const JSON_OBJECT &jsin )
 {
-    // TODO
+    jsin.read("name", name);
+    jsin.read("access_denied", access_denied);
+    jsin.read("security", security);
+    jsin.read("target", target);
+    jsin.read("options", options);
+    jsin.read("failures", failures);
+    jsin.read("chat_topics", chat_topics);
+    jsin.read("eocs", eocs);
 }
 
 void PieceSealeditem::serialize( JsonOut &jsout ) const

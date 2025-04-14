@@ -59,6 +59,30 @@ void show_weighted_list(State& state, editor::WeightedList<T>& list)
     ImGui::Indent(-style::list_indent);
 }
 
+template<typename T>
+void show_plain_list(State& state, std::vector<T>& list, std::function<void(size_t)> &&show_val)
+{
+    ImGui::Indent(style::list_indent);
+
+    const auto can_delete = [&](size_t) -> bool {
+        return true;
+        };
+
+    if (
+        ImGui::VectorWidget()
+        .with_for_each(std::move(show_val))
+        .with_can_delete(can_delete)
+        .with_default_add()
+        .with_default_delete()
+        .with_default_move()
+        .with_default_drag_drop()
+        .run(list)) {
+        state.mark_changed();
+    }
+
+    ImGui::Indent(-style::list_indent);
+}
+
 void PieceField::show_ui( State &state )
 {
     ImGui::HelpMarkerInline( "Type of the field." );
@@ -741,12 +765,107 @@ std::string PieceMakeRubble::fmt_data_summary() const
 
 void PieceComputer::show_ui( State &state )
 {
-    ImGui::Text( "TODO" );
+    static std::vector<std::string> failure_to_string;
+
+    ImGui::HelpMarkerInline("In-game display name of the console.");
+    if (ImGui::InputText("name", &name)) {
+        state.mark_changed("piece-computer-name");
+    }
+
+    ImGui::HelpMarkerInline("'Access denied' message string.");
+    if (ImGui::InputText("access_denied", &access_denied)) {
+        state.mark_changed("piece-computer-access-denied");
+    }
+
+    ImGui::HelpMarkerInline("Login difficulty.");
+    if (ImGui::InputIntClamped("security", security, 0, 100)) {
+        state.mark_changed("piece-computer-login-security");
+    }
+
+    ImGui::HelpMarkerInline("Whether this computer is a mission target.");
+    if (ImGui::Checkbox("mission target", &target)) {
+        state.mark_changed();
+    }
+
+    ImGui::SeparatorText("Options");
+    ImGui::PushID("options");
+    show_plain_list<ComputerOption>(state, options,
+        [&](size_t i) {
+            ComputerOption& it = options[i];
+
+            float x_pos = ImGui::GetCursorPosX();
+            ImGui::SetNextItemWidth(ImGui::GetFrameHeight() * 15.0f);
+            if (ImGui::InputText("##option-name", &it.name)) {
+                state.mark_changed("option-name");
+            }
+            ImGui::HelpPopup("Option name.");
+
+            ImGui::SetCursorPosX(x_pos);
+            ImGui::SetNextItemWidth(ImGui::GetFrameHeight() * 15.0f);
+            if (ImGui::ComboEnum("##option-action", it.action)) {
+                state.mark_changed("option-action");
+            }
+            ImGui::HelpPopup("Action type.");
+
+            ImGui::SetCursorPosX(x_pos);
+            ImGui::SetNextItemWidth(ImGui::GetFrameHeight() * 15.0f);
+            if (ImGui::InputIntClamped("##option-security", it.security, 0, 100)) {
+                state.mark_changed("option-security");
+            }
+            ImGui::HelpPopup("Security level (difficulty).");
+        }
+    );
+    ImGui::PopID();
+
+    ImGui::SeparatorText("Failures");
+    ImGui::PushID("failures");
+    show_plain_list<ComputerFailure>(state, failures,
+        [&](size_t i) {
+            ComputerFailure& it = failures[i];
+
+            if (ImGui::ComboEnum("##failure-type", it.action)) {
+                state.mark_changed("list-entry");
+            }
+            ImGui::HelpPopup("Failure type.");
+        }
+    );
+    ImGui::PopID();
+
+    ImGui::SeparatorText("Chat Topics");
+    ImGui::PushID("chat_topics");
+    show_plain_list<std::string>(state, chat_topics,
+        [&](size_t i) {
+            std::string& it = chat_topics[i];
+
+            ImGui::SetNextItemWidth(ImGui::GetFrameHeight() * 15.0f);
+            if (ImGui::InputText("##chat-topic", &it)) {
+                state.mark_changed("list-entry");
+            }
+            // TODO: possible to validate this?
+            ImGui::HelpPopup("Chat topic value (NO VALIDATION).");
+        }
+    );
+    ImGui::PopID();
+
+    ImGui::SeparatorText("EOCs");
+    ImGui::PushID("eocs");
+    show_plain_list<EID::EOC>(state, eocs,
+        [&](size_t i) {
+            EID::EOC& it = eocs[i];
+
+            ImGui::SetNextItemWidth(ImGui::GetFrameHeight() * 15.0f);
+            if (ImGui::InputId("##eoc", it)) {
+                state.mark_changed("list-entry");
+            }
+            ImGui::HelpPopup("EOC identifier");
+        }
+    );
+    ImGui::PopID();
 }
 
 std::string PieceComputer::fmt_data_summary() const
 {
-    return "TODO";
+    return name;
 }
 
 void PieceSealeditem::show_ui( State &state )

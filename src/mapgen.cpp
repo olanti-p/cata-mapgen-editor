@@ -9361,7 +9361,25 @@ bool PieceComputer::try_import( const jmapgen_piece& piece, PaletteImportReport&
     if (!casted) {
         return false;
     }
-    return true; // TODO
+    name = casted->name.raw;
+    access_denied = casted->access_denied.raw;
+    security = casted->security;
+    target = casted->target;
+
+    for (const auto& it : casted->chat_topics) {
+        chat_topics.push_back(it);
+    }
+    for (const auto& it : casted->eocs) {
+        eocs.push_back(EID::EOC(it));
+    }
+    for (const auto& it : casted->failures) {
+        failures.push_back(ComputerFailure{ it.type });
+    }
+    for (const auto& it : casted->options) {
+        options.push_back(ComputerOption{it.name, it.action, it.security });
+    }
+
+    return true;
 }
 
 bool PieceSealeditem::try_import( const jmapgen_piece& piece, PaletteImportReport& report )

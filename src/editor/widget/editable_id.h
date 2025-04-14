@@ -91,6 +91,7 @@ struct signage_furn_tag {};
 namespace EID
 {
 
+using EOC = EditableID<effect_on_condition>;
 using Field = EditableID<field_type>;
 using Furn = EditableID<furn_t>;
 using IGroup = EditableID<item_group_tag>;

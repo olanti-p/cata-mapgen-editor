@@ -1,6 +1,7 @@
 #include "editable_id.h"
 
 #include "clzones.h"
+#include "effect_on_condition.h"
 #include "faction.h"
 #include "field_type.h"
 #include "game.h"
@@ -20,6 +21,18 @@
 
 namespace editor
 {
+
+template<>
+const std::vector<std::string> &EditableID<effect_on_condition>::get_all_opts()
+{
+    if( all_opts.empty() ) {
+        all_opts.reserve(effect_on_conditions::get_all().size() );
+        for( const effect_on_condition&it : effect_on_conditions::get_all() ) {
+            all_opts.push_back( it.id.str() );
+        }
+    }
+    return all_opts;
+}
 
 template<>
 const std::vector<std::string> &EditableID<field_type>::get_all_opts()
