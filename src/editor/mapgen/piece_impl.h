@@ -204,7 +204,8 @@ struct PieceTerrain : public Piece {
 struct PieceTerFurnTransform : public Piece {
     IMPLEMENT_ME_PIECE( PieceTerFurnTransform, PieceType::TerFurnTransform )
 
-    // TODO
+    EID::TerFurnTransform id;
+    // TODO: show transform result on canvas
 };
 
 struct PieceMakeRubble : public Piece {

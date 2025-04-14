@@ -456,12 +456,12 @@ void PieceTerrain::deserialize( const JSON_OBJECT &jsin )
 
 void PieceTerFurnTransform::serialize( JsonOut &jsout ) const
 {
-    // TODO
+    jsout.member("id", id);
 }
 
 void PieceTerFurnTransform::deserialize( const JSON_OBJECT &jsin )
 {
-    // TODO
+    jsin.read("id", id);
 }
 
 void PieceMakeRubble::serialize( JsonOut &jsout ) const

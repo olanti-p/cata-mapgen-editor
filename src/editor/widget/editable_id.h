@@ -108,6 +108,7 @@ using SignageFurn = EditableID<signage_furn_tag>;
 using TempPalette = EditableID<temp_palette_tag>;
 using SnippetCategory = EditableID<snippet_category_tag>;
 using Ter = EditableID<ter_t>;
+using TerFurnTransform = EditableID<ter_furn_transform>;
 using Trait = EditableID<mutation_branch>;
 using Trap = EditableID<trap>;
 using Update = EditableID<update_mapgen>;

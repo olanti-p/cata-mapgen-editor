@@ -445,7 +445,7 @@ void PieceTerrain::export_func( JsonOut &jo ) const
 
 void PieceTerFurnTransform::export_func( JsonOut &jo ) const
 {
-    // TODO
+    ee::emit(jo, "transform", id);
 }
 
 void PieceMakeRubble::export_func( JsonOut &jo ) const

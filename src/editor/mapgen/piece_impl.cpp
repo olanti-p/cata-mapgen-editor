@@ -703,12 +703,15 @@ std::string PieceTerrain::fmt_data_summary() const
 
 void PieceTerFurnTransform::show_ui( State &state )
 {
-    ImGui::Text( "TODO" );
+    ImGui::HelpMarkerInline("Transform id to apply.");
+    if (ImGui::InputId("transform", id)) {
+        state.mark_changed("piece-ter-furn-transform-id");
+    }
 }
 
 std::string PieceTerFurnTransform::fmt_data_summary() const
 {
-    return "TODO";
+    return id.data;
 }
 
 void PieceMakeRubble::show_ui( State &state )

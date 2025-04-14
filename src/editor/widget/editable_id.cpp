@@ -13,6 +13,7 @@
 #include "npc.h"
 #include "omdata.h"
 #include "text_snippets.h"
+#include "magic_ter_furn_transform.h"
 #include "trap.h"
 #include "vehicle_group.h"
 
@@ -224,6 +225,18 @@ const std::vector<std::string> &EditableID<ter_t>::get_all_opts()
         all_opts.reserve( ter_t::get_all().size() );
         for( const ter_t &it : ter_t::get_all().get_all() ) {
             all_opts.push_back( it.id.str() );
+        }
+    }
+    return all_opts;
+}
+
+template<>
+const std::vector<std::string>& EditableID<ter_furn_transform>::get_all_opts()
+{
+    if (all_opts.empty()) {
+        all_opts.reserve(ter_furn_transform::get_all().size());
+        for (const ter_furn_transform& it : ter_furn_transform::get_all()) {
+            all_opts.push_back(it.id.str());
         }
     }
     return all_opts;

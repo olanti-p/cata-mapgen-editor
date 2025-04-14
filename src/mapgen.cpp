@@ -9313,7 +9313,15 @@ bool PieceTerFurnTransform::try_import( const jmapgen_piece& piece, PaletteImpor
     if (!casted) {
         return false;
     }
-    return true; // TODO
+    // TODO: parametric
+    auto val = casted->id.collapse_import();
+    if (val.first) {
+        report.num_values_folded++;
+    }
+    if (val.second) {
+        id = EID::TerFurnTransform(val.second->str());
+    }
+    return true;
 }
 
 bool PieceMakeRubble::try_import( const jmapgen_piece& piece, PaletteImportReport& report )
