@@ -196,24 +196,24 @@ const std::vector<std::string>& EditableID<signage_furn_tag>::get_all_opts()
 }
 
 template<>
-const std::vector<std::string>& EditableID<temp_palette_tag>::get_all_opts()
-{
-    if (all_opts.empty()) {
-        all_opts.reserve(get_temp_mapgen_palettes().size());
-        for (const auto& it : get_temp_mapgen_palettes()) {
-            all_opts.push_back(it.first);
-        }
-    }
-    return all_opts;
-}
-
-template<>
 const std::vector<std::string> &EditableID<snippet_category_tag>::get_all_opts()
 {
     if( all_opts.empty() ) {
         all_opts.reserve( SNIPPET.snippets_by_category.size() );
         for( const auto &it : SNIPPET.snippets_by_category ) {
             all_opts.push_back( it.first );
+        }
+    }
+    return all_opts;
+}
+
+template<>
+const std::vector<std::string>& EditableID<temp_palette_tag>::get_all_opts()
+{
+    if (all_opts.empty()) {
+        all_opts.reserve(get_temp_mapgen_palettes().size());
+        for (const auto& it : get_temp_mapgen_palettes()) {
+            all_opts.push_back(it.first);
         }
     }
     return all_opts;
