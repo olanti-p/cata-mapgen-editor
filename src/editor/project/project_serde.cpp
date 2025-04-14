@@ -502,12 +502,18 @@ void PieceSealeditem::deserialize( const JSON_OBJECT &jsin )
 
 void PieceZone::serialize( JsonOut &jsout ) const
 {
-    // TODO
+    jsout.member("zone_type", zone_type);
+    jsout.member("faction", faction);
+    jsout.member("name", name);
+    jsout.member("filter", filter);
 }
 
 void PieceZone::deserialize( const JSON_OBJECT &jsin )
 {
-    // TODO
+    jsin.read("zone_type", zone_type);
+    jsin.read("faction", faction);
+    jsin.read("name", name);
+    jsin.read("filter", filter);
 }
 
 void PieceNested::serialize( JsonOut &jsout ) const

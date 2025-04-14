@@ -761,12 +761,35 @@ std::string PieceSealeditem::fmt_data_summary() const
 
 void PieceZone::show_ui( State &state )
 {
-    ImGui::Text( "TODO" );
+    ImGui::HelpMarkerInline("Zone type to place.");
+    if (ImGui::InputId("zone_type", zone_type)) {
+        state.mark_changed("piece-zone-zone-type");
+    }
+    ImGui::HelpMarkerInline("Faction id string.\n\nWARNING: no validation is done here.");
+    // TODO: validation
+    if (ImGui::InputText("faction", &faction)) {
+        state.mark_changed("piece-zone-faction");
+    }
+    ImGui::HelpMarkerInline("In-game display name of the zone. Leave empty to omit.");
+    if (ImGui::InputText("name", &name)) {
+        state.mark_changed("piece-zone-name");
+    }
+    ImGui::HelpMarkerInline("Zone filter string, for LOOT_CUSTOM and LOOT_ITEM_GROUP zones. Leave empty to omit.");
+    ImGui::BeginDisabled(zone_type.data != "LOOT_CUSTOM" && zone_type.data != "LOOT_ITEM_GROUP");
+    if (ImGui::InputText("filter", &filter)) {
+        state.mark_changed("piece-zone-filter");
+    }
+    ImGui::EndDisabled();
 }
 
 std::string PieceZone::fmt_data_summary() const
 {
-    return "TODO";
+    if (!name.empty()) {
+        return name;
+    }
+    else {
+        return zone_type.data;
+    }
 }
 
 void PieceNested::show_ui( State &state )

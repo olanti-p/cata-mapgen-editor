@@ -9379,6 +9379,28 @@ bool PieceZone::try_import( const jmapgen_piece& piece, PaletteImportReport& rep
     if (!casted) {
         return false;
     }
+    filter = casted->filter;
+    name = casted->name;
+    {
+        // TODO: parametric
+        auto val = casted->faction.collapse_import();
+        if (val.first) {
+            report.num_values_folded++;
+        }
+        if (val.second) {
+            faction = val.second->str();
+        }
+    }
+    {
+        // TODO: parametric
+        auto val = casted->zone_type.collapse_import();
+        if (val.first) {
+            report.num_values_folded++;
+        }
+        if (val.second) {
+            zone_type = EID::Zone(val.second->str());
+        }
+    }
     return true; // TODO
 }
 

@@ -476,7 +476,14 @@ void PieceSealeditem::export_func( JsonOut &jo ) const
 
 void PieceZone::export_func( JsonOut &jo ) const
 {
-    // TODO
+    ee::emit(jo, "type", zone_type);
+    ee::emit(jo, "faction", faction);
+    if (!name.empty()) {
+        ee::emit(jo, "name", name);
+    }
+    if (!filter.empty()) {
+        ee::emit(jo, "filter", filter);
+    }
 }
 
 void PieceNested::export_func( JsonOut &jo ) const

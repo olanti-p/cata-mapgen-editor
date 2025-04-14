@@ -1,5 +1,6 @@
 #include "editable_id.h"
 
+#include "clzones.h"
 #include "faction.h"
 #include "field_type.h"
 #include "game.h"
@@ -285,6 +286,18 @@ const std::vector<std::string> &EditableID<VehicleGroup>::get_all_opts()
         all_opts.reserve( vgroups.size() );
         for( const auto &it : vgroups ) {
             all_opts.push_back( it.first.str() );
+        }
+    }
+    return all_opts;
+}
+
+template<>
+const std::vector<std::string>& EditableID<zone_type>::get_all_opts()
+{
+    if (all_opts.empty()) {
+        all_opts.reserve(zone_type::get_all().size());
+        for (const zone_type& it : zone_type::get_all()) {
+            all_opts.push_back(it.id.str());
         }
     }
     return all_opts;

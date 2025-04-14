@@ -235,7 +235,10 @@ struct PieceSealeditem : public Piece {
 struct PieceZone : public Piece {
     IMPLEMENT_ME_PIECE( PieceZone, PieceType::Zone )
 
-    // TODO
+    EID::Zone zone_type;
+    std::string faction;
+    std::string name;
+    std::string filter;
 };
 
 struct PieceNested : public Piece {
