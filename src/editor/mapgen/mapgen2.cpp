@@ -62,8 +62,8 @@ void show_mapgen_info( State &state, Mapgen &mapgen, bool &show )
             point new_size = oters.get_size();
             ImGui::InputInt( "x", &new_size.x );
             ImGui::InputInt( "y", &new_size.y );
-            new_size.x = clamp( new_size.x, 1, 8 );
-            new_size.y = clamp( new_size.y, 1, 8 );
+            new_size.x = clamp( new_size.x, 1, 16 );
+            new_size.y = clamp( new_size.y, 1, 16 );
             if( new_size != oters.get_size() ) {
                 state.mark_changed( "oter-matrix-size" );
                 oters.set_size( new_size );
