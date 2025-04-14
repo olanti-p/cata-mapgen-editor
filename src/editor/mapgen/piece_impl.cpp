@@ -466,6 +466,12 @@ void PieceIGroup::show_ui( State &state )
     if( ImGui::InputId( "group_id", group_id ) ) {
         state.mark_changed();
     }
+
+    ImGui::HelpMarkerInline("Faction id string.\n\nWARNING: no validation is done here.");
+    // TODO: validation
+    if (ImGui::InputText("faction", &faction)) {
+        state.mark_changed("me-piece-igroup-faction");
+    }
 }
 
 std::string PieceIGroup::fmt_data_summary() const

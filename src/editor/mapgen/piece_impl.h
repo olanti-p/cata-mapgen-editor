@@ -119,6 +119,7 @@ struct PieceIGroup : public Piece {
     IntRange chance;
     bool spawn_once = true;
     IntRange repeat;
+    std::string faction;
 };
 
 struct PieceLoot : public Piece {

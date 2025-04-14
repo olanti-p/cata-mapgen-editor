@@ -9115,6 +9115,7 @@ bool PieceIGroup::try_import( const jmapgen_piece& piece, PaletteImportReport& r
     chance = IntRange( casted->chance );
     repeat = IntRange( casted->repeat );
     spawn_once = ( repeat.min == 1 && repeat.max == 1 );
+    faction = casted->faction;
     return true;
 }
 

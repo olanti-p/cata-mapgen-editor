@@ -334,6 +334,7 @@ void PieceIGroup::serialize( JsonOut &jsout ) const
     jsout.member( "group_id", group_id );
     jsout.member( "spawn_once", spawn_once );
     jsout.member( "repeat", repeat );
+    jsout.member( "faction", faction );
 }
 
 void PieceIGroup::deserialize( const JSON_OBJECT &jsin )
@@ -342,6 +343,7 @@ void PieceIGroup::deserialize( const JSON_OBJECT &jsin )
     jsin.read( "group_id", group_id );
     jsin.read( "spawn_once", spawn_once );
     jsin.read( "repeat", repeat );
+    jsin.read( "faction", faction );
 }
 
 void PieceLoot::serialize( JsonOut &jsout ) const
