@@ -8899,6 +8899,9 @@ bool PieceField::try_import( const jmapgen_piece& piece, PaletteImportReport& re
     if( !casted ) {
         return false;
     }
+    int_1 = false;
+    int_2 = false;
+    int_3 = false;
     for (int i : casted->intensities) {
         if (i == 1) {
             int_1 = true;
