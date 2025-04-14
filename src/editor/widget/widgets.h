@@ -9,6 +9,10 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_stdlib.h>
 
+// TODO: get rid of heavy includes
+#include "enum_traits.h"
+#include "enum_conversions.h"
+
 #include "editable_id.h"
 #include "widget_combofilter.h"
 #include "common/int_range.h"
@@ -116,6 +120,24 @@ void PushID(const editor::MapKey& mk);
 
 bool PaletteSelector( const char *label, editor::UUID &current_item,
                       std::vector<editor::Palette> &options );
+
+template<typename E>
+bool ComboEnum(const char* label, E& current_item) {
+    static_assert(has_enum_traits<E>::value, "enum E needs a specialization of enum_traits");
+
+    using Int = std::underlying_type_t<E>;
+    constexpr Int max = static_cast<Int>(enum_traits<E>::last);
+
+    std::vector<std::string> entries;
+    for (Int i = 0; i < max; i++) {
+        entries.push_back(io::enum_to_string<E>(static_cast<E>(i)));
+    }
+    // Must use int here because of widget
+    int current = static_cast<int>( current_item );
+    bool ret = ComboWithFilter(label, &current, entries);
+    current_item = static_cast<E>( current );
+    return ret;
+}
 
 class VectorWidget
 {
