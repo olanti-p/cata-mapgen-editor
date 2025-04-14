@@ -182,16 +182,15 @@ std::string PieceNPC::fmt_data_summary() const
 
 void PieceFaction::show_ui( State &state )
 {
-    ImGui::HelpMarkerInline( "Faction id string.\n\nWARNING: no validation is done here." );
-    // TODO: validation
-    if( ImGui::InputText( "id", &id ) ) {
+    ImGui::HelpMarkerInline( "Faction id to apply." );
+    if( ImGui::InputId( "id", id ) ) {
         state.mark_changed( "me-piece-faction-id-input" );
     }
 }
 
 std::string PieceFaction::fmt_data_summary() const
 {
-    return id;
+    return id.data;
 }
 
 static void sign_or_graffiti(
@@ -467,9 +466,8 @@ void PieceIGroup::show_ui( State &state )
         state.mark_changed();
     }
 
-    ImGui::HelpMarkerInline("Faction id string.\n\nWARNING: no validation is done here.");
-    // TODO: validation
-    if (ImGui::InputText("faction", &faction)) {
+	ImGui::HelpMarkerInline("Owner faction. Leave as 'no_faction' to omit.");
+    if (ImGui::InputId("faction", faction)) {
         state.mark_changed("me-piece-igroup-faction");
     }
 }
@@ -890,9 +888,8 @@ void PieceZone::show_ui( State &state )
     if (ImGui::InputId("zone_type", zone_type)) {
         state.mark_changed("piece-zone-zone-type");
     }
-    ImGui::HelpMarkerInline("Faction id string.\n\nWARNING: no validation is done here.");
-    // TODO: validation
-    if (ImGui::InputText("faction", &faction)) {
+    ImGui::HelpMarkerInline("Faction id the zone belongs to.");
+    if (ImGui::InputId("faction", faction)) {
         state.mark_changed("piece-zone-faction");
     }
     ImGui::HelpMarkerInline("In-game display name of the zone. Leave empty to omit.");

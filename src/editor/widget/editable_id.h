@@ -80,6 +80,7 @@ struct EditableID {
 template<typename T>
 std::vector<std::string> EditableID<T>::all_opts;
 
+struct faction_tag {};
 struct snippet_category_tag {};
 struct liquid_item_tag {};
 struct item_group_tag {};
@@ -92,6 +93,7 @@ namespace EID
 {
 
 using EOC = EditableID<effect_on_condition>;
+using Faction = EditableID<faction_tag>;
 using Field = EditableID<field_type>;
 using Furn = EditableID<furn_t>;
 using IGroup = EditableID<item_group_tag>;
@@ -117,6 +119,8 @@ using VGroup = EditableID<VehicleGroup>;
 using Zone = EditableID<zone_type>;
 
 } // namespace EID
+
+const EID::Faction faction_none = EID::Faction("no_faction");
 
 } // namespace editor
 

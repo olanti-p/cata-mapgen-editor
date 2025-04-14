@@ -97,6 +97,11 @@ void faction_template::reset()
     npc_factions::all_templates.clear();
 }
 
+std::vector<faction_template>& faction_template::get_all()
+{
+    return npc_factions::all_templates;
+}
+
 void faction_template::load_relations( const JsonObject &jsobj )
 {
     for( const JsonMember fac : jsobj.get_object( "relations" ) ) {

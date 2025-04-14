@@ -35,6 +35,18 @@ const std::vector<std::string> &EditableID<effect_on_condition>::get_all_opts()
 }
 
 template<>
+const std::vector<std::string>& EditableID<faction_tag>::get_all_opts()
+{
+    if (all_opts.empty()) {
+        all_opts.reserve(faction_template::get_all().size());
+        for (const faction_template& it : faction_template::get_all()) {
+            all_opts.push_back(it.id.str());
+        }
+    }
+    return all_opts;
+}
+
+template<>
 const std::vector<std::string> &EditableID<field_type>::get_all_opts()
 {
     if( all_opts.empty() ) {
@@ -317,6 +329,19 @@ const std::vector<std::string>& EditableID<zone_type>::get_all_opts()
 }
 
 } // namespace editor
+
+template<>
+bool string_id<editor::faction_tag>::is_valid() const
+{
+    const std::string& s = this->str();
+    // TODO: optimize
+    for (const faction_template& it : faction_template::get_all()) {
+        if (it.id.str() == s) {
+            return true;
+        }
+    }
+    return false;
+}
 
 template<>
 bool string_id<editor::snippet_category_tag>::is_valid() const

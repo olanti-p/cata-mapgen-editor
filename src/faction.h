@@ -126,6 +126,7 @@ class faction_template
         static void load( const JsonObject &jsobj );
         static void check_consistency();
         static void reset();
+        static std::vector<faction_template>& get_all();
 
         std::string name;
         int likes_u;

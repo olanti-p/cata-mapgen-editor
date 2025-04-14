@@ -40,7 +40,7 @@ struct PieceNPC : public Piece {
 struct PieceFaction : public Piece {
     IMPLEMENT_ME_PIECE( PieceFaction, PieceType::Faction )
 
-    std::string id;
+    EID::Faction id;
 };
 
 struct PieceSign : public Piece {
@@ -119,7 +119,8 @@ struct PieceIGroup : public Piece {
     IntRange chance;
     bool spawn_once = true;
     IntRange repeat;
-    std::string faction;
+    const EID::Faction default_faction = EID::Faction("no_faction");
+    EID::Faction faction = default_faction;
 };
 
 struct PieceLoot : public Piece {
@@ -262,7 +263,7 @@ struct PieceZone : public Piece {
     IMPLEMENT_ME_PIECE( PieceZone, PieceType::Zone )
 
     EID::Zone zone_type;
-    std::string faction;
+    EID::Faction faction;
     std::string name;
     std::string filter;
 };
