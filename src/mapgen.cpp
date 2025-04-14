@@ -9088,8 +9088,12 @@ bool PieceLiquid::try_import( const jmapgen_piece& piece, PaletteImportReport& r
     if (!casted->liquid.is_id_source()) {
         return false; // TODO: parametric
     }
-    amount = casted->amount;
-    use_default_amount = ( amount.min == 0 && amount.max == 0 );
+    use_default_amount = ( casted->amount.val == -1 && casted->amount.valmax == -1 );
+    if( use_default_amount ) {
+        amount = IntRange( 0, 0 );
+    } else {
+        amount = casted->amount;
+    }
     {
         // TODO: parametric
         auto val = casted->liquid.collapse_import();
