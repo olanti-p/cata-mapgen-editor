@@ -453,11 +453,23 @@ void PieceVehicle::export_func( JsonOut &jo ) const
 void PieceItem::export_func( JsonOut &jo ) const
 {
     ee::emit( jo, "item", item_id );
+    if (!variant.empty()) {
+        ee::emit( jo, "variant", variant );
+    }
     if( amount.min != 1 || amount.max != 1 ) {
         ee::emit( jo, "amount", amount );
     }
     if (chance.min != 100 || chance.max != 100) {
         ee::emit(jo, "chance", chance);
+    }
+    if ( !is_object && ( repeat.min != 1 || repeat.max != 1) ) {
+        ee::emit(jo, "repeat", repeat);
+    }
+    if (!custom_flags.empty()) {
+        ee::emit_array(jo, "custom-flags", custom_flags);
+    }
+    if (faction != default_faction) {
+        ee::emit(jo, "faction", faction);
     }
 }
 

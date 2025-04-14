@@ -415,15 +415,23 @@ void PieceVehicle::deserialize( const JSON_OBJECT &jsin )
 void PieceItem::serialize( JsonOut &jsout ) const
 {
     jsout.member( "item_id", item_id );
+    jsout.member( "variant", variant );
     jsout.member( "amount", amount );
     jsout.member( "chance", chance );
+    jsout.member( "repeat", repeat );
+    jsout.member( "custom_flags", custom_flags );
+    jsout.member( "faction", faction );
 }
 
 void PieceItem::deserialize( const JSON_OBJECT &jsin )
 {
     jsin.read( "item_id", item_id );
+    jsin.read( "variant", variant );
     jsin.read( "amount", amount );
     jsin.read( "chance", chance );
+    jsin.read( "repeat", repeat );
+    jsin.read( "custom_flags", custom_flags );
+    jsin.read( "faction", faction );
 }
 
 void PieceTrap::serialize( JsonOut &jsout ) const

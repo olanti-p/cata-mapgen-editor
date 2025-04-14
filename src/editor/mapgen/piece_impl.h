@@ -180,8 +180,13 @@ struct PieceItem : public Piece {
     IMPLEMENT_ME_PIECE( PieceItem, PieceType::Item )
 
     EID::Item item_id;
+    std::string variant;
     IntRange amount = IntRange(1,1);
     IntRange chance = IntRange(100,100);
+    IntRange repeat = IntRange(1, 1);
+    std::vector<EID::Flag> custom_flags;
+    const EID::Faction default_faction = EID::Faction("no_faction");
+    EID::Faction faction = default_faction;
 };
 
 struct PieceTrap : public Piece {

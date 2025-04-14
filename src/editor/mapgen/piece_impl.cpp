@@ -664,6 +664,11 @@ void PieceItem::show_ui( State &state )
         state.mark_changed();
     }
 
+    ImGui::HelpMarkerInline("Item variant to spawn.");
+    if (ImGui::InputText("variant", &variant)) {
+        state.mark_changed("piece-item-variant");
+    }
+
     ImGui::HelpMarkerInline( "Amount of items to spawn, [min, max]." );
     if( ImGui::InputIntRange( "amount", amount ) ) {
         state.mark_changed( "me-piece-item-amount-input" );
@@ -681,6 +686,34 @@ void PieceItem::show_ui( State &state )
     if( ImGui::InputIntRange( "chance (%)", chance ) ) {
         state.mark_changed( "me-piece-item-chance-input" );
     }
+
+    if (!is_object) {
+        // Pieces having its own 'repeat' that duplicates into placement mode 'repeat' is so stupid...
+        ImGui::HelpMarkerInline("How many times to spawn.");
+        if (ImGui::InputIntRange("repeat", repeat)) {
+            state.mark_changed("me-piece-item-repeat-input");
+        }
+    }
+
+    ImGui::HelpMarkerInline("Owner faction. Leave as 'no_faction' to omit.");
+    if (ImGui::InputId("faction", faction)) {
+        state.mark_changed("me-piece-item-faction");
+    }
+
+    // TODO: check for duplicates
+    ImGui::SeparatorText("Custom Flags");
+    ImGui::PushID("custom_flags");
+    show_plain_list<EID::Flag>(state, custom_flags,
+        [&](size_t i) {
+            EID::Flag& it = custom_flags[i];
+
+            if (ImGui::InputId("##flag", it)) {
+                state.mark_changed("list-entry");
+            }
+            ImGui::HelpPopup("Custom flag to add.");
+        }
+    );
+    ImGui::PopID();
 }
 
 std::string PieceItem::fmt_data_summary() const

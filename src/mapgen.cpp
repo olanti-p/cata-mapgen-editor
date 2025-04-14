@@ -9257,8 +9257,16 @@ bool PieceItem::try_import( const jmapgen_piece& piece, PaletteImportReport& rep
             item_id = EID::Item(val.second->str());
         }
     }
+    for (const flag_id& it : casted->flags) {
+        custom_flags.push_back( EID::Flag( it ) );
+    }
+    variant = casted->variant;
     amount = casted->amount;
     chance = casted->chance;
+    repeat = casted->repeat;
+    if (!casted->faction.empty()) {
+        faction = EID::Faction(casted->faction);
+    }
     return true; // TODO
 }
 

@@ -95,6 +95,7 @@ namespace EID
 using EOC = EditableID<effect_on_condition>;
 using Faction = EditableID<faction_tag>;
 using Field = EditableID<field_type>;
+using Flag = EditableID<json_flag>;
 using Furn = EditableID<furn_t>;
 using IGroup = EditableID<item_group_tag>;
 using ImportMapgen = EditableID<import_mapgen_tag>;

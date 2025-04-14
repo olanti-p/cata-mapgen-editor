@@ -4,6 +4,7 @@
 #include "effect_on_condition.h"
 #include "faction.h"
 #include "field_type.h"
+#include "flag.h"
 #include "game.h"
 #include "item_factory.h"
 #include "mapdata.h"
@@ -53,6 +54,18 @@ const std::vector<std::string> &EditableID<field_type>::get_all_opts()
         all_opts.reserve( field_types::get_all().size() );
         for( const field_type &it : field_types::get_all() ) {
             all_opts.push_back( it.id.str() );
+        }
+    }
+    return all_opts;
+}
+
+template<>
+const std::vector<std::string>& EditableID<json_flag>::get_all_opts()
+{
+    if (all_opts.empty()) {
+        all_opts.reserve(json_flag::get_all().size());
+        for (const json_flag& it : json_flag::get_all()) {
+            all_opts.push_back(it.id.str());
         }
     }
     return all_opts;
