@@ -14,3 +14,4 @@
 - Autosave doesn't always recognize repeated edits as changes worthy of saving
 - Oversize sprites are not rendered properly
 - Will crash if palette or mapgen rows matrix contains unicode symbol with combining characters (there are like 1 or 2 cases of this in vanilla)
+- It's possible to edit imported palettes despite the fact those changes will be discarded
