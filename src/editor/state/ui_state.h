@@ -2,6 +2,7 @@
 #define CATA_SRC_EDITOR_UI_STATE_H
 
 #include "pimpl.h"
+#include "hash_utils.h"
 
 #include "common/uuid.h"
 #include "view/camera.h"
@@ -35,6 +36,21 @@ struct OpenMapping {
     UUID palette = UUID_INVALID;
     MapKey uuid;
     bool open = true;
+};
+
+struct ExpandedPiece {
+    void serialize(JsonOut& jsout) const;
+    void deserialize(const TextJsonObject& jsin);
+
+    UUID uuid = UUID_INVALID;
+    UUID palette = UUID_INVALID;
+
+    bool operator<(const ExpandedPiece& rhs) const {
+        if (uuid < rhs.uuid) {
+            return true;
+        }
+        return palette < rhs.palette;
+    }
 };
 
 struct OpenMapgenObject {
@@ -98,14 +114,16 @@ struct UiState {
     std::optional<UUID> active_mapgen_id;   // UUID of active mapgen
 
     std::vector<detail::OpenPalette> open_palette_previews; // List of open palettes (verbose)
-    std::vector<detail::OpenMapping> open_mappings; // List of open mappings
+    std::vector<detail::OpenMapping> open_source_mappings; // List of open mappings (in source mode)
+    std::vector<detail::OpenMapping> open_resolved_mappings; // List of open mappings (in resolved mode)
     std::vector<detail::OpenMapgenObject> open_mapgenobjects; // List of open mapgenobjects
     std::unordered_map<UUID, ViewPaletteTreeState> view_palette_tree_states;
 
     pimpl<Camera> camera;
     pimpl<ToolsState> tools;
 
-    std::set<UUID> expanded_mapping_pieces;
+    std::set<detail::ExpandedPiece> expanded_pieces_source;
+    std::set<detail::ExpandedPiece> expanded_pieces_resolved;
     std::set<UUID> expanded_mapobjects;
 
     // TODO: move to control state?
@@ -116,7 +134,8 @@ struct UiState {
     std::optional<std::string> project_export_path;
 
     void toggle_show_palette_preview( UUID uuid );
-    void toggle_show_mapping( UUID palette, MapKey uuid );
+    void toggle_show_source_mapping( UUID palette, MapKey uuid );
+    void toggle_show_resolved_mapping(UUID palette, MapKey uuid);
     void toggle_show_mapobjects( UUID uuid );
 };
 

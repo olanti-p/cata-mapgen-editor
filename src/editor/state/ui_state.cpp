@@ -1,12 +1,14 @@
 #include "ui_state.h"
 
+#include <imgui/imgui.h>
+
 #include "view/camera.h"
 #include "view/view_canvas.h"
 #include "view/mouse.h"
 #include "control_state.h"
 #include "history_state.h"
-#include <imgui/imgui.h>
 #include "mapgen/palette.h"
+#include "mapgen/palette_view.h"
 #include "mapgen/palette_window.h"
 #include "mapgen/mapgen.h"
 #include "project/menu_bar.h"
@@ -40,17 +42,30 @@ void UiState::toggle_show_palette_preview( UUID uuid )
     open_palette_previews.back().uuid = uuid;
 }
 
-void UiState::toggle_show_mapping( UUID palette, MapKey uuid )
+void UiState::toggle_show_source_mapping( UUID palette, MapKey uuid )
 {
-    for( auto &it : open_mappings ) {
+    for( auto &it : open_source_mappings ) {
         if( it.uuid == uuid && it.palette == palette ) {
             it.open = false;
             return;
         }
     }
-    open_mappings.emplace_back();
-    open_mappings.back().uuid = uuid;
-    open_mappings.back().palette = palette;
+    open_source_mappings.emplace_back();
+    open_source_mappings.back().uuid = uuid;
+    open_source_mappings.back().palette = palette;
+}
+
+void UiState::toggle_show_resolved_mapping(UUID palette, MapKey uuid)
+{
+    for (auto& it : open_resolved_mappings) {
+        if (it.uuid == uuid && it.palette == palette) {
+            it.open = false;
+            return;
+        }
+    }
+    open_resolved_mappings.emplace_back();
+    open_resolved_mappings.back().uuid = uuid;
+    open_resolved_mappings.back().palette = palette;
 }
 
 void UiState::toggle_show_mapobjects( UUID uuid )
@@ -215,7 +230,7 @@ void run_ui_for_state( State &state )
             it.open = false;
         }
     }
-    for( auto &it : uistate.open_mappings ) {
+    for( auto &it : uistate.open_source_mappings ) {
         if( !it.open ) {
             continue;
         }
@@ -223,11 +238,34 @@ void run_ui_for_state( State &state )
         if( pal ) {
             PaletteEntry *entry = pal->find_entry( it.uuid );
             if( entry ) {
-                show_mapping( state, *pal, *entry, it.open );
+                show_mapping_source( state, *pal, *entry, it.open );
             } else {
                 it.open = false;
             }
         } else {
+            it.open = false;
+        }
+    }
+    for (auto& it : uistate.open_resolved_mappings) {
+        if (!it.open) {
+            continue;
+        }
+        Palette* pal = proj.get_palette(it.palette);
+        if (pal) {
+            ViewPalette vp(proj);
+            ViewPaletteTreeState &vpts = state.ui->view_palette_tree_states[pal->uuid];
+            // FIXME: avoid creating temp view palette
+            vp.add_palette_recursive(*pal, vpts);
+            vp.finalize();
+            ViewEntry* entry = vp.find_entry(it.uuid);
+            if (entry) {
+                show_mapping_resolved(state, vp, *entry, it.open);
+            }
+            else {
+                it.open = false;
+            }
+        }
+        else {
             it.open = false;
         }
     }
@@ -247,20 +285,29 @@ void run_ui_for_state( State &state )
         it != uistate.open_palette_previews.cend();
     ) {
         if( !it->open ) {
-            for( auto &mit : uistate.open_mappings ) {
+            for( auto &mit : uistate.open_source_mappings ) {
                 if( mit.palette == it->uuid ) {
                     mit.open = false;
                 }
             }
+            // TODO: close resolved mappings
             it = uistate.open_palette_previews.erase( it );
         } else {
             it++;
         }
     }
-    for( auto it = uistate.open_mappings.cbegin(); it != uistate.open_mappings.cend(); ) {
+    for( auto it = uistate.open_source_mappings.cbegin(); it != uistate.open_source_mappings.cend(); ) {
         if( !it->open ) {
-            it = uistate.open_mappings.erase( it );
+            it = uistate.open_source_mappings.erase( it );
         } else {
+            it++;
+        }
+    }
+    for (auto it = uistate.open_resolved_mappings.cbegin(); it != uistate.open_resolved_mappings.cend(); ) {
+        if (!it->open) {
+            it = uistate.open_resolved_mappings.erase(it);
+        }
+        else {
             it++;
         }
     }

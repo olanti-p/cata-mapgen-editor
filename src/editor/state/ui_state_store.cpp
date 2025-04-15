@@ -160,6 +160,20 @@ void OpenMapping::deserialize(const TextJsonObject&jo )
     jo.read( "open", open );
 }
 
+void ExpandedPiece::serialize(JsonOut& jsout) const
+{
+    jsout.start_object();
+    jsout.member("uuid", uuid);
+    jsout.member("palette", palette);
+    jsout.end_object();
+}
+
+void ExpandedPiece::deserialize(const TextJsonObject& jo)
+{
+    jo.read("uuid", uuid);
+    jo.read("palette", palette);
+}
+
 void OpenMapgenObject::serialize( JsonOut &jsout ) const
 {
     jsout.start_object();
@@ -202,11 +216,12 @@ void UiState::serialize( JsonOut &jsout ) const
     jsout.member( "autosave_limit", autosave_limit );
     jsout.member( "active_mapgen_id", active_mapgen_id );
     jsout.member( "open_palette_previews", open_palette_previews );
-    jsout.member( "open_mappings", open_mappings );
+    jsout.member( "open_source_mappings", open_source_mappings );
     jsout.member( "open_mapgenobjects", open_mapgenobjects );
     jsout.member( "camera", camera );
     jsout.member( "tools", tools );
-    jsout.member( "expanded_mapping_pieces", expanded_mapping_pieces );
+    jsout.member( "expanded_pieces_source", expanded_pieces_source );
+    jsout.member( "expanded_pieces_resolved", expanded_pieces_resolved );
     jsout.member( "expanded_mapobjects", expanded_mapobjects );
     jsout.member( "project_export_path", project_export_path );
     jsout.end_object();
@@ -239,11 +254,12 @@ void UiState::deserialize( JSON_IN &jsin )
     jo.read( "autosave_limit", autosave_limit );
     jo.read( "active_mapgen_id", active_mapgen_id );
     jo.read( "open_palette_previews", open_palette_previews );
-    jo.read( "open_mappings", open_mappings );
+    jo.read( "open_source_mappings", open_source_mappings );
     jo.read( "open_mapgenobjects", open_mapgenobjects );
     jo.read( "camera", camera );
     jo.read( "tools", tools );
-    jo.read( "expanded_mapping_pieces", expanded_mapping_pieces );
+    jo.read( "expanded_pieces_source", expanded_pieces_source );
+    jo.read( "expanded_pieces_resolved", expanded_pieces_resolved );
     jo.read( "expanded_mapobjects", expanded_mapobjects );
     jo.read( "project_export_path", project_export_path );
 }

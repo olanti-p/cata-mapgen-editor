@@ -92,6 +92,7 @@ public:
 
     Project& project;
     std::vector<ViewEntry> entries;
+    UUID source_uuid;
 
     const ImVec4 &color_from_uuid( const MapKey &uuid ) const;
     SpritePair sprite_from_uuid( const MapKey &uuid ) const;
@@ -102,13 +103,14 @@ public:
     int num_pieces_total() const;
 
     void invalidate_caches() const;
-    void add_palette(Palette& pal);
     void add_palette_recursive( Palette& pal, ViewPaletteTreeState& vpts);
     void finalize() {
         rebuild_cache();
     }
 
 private:
+    void add_palette(Palette& pal);
+    void add_palette_recursive_inner(Palette& pal, ViewPaletteTreeState& vpts);
     std::vector<Palette*> palettes;
     mutable std::unordered_map<MapKey, size_t> entries_cache;
     void rebuild_cache() const;

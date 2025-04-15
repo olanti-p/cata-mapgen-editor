@@ -187,6 +187,12 @@ void ViewPalette::add_palette( Palette& pal)
 
 void ViewPalette::add_palette_recursive(Palette& pal, ViewPaletteTreeState& vpts)
 {
+    source_uuid = pal.uuid;
+    add_palette_recursive_inner(pal, vpts);
+}
+
+void ViewPalette::add_palette_recursive_inner(Palette& pal, ViewPaletteTreeState& vpts)
+{
     std::vector<int>& selected_opts_palette = vpts.selected_opts[pal.uuid];
     selected_opts_palette.resize(pal.ancestors.list.size());
     for (size_t list_idx = 0; list_idx < pal.ancestors.list.size(); list_idx++) {
@@ -198,7 +204,7 @@ void ViewPalette::add_palette_recursive(Palette& pal, ViewPaletteTreeState& vpts
         const std::string& opt = ref.options[selected_opt_this_list];
         Palette* p = project.find_palette_by_string(opt);
         if (p) {
-            add_palette_recursive(*p, vpts);
+            add_palette_recursive_inner(*p, vpts);
         }
     }
     add_palette(pal);

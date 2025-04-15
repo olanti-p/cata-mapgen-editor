@@ -18,22 +18,43 @@
 
 namespace editor
 {
-static bool is_expanded( const State &state, const UUID &piece_id )
+static bool is_expanded( const State &state, const Palette& palette, const Piece&piece )
 {
-    return state.ui->expanded_mapping_pieces.count( piece_id ) != 0;
+    detail::ExpandedPiece key{ palette.uuid, piece.uuid };
+    return state.ui->expanded_pieces_source.count(key) != 0;
 }
 
-static void expand_piece( State &state, const UUID &piece_id )
+static void expand_piece( State &state, const Palette& palette, const Piece &piece )
 {
-    state.ui->expanded_mapping_pieces.insert( piece_id );
+    detail::ExpandedPiece key{ palette.uuid, piece.uuid };
+    state.ui->expanded_pieces_source.insert(key);
 }
 
-static void collapse_piece( State &state, const UUID &piece_id )
+static void collapse_piece( State &state, const Palette& palette, const Piece &piece )
 {
-    state.ui->expanded_mapping_pieces.erase( piece_id );
+    detail::ExpandedPiece key{ palette.uuid, piece.uuid };
+    state.ui->expanded_pieces_source.erase(key);
 }
 
-void show_mapping( State &state, editor::Palette &p, editor::PaletteEntry &entry,
+static bool is_expanded(const State& state, const ViewPalette& palette, const ViewPiece& piece)
+{
+    detail::ExpandedPiece key{ palette.source_uuid, piece.piece->uuid };
+    return state.ui->expanded_pieces_resolved.count(key) != 0;
+}
+
+static void expand_piece(State& state, const ViewPalette& palette, const ViewPiece& piece)
+{
+    detail::ExpandedPiece key{ palette.source_uuid, piece.piece->uuid };
+    state.ui->expanded_pieces_resolved.insert(key);
+}
+
+static void collapse_piece(State& state, const ViewPalette& palette, const ViewPiece& piece)
+{
+    detail::ExpandedPiece key{ palette.source_uuid, piece.piece->uuid };
+    state.ui->expanded_pieces_resolved.erase(key);
+}
+
+void show_mapping_source( State &state, editor::Palette &p, editor::PaletteEntry &entry,
                    bool &show )
 {
     std::string wnd_id = string_format( "Mappings##wnd-mappings-%d-%s", p.uuid, entry.key.str() );
@@ -45,12 +66,12 @@ void show_mapping( State &state, editor::Palette &p, editor::PaletteEntry &entry
     }
     ImGui::PushID( entry.key );
 
-    /* TODO: implement names
-    if( ImGui::InputText( "Name", &entry.name ) ) {
-        state.mark_changed( "entry-name" );
-    }
-    ImGui::HelpPopup( "Display name.  Has no effect, just for convenience." );
-    */
+    ImGui::HelpMarkerInline(
+        "List of data mappings this pallete is assigning to this symbol, fully editable."
+        "\n\nDoes not list data inherited from other palettes, refer to \"Resolved\" tab for those."
+    );
+    ImGui::Text("Source mappings for \"%s\".  %d pieces.", entry.key.str().c_str(), entry.pieces.size());
+    ImGui::Text("Owner palette: %s", p.display_name().c_str());
 
     std::vector<std::unique_ptr<Piece>> &list = entry.pieces;
 
@@ -91,33 +112,33 @@ void show_mapping( State &state, editor::Palette &p, editor::PaletteEntry &entry
                 ptr->uuid = uuid;
                 ptr->init_new();
                 list.push_back( std::move( ptr ) );
-                expand_piece( state, uuid );
+                expand_piece( state, p, *ptr.get() );
                 ret = true;
             }
         }
         return ret;
     } )
     .with_for_each( [&]( size_t idx ) {
-        const UUID &piece_id = list[idx]->uuid;
-        if( is_expanded( state, piece_id ) ) {
+        Piece& piece = *list[idx].get();
+        if( is_expanded( state, p, piece ) ) {
             if( ImGui::ArrowButton( "##collapse", ImGuiDir_Down ) ) {
-                collapse_piece( state, piece_id );
+                collapse_piece( state, p, piece );
             }
             ImGui::HelpPopup( "Hide details." );
             ImGui::SameLine();
-            ImGui::Text( "%d %s", static_cast<int>( idx ), list[idx]->fmt_summary().c_str() );
-            if (list[idx]->constraint) {
+            ImGui::Text( "%d %s", static_cast<int>( idx ), piece.fmt_summary().c_str() );
+            if (piece.constraint) {
                 ImGui::SeparatorText("$ CONDITIONAL PIECE $");
             }
-            list[idx]->show_ui( state );
+            piece.show_ui( state );
             ImGui::Separator();
         } else {
             if( ImGui::ArrowButton( "##expand", ImGuiDir_Right ) ) {
-                expand_piece( state, piece_id );
+                expand_piece( state, p, piece );
             }
             ImGui::HelpPopup( "Show details." );
             ImGui::SameLine();
-            ImGui::Text( "%d %s", static_cast<int>( idx ), list[idx]->fmt_summary().c_str() );
+            ImGui::Text( "%d %s", static_cast<int>( idx ), piece.fmt_summary().c_str() );
         }
     } )
     .with_can_duplicate( [&]( size_t idx ) -> bool {
@@ -136,6 +157,67 @@ void show_mapping( State &state, editor::Palette &p, editor::PaletteEntry &entry
     }
 
     if( state.is_changed() ) {
+        entry.sprite_cache_valid = false;
+    }
+
+    ImGui::PopID();
+    ImGui::End();
+}
+
+void show_mapping_resolved(State& state, editor::ViewPalette& p, editor::ViewEntry& entry,
+    bool& show)
+{
+    std::string wnd_id = string_format("Resolved Mappings##wnd-resolved-mappings-%d-%s", p.source_uuid, entry.key.str());
+    ImGui::SetNextWindowSize(ImVec2(450.0f, 300.0f), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(50.0f, 50.0f), ImGuiCond_FirstUseEver);
+    if (!ImGui::Begin(wnd_id.c_str(), &show)) {
+        ImGui::End();
+        return;
+    }
+    ImGui::PushID(entry.key);
+    ImGui::HelpMarkerInline(
+        "List of data mappings this pallete and all its active ancestors are assigning to this symbol."
+        "\n\nRefer to \"Source\" tabs of original pallettes to add/delete/reorder mappings."
+        "\n\nRefer to \"General\" tab of this palette to configure which ancestors are active."
+    );
+    ImGui::Text("Resolved mappings for \"%s\".  %d pieces.", entry.key.str().c_str(), entry.pieces.size());
+    ImGui::Text("Origin palette: %s", state.project().get_palette(p.source_uuid)->display_name().c_str());
+    
+    std::vector<editor::ViewPiece>& list = entry.pieces;
+
+    bool changed = ImGui::VectorWidget()
+        .with_for_each([&](size_t idx) {
+        ViewPiece& vp = list[idx];
+        if (is_expanded(state, p, vp)) {
+            if (ImGui::ArrowButton("##collapse", ImGuiDir_Down)) {
+                collapse_piece(state, p, vp);
+            }
+            ImGui::HelpPopup("Hide details.");
+            ImGui::SameLine();
+            ImGui::Text("%d %s", static_cast<int>(idx), vp.piece->fmt_summary().c_str());
+            ImGui::Text("From %s", vp.pal->display_name().c_str());
+            if (vp.piece->constraint) {
+                ImGui::SeparatorText("$ CONDITIONAL PIECE $");
+            }
+            vp.piece->show_ui(state);
+            ImGui::Separator();
+        }
+        else {
+            if (ImGui::ArrowButton("##expand", ImGuiDir_Right)) {
+                expand_piece(state, p, vp);
+            }
+            ImGui::HelpPopup("Show details.");
+            ImGui::SameLine();
+            ImGui::Text("%d %s", static_cast<int>(idx), vp.piece->fmt_summary().c_str());
+        }
+            })
+        .run(list);
+
+    if (changed) {
+        state.mark_changed();
+    }
+
+    if (state.is_changed()) {
         entry.sprite_cache_valid = false;
     }
 
@@ -427,7 +509,7 @@ static void show_palette_entries_verbose( State &state, Palette &palette )
         }
         ImGui::SameLine();
         if( ImGui::ArrowButton( "##mapping", ImGuiDir_Right ) ) {
-            state.ui->toggle_show_mapping( palette.uuid, list[idx].key );
+            state.ui->toggle_show_source_mapping( palette.uuid, list[idx].key );
         }
         ImGui::HelpPopup( "Show/hide mappings\nassociated with this symbol." );
 
@@ -545,14 +627,12 @@ static void show_palette_entries_verbose(State& state, ViewPalette& palette)
                 tools.set_main_tile(list[idx].key);
             }
         }
-        /** TODO: implement viewing mappings
         ImGui::SameLine();
         if (ImGui::ArrowButton("##mapping", ImGuiDir_Right)) {
             const ViewEntry& ve = palette.entries[idx];
-            //state.ui->toggle_show_mapping(palette.uuid, list[idx].key);
+            state.ui->toggle_show_resolved_mapping(palette.source_uuid, list[idx].key);
         }
         ImGui::HelpPopup("Show/hide mappings\nassociated with this symbol.");
-        */
 
         int additional_pieces = 0;
         std::string additional_summary;
@@ -730,7 +810,8 @@ static void show_palette_header_info( State& state, Palette& p)
     }
     if (!p.ancestors.list.empty()) {
         PaletteTreeState pts{ state.ui->view_palette_tree_states[p.uuid]  };
-        if (ImGui::TreeNode("Dependency graph")) {
+        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen;
+        if (ImGui::TreeNodeEx("Dependency graph", flags)) {
             bool tmp = true;
             print_palette_entry_resolved(pts, state, p, &tmp);
             ImGui::TreePop();

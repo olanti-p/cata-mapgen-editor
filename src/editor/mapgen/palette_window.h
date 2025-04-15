@@ -19,7 +19,8 @@ struct PaletteEntryDragState {
     MapKey entry;
 };
 
-void show_mapping( State &state, Palette &p, PaletteEntry &entry, bool &show );
+void show_mapping_source( State &state, Palette &p, PaletteEntry &entry, bool &show );
+void show_mapping_resolved(State& state, ViewPalette& p, ViewEntry& entry, bool& show);
 void show_active_palette_details( State &state, Palette &p, bool &show );
 void show_active_palette_simple( State &state, Palette &p, bool &show, bool resolved );
 void show_palette_preview(State& state, Palette& p, bool& show );
