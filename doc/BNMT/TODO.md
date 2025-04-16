@@ -20,7 +20,7 @@ Vague list of what changes are planned, and what changes would be nice to have b
 - Quick test of mapgen in game (press button -> be spawned in game next to your building)
 - Implement all mapgen pieces
 - Blueprint autocalc
-- Item group editor & tester
+- Item group editor & tester (in addition to Loot Designer)
 - Better vehicle placement preview (graphical tiles; choose which vehicle is visualized)
 - Better nested placement preview (recursive placement; graphical tiles and tooltip data; choose which nested is visualized)
 - Design simple overmap specials that use the mapgen (like in Hostile Architect)

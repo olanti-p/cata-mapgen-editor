@@ -50,6 +50,7 @@ Such functionality is marked with (*).
 - Visual preview for terrain and furniture
 - Configurable display options (sprites, symbols, OMT boundaries)
 - *Visual preview for vehicle and nested placement boundaries
+- Loot Designer tool that provides a quick way to test various item spawn results
 - *Mod support (edit default mod list to configure what data will be loaded)
 
 ## Bugs and limitations
