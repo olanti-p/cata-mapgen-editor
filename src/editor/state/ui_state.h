@@ -48,8 +48,11 @@ struct ExpandedPiece {
     bool operator<(const ExpandedPiece& rhs) const {
         if (uuid < rhs.uuid) {
             return true;
+        } else if (uuid==rhs.uuid) {
+            return palette < rhs.palette;
+        } else {
+            return false;
         }
-        return palette < rhs.palette;
     }
 };
 
