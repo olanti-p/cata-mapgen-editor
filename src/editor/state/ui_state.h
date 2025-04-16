@@ -63,6 +63,54 @@ struct OpenMapgenObject {
     UUID uuid = UUID_INVALID;
     bool open = true;
 };
+
+struct OpenLootDesigner {
+public:
+    void serialize( JsonOut &jsout ) const;
+    void deserialize(const TextJsonObject&jsin );
+
+    bool is_mapping_mode = false;
+    
+    bool resolved = false;
+    UUID palette = UUID_INVALID;
+    MapKey map_key;
+
+    UUID mapgen = UUID_INVALID;
+    UUID mapgen_object = UUID_INVALID;
+
+
+    std::string make_window_id() const;
+
+    bool open = true;
+
+    bool same_data_as(const OpenLootDesigner& rhs) const {
+        return is_mapping_mode == rhs.is_mapping_mode &&
+            resolved == rhs.resolved &&
+            palette == rhs.palette &&
+            map_key == rhs.map_key &&
+            mapgen == rhs.mapgen &&
+            mapgen_object == rhs.mapgen_object;
+    }
+
+    std::map<UUID, bool> enabled_pieces;
+    bool has_been_copied = false;
+
+    const std::string& get_display_cache() const {
+        return display_cache;
+    }
+    std::string& get_display_cache() {
+        return display_cache;
+    }
+
+    void set_display_cache( const std::string& s) {
+        display_cache = s;
+        has_been_copied = false;
+    }
+    
+private:
+    std::string display_cache;
+};
+
 } // namespace detail
 
 struct ViewPaletteTreeState {
@@ -122,6 +170,8 @@ struct UiState {
     std::vector<detail::OpenMapgenObject> open_mapgenobjects; // List of open mapgenobjects
     std::unordered_map<UUID, ViewPaletteTreeState> view_palette_tree_states;
 
+    std::vector<detail::OpenLootDesigner> open_loot_designers; // List of open item spawn views (for mappings)
+
     pimpl<Camera> camera;
     pimpl<ToolsState> tools;
 
@@ -140,6 +190,10 @@ struct UiState {
     void toggle_show_source_mapping( UUID palette, MapKey uuid );
     void toggle_show_resolved_mapping(UUID palette, MapKey uuid);
     void toggle_show_mapobjects( UUID uuid );
+
+    void toggle_loot_designer_source_mappping(UUID palette, MapKey map_key);
+    void toggle_loot_designer_resolved_mappping(UUID palette, MapKey map_key);
+    void toggle_loot_designer_map_object(UUID mapgen, UUID object);
 };
 
 /**

@@ -23,6 +23,8 @@ struct IntRange {
         return min != 0 || max != 0;
     }
 
+    int roll() const;
+
     void serialize( JsonOut &jsout ) const;
     void deserialize( const TextJsonValue &jsin );
 };

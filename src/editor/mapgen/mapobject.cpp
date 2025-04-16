@@ -161,6 +161,11 @@ void show_mapobjects( State &state, Mapgen &f, bool is_active, bool &show )
             if( ImGui::InputIntRange( "repeat", list[idx].repeat ) ) {
                 state.mark_changed( "me-mapobject-repeat-input" );
             }
+            if (is_used_by_loot_designer(list[idx].piece->get_type())) {
+                if (ImGui::Button("Open Loot Designer")) {
+                    state.ui->toggle_loot_designer_map_object(f.uuid, object_id);
+                }
+            }
             ImGui::PushID( "piece" );
             list[idx].piece->show_ui( state );
             ImGui::PopID();

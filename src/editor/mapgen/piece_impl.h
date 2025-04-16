@@ -66,6 +66,8 @@ struct PieceGraffiti : public Piece {
 struct PieceVendingMachine : public Piece {
     IMPLEMENT_ME_PIECE( PieceVendingMachine, PieceType::VendingMachine )
 
+    void roll_loot(std::vector<item>& result, time_point turn, float spawnrate) const override;
+
     bool lootable = false;
     bool powered = false;
     bool networked = false;
@@ -105,6 +107,8 @@ struct PieceGaspump : public Piece {
 struct PieceLiquid : public Piece {
     IMPLEMENT_ME_PIECE( PieceLiquid, PieceType::Liquid )
 
+    void roll_loot(std::vector<item>& result, time_point turn, float spawnrate) const override;
+
     bool use_default_amount = true;
     IntRange amount;
     EID::Liquid liquid;
@@ -115,10 +119,13 @@ struct PieceLiquid : public Piece {
 struct PieceIGroup : public Piece {
     IMPLEMENT_ME_PIECE( PieceIGroup, PieceType::IGroup )
 
+    IntRange get_repeat() const override { return repeat; };
+    void roll_loot(std::vector<item>& result, time_point turn, float spawnrate) const override;
+
     EID::IGroup group_id;
     IntRange chance;
     bool spawn_once = true;
-    IntRange repeat;
+    IntRange repeat = IntRange(1,1);
     const EID::Faction default_faction = EID::Faction("no_faction");
     EID::Faction faction = default_faction;
 };
@@ -126,6 +133,7 @@ struct PieceIGroup : public Piece {
 struct PieceLoot : public Piece {
     IMPLEMENT_ME_PIECE( PieceLoot, PieceType::Loot )
 
+    void roll_loot(std::vector<item>& result, time_point turn, float spawnrate) const override;
     // TODO
 };
 
@@ -178,6 +186,9 @@ struct PieceVehicle : public Piece {
 
 struct PieceItem : public Piece {
     IMPLEMENT_ME_PIECE( PieceItem, PieceType::Item )
+
+    IntRange get_repeat() const override { return repeat; };
+    void roll_loot(std::vector<item>& result, time_point turn, float spawnrate) const override;
 
     EID::Item item_id;
     std::string variant;
@@ -263,6 +274,7 @@ struct PieceComputer : public Piece {
 struct PieceSealeditem : public Piece {
     IMPLEMENT_ME_PIECE( PieceSealeditem, PieceType::SealedItem )
 
+    void roll_loot(std::vector<item>& result, time_point turn, float spawnrate) const override;
     // TODO
 };
 

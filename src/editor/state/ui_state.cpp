@@ -22,9 +22,24 @@
 #include "project/new_mapgen.h"
 #include "project/new_palette.h"
 #include "mapgen/palette_making.h"
+#include "mapgen/loot_designer.h"
 
 namespace editor
 {
+std::string detail::OpenLootDesigner::make_window_id() const
+{
+    std::string ret;
+    ret += is_mapping_mode ? "mapping-" : "object-";
+    if (is_mapping_mode) {
+        ret += resolved ? "resolved-" : "source-";
+        ret += string_format("%d-%s", palette, map_key.str());
+    }
+    else {
+        ret += string_format("%d-%d", mapgen, mapgen_object);
+    }
+    return ret;
+}
+
 UiState::UiState() = default;
 UiState::UiState( UiState && ) = default;
 UiState::~UiState() = default;
@@ -80,6 +95,46 @@ void UiState::toggle_show_mapobjects( UUID uuid )
     open_mapgenobjects.back().uuid = uuid;
 }
 
+static void toggle_loot_designer(std::vector<detail::OpenLootDesigner>& list, detail::OpenLootDesigner&& value) {
+    for (auto& it : list) {
+        if (it.open && it.same_data_as(value)) {
+            it.open = false;
+            return;
+        }
+    }
+    value.open = true;
+    list.emplace_back(std::move(value));
+}
+
+void UiState::toggle_loot_designer_source_mappping(UUID palette, MapKey map_key)
+{
+    detail::OpenLootDesigner v;
+    v.is_mapping_mode = true;
+    v.resolved = false;
+    v.palette = palette;
+    v.map_key = map_key;
+    toggle_loot_designer(open_loot_designers, std::move(v));
+}
+
+void UiState::toggle_loot_designer_resolved_mappping(UUID palette, MapKey map_key)
+{
+    detail::OpenLootDesigner v;
+    v.is_mapping_mode = true;
+    v.resolved = true;
+    v.palette = palette;
+    v.map_key = map_key;
+    toggle_loot_designer(open_loot_designers, std::move(v));
+}
+
+void UiState::toggle_loot_designer_map_object(UUID mapgen, UUID object)
+{
+    detail::OpenLootDesigner v;
+    v.is_mapping_mode = false;
+    v.mapgen = mapgen;
+    v.mapgen_object = object;
+    toggle_loot_designer(open_loot_designers, std::move(v));
+}
+
 void show_camera_controls( State &state, bool &show )
 {
     UiState &uistate = *state.ui;
@@ -114,6 +169,18 @@ void show_camera_controls( State &state, bool &show )
     }
 
     ImGui::End();
+}
+
+template<typename T>
+void erase_closed_windows(std::vector<T>& list) {
+    for (auto it = list.cbegin(); it != list.cend(); ) {
+        if (!it->open) {
+            it = list.erase(it);
+        }
+        else {
+            it++;
+        }
+    }
 }
 
 void run_ui_for_state( State &state )
@@ -280,6 +347,9 @@ void run_ui_for_state( State &state )
             it.open = false;
         }
     }
+    for (auto& it : uistate.open_loot_designers) {
+        show_loot_designer(state, it);
+    }
     for(
         auto it = uistate.open_palette_previews.cbegin();
         it != uistate.open_palette_previews.cend();
@@ -296,28 +366,11 @@ void run_ui_for_state( State &state )
             it++;
         }
     }
-    for( auto it = uistate.open_source_mappings.cbegin(); it != uistate.open_source_mappings.cend(); ) {
-        if( !it->open ) {
-            it = uistate.open_source_mappings.erase( it );
-        } else {
-            it++;
-        }
-    }
-    for (auto it = uistate.open_resolved_mappings.cbegin(); it != uistate.open_resolved_mappings.cend(); ) {
-        if (!it->open) {
-            it = uistate.open_resolved_mappings.erase(it);
-        }
-        else {
-            it++;
-        }
-    }
-    for( auto it = uistate.open_mapgenobjects.cbegin(); it != uistate.open_mapgenobjects.cend(); ) {
-        if( !it->open ) {
-            it = uistate.open_mapgenobjects.erase( it );
-        } else {
-            it++;
-        }
-    }
+    erase_closed_windows(uistate.open_source_mappings);
+    erase_closed_windows(uistate.open_resolved_mappings);
+    erase_closed_windows(uistate.open_mapgenobjects);
+    erase_closed_windows(uistate.open_loot_designers);
+
     if( !control.quick_add_state.active ) {
         control.quick_add_state = QuickPaletteAddState();
     }

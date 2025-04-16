@@ -100,4 +100,15 @@ bool is_available_as_mapobject( PieceType pt )
            );
 }
 
+bool is_used_by_loot_designer(PieceType pt)
+{
+    return
+        pt == editor::PieceType::IGroup ||
+        pt == editor::PieceType::Item ||
+        pt == editor::PieceType::SealedItem ||
+        pt == editor::PieceType::Liquid ||
+        pt == editor::PieceType::Loot ||
+        pt == editor::PieceType::VendingMachine;
+}
+
 } // namespace editor

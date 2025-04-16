@@ -188,6 +188,40 @@ void OpenMapgenObject::deserialize(const TextJsonObject&jo )
     jo.read( "open", open );
 }
 
+void OpenLootDesigner::serialize(JsonOut& jsout) const
+{
+    jsout.start_object();
+    jsout.member("is_mapping_mode", is_mapping_mode);
+    jsout.member("resolved", resolved);
+    jsout.member("palette", palette);
+    jsout.member("map_key", map_key);
+    jsout.member("mapgen", mapgen);
+    jsout.member("mapgen_object", mapgen_object);
+    jsout.member("open", open);
+    std::vector<std::pair<UUID, bool>> val;
+    val.insert(val.begin(), enabled_pieces.begin(), enabled_pieces.end());
+    jsout.member("enabled_pieces", val);
+    jsout.member("display_cache", display_cache);
+    jsout.end_object();
+}
+
+void OpenLootDesigner::deserialize(const TextJsonObject& jo)
+{
+    jo.read("is_mapping_mode", is_mapping_mode);
+    jo.read("resolved", resolved);
+    jo.read("palette", palette);
+    jo.read("map_key", map_key);
+    jo.read("mapgen", mapgen);
+    jo.read("mapgen_object", mapgen_object);
+    jo.read("open", open);
+    jo.read("display_cache", display_cache);
+    std::vector<std::pair<UUID, bool>> val;
+    jo.read("enabled_pieces", val);
+    for (const auto& it : val) {
+        enabled_pieces[it.first] = it.second;
+    }
+}
+
 } // namespace detail
 
 void UiState::serialize( JsonOut &jsout ) const
@@ -218,6 +252,7 @@ void UiState::serialize( JsonOut &jsout ) const
     jsout.member( "open_palette_previews", open_palette_previews );
     jsout.member( "open_source_mappings", open_source_mappings );
     jsout.member( "open_mapgenobjects", open_mapgenobjects );
+    jsout.member( "open_loot_designers", open_loot_designers );
     jsout.member( "camera", camera );
     jsout.member( "tools", tools );
     jsout.member( "expanded_pieces_source", expanded_pieces_source );
@@ -256,6 +291,7 @@ void UiState::deserialize( JSON_IN &jsin )
     jo.read( "open_palette_previews", open_palette_previews );
     jo.read( "open_source_mappings", open_source_mappings );
     jo.read( "open_mapgenobjects", open_mapgenobjects );
+    jo.read( "open_loot_designers", open_loot_designers );
     jo.read( "camera", camera );
     jo.read( "tools", tools );
     jo.read( "expanded_pieces_source", expanded_pieces_source );

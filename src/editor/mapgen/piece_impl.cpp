@@ -10,6 +10,7 @@
 #include "../../mapgen.h"
 #include "vehicle_group.h"
 #include "vehicle.h"
+#include "item_factory.h"
 
 namespace editor
 {
@@ -302,6 +303,20 @@ std::string PieceVendingMachine::fmt_data_summary() const
     }
 }
 
+void PieceVendingMachine::roll_loot(std::vector<item>& result, time_point turn, float spawnrate) const
+{
+    item_group_id gid( use_default_group ? "default_vending_machine" : item_group.data);
+    if (gid.is_valid()) {
+        // TODO: ensure this is the correct way to spawn vending machine item group
+        // TODO: time affects looted status
+        const Item_spawn_data& group = *item_controller->get_group(gid);
+        int num = roll_remainder(spawnrate);
+        for (int i = 0; i < num; i++) {
+            group.create(result, turn);
+        }
+    }
+}
+
 void PieceToilet::show_ui( State &state )
 {
     ImGui::HelpMarkerInline( "Whether to use default amount (24)." );
@@ -435,6 +450,39 @@ std::string PieceLiquid::fmt_data_summary() const
     return liquid.data;
 }
 
+void PieceLiquid::roll_loot(std::vector<item>& result, time_point turn, float spawnrate) const
+{
+    if (spawn_always || one_in(chance.roll())) {
+        itype_id chosen_id(liquid.data);
+        if (!chosen_id.is_valid()) {
+            return;
+        }
+
+        // FIXME: this is copied from mapgen.cpp, undupe it
+        itype_id migrated = item_controller->migrate_id(chosen_id);
+        item newliquid(migrated, calendar::start_of_cataclysm);
+
+        if (!use_default_amount && amount.min > -1) {
+            if (amount.max > -1) {
+                newliquid.charges = amount.roll();
+            }
+            else {
+                newliquid.charges = amount.min;
+            }
+
+            if (migrated.str() == "gasoline" ||
+                migrated.str() == "avgas" ||
+                migrated.str() == "diesel" ||
+                migrated.str() == "jp8") {
+                newliquid.charges *= 100;
+            }
+        }
+        if (newliquid.charges > 0) {
+            result.push_back(newliquid);
+        }
+    }
+}
+
 void PieceIGroup::show_ui( State &state )
 {
     ImGui::HelpMarkerInline(
@@ -480,6 +528,18 @@ std::string PieceIGroup::fmt_data_summary() const
     return group_id.data;
 }
 
+void PieceIGroup::roll_loot(std::vector<item>& result, time_point turn, float spawnrate) const
+{
+    item_group_id gid(group_id.data);
+    if (gid.is_valid()) {
+        const Item_spawn_data& group = *item_controller->get_group(gid);
+        int num = roll_remainder(chance.roll() * spawnrate / 100.0f);
+        for (int i = 0; i < num; i++) {
+            group.create(result, turn);
+        }
+    }
+}
+
 void PieceLoot::show_ui( State &state )
 {
     ImGui::Text( "TODO" );
@@ -488,6 +548,11 @@ void PieceLoot::show_ui( State &state )
 std::string PieceLoot::fmt_data_summary() const
 {
     return "TODO";
+}
+
+void PieceLoot::roll_loot(std::vector<item>& result, time_point turn, float spawnrate) const
+{
+    
 }
 
 void PieceMGroup::show_ui( State &state )
@@ -721,6 +786,43 @@ std::string PieceItem::fmt_data_summary() const
     return item_id.data;
 }
 
+void PieceItem::roll_loot(std::vector<item>& result, time_point turn, float spawnrate) const
+{
+    itype_id chosen_id(item_id.data);
+    if (chosen_id.is_valid()) {
+        chosen_id = item_controller->migrate_id(chosen_id);
+
+        const int c = chance.roll();
+        int spawn_count = (c == 100) ? 1 : roll_remainder(c * spawnrate / 100.0f);
+
+        const int quantity = amount.roll();
+
+        // FIXME: copied from map.cpp, undupe it
+        for (int i = 0; i < spawn_count * quantity; i++) {
+            item new_item(chosen_id, calendar::start_of_cataclysm);
+            new_item.set_itype_variant(variant);
+            if (faction != default_faction) {
+                new_item.set_owner(faction_id(faction.data));
+            }
+            if (one_in(3) && new_item.has_flag(flag_id("VARSIZE"))) {
+                new_item.set_flag(flag_id("FIT"));
+            }
+            new_item = new_item.in_its_container();
+            new_item.set_damage(0);
+            new_item.rand_degradation();
+            for (const auto& flag : custom_flags) {
+                flag_id fid(flag.data);
+                if (fid.is_valid()) {
+                    new_item.set_flag(fid);
+                }
+            }
+
+            result.push_back(new_item);
+        }
+    }
+
+}
+
 void PieceTrap::show_ui( State &state )
 {
     ImGui::HelpMarkerInline("Whether this will place specied trap or remove any trap.");
@@ -921,6 +1023,11 @@ void PieceSealeditem::show_ui( State &state )
 std::string PieceSealeditem::fmt_data_summary() const
 {
     return "TODO";
+}
+
+void PieceSealeditem::roll_loot(std::vector<item>& result, time_point turn, float spawnrate) const
+{
+
 }
 
 void PieceZone::show_ui( State &state )

@@ -319,4 +319,14 @@ void Mapgen::select_from_snippet( const CanvasSnippet &snippet )
     }
 }
 
+const MapObject* Mapgen::get_object(UUID uuid) const
+{
+    for (const auto& obj : objects) {
+        if (obj.piece->uuid == uuid) {
+            return &obj;
+        }
+    }
+    return nullptr;
+}
+
 } // namespace editor

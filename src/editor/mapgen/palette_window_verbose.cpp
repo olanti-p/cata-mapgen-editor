@@ -72,6 +72,9 @@ void show_mapping_source( State &state, editor::Palette &p, editor::PaletteEntry
     );
     ImGui::Text("Source mappings for \"%s\".  %d pieces.", entry.key.str().c_str(), entry.pieces.size());
     ImGui::Text("Owner palette: %s", p.display_name().c_str());
+    if (ImGui::Button("Open Loot Designer")) {
+        state.ui->toggle_loot_designer_source_mappping(p.uuid, entry.key);
+    }
 
     std::vector<std::unique_ptr<Piece>> &list = entry.pieces;
 
@@ -183,6 +186,9 @@ void show_mapping_resolved(State& state, editor::ViewPalette& p, editor::ViewEnt
     );
     ImGui::Text("Resolved mappings for \"%s\".  %d pieces.", entry.key.str().c_str(), entry.pieces.size());
     ImGui::Text("Origin palette: %s", state.project().get_palette(p.source_uuid)->display_name().c_str());
+    if (ImGui::Button("Open Loot Designer")) {
+        state.ui->toggle_loot_designer_resolved_mappping(p.source_uuid, entry.key);
+    }
     
     std::vector<editor::ViewPiece>& list = entry.pieces;
 

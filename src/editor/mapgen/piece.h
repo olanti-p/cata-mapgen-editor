@@ -17,6 +17,7 @@
 class JsonOut;
 class JSON_OBJECT;
 class jmapgen_piece;
+class item;
 
 #define IMPLEMENT_ME_PIECE_NOCOPY(piece_class, piece_type)              \
     piece_class( piece_class&&) = default;                              \
@@ -73,6 +74,8 @@ struct Piece {
     virtual void show_ui( State &state ) = 0;
 
     virtual void init_new() {};
+    virtual IntRange get_repeat() const { return IntRange(1, 1); };
+    virtual void roll_loot(std::vector<item>& result, time_point turn, float spawnrate) const {};
 
     /**
      * Returns "Type: data" summary string
@@ -92,6 +95,7 @@ bool is_alt_piece( PieceType pt );
 bool is_piece_exclusive( PieceType pt );
 bool is_available_as_mapping( PieceType pt );
 bool is_available_as_mapobject( PieceType pt );
+bool is_used_by_loot_designer( PieceType pt );
 
 } // namespace editor
 

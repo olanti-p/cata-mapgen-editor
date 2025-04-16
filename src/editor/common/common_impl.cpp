@@ -13,6 +13,10 @@ IntRange::IntRange( const jmapgen_int &range )
     max = range.valmax;
 }
 
+int IntRange::roll() const {
+    return jmapgen_int(min, max).get();
+}
+
 void UUIDGenerator::serialize( JsonOut &jsout ) const
 {
     jsout.start_object();

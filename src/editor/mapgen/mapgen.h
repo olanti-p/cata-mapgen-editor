@@ -135,6 +135,12 @@ struct Mapgen {
         void apply_snippet( const CanvasSnippet &snippet );
         void select_from_snippet( const CanvasSnippet &snippet );
 
+        const MapObject* get_object(UUID uuid) const;
+        MapObject* get_object(UUID uuid) {
+            const Mapgen* this_c = this;
+            return const_cast<MapObject*>(this_c->get_object(uuid));
+        }
+
     private:
         SelectionMask selection_mask;
 };
