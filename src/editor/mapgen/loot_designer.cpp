@@ -21,6 +21,7 @@ static void roll_one( std::vector<item>& result, const Piece* piece, const MapOb
     // TODO: custom spawn time point
     time_point turn = calendar::start_of_game;
 
+    // FIXME: roll wuth advantage does not work as expected
     IntRange repeat_from_piece = piece->get_repeat();
     IntRange repeat_from_object = object_info ? object_info->repeat : IntRange(1, 1);
     int repeats_final = std::max(repeat_from_piece.roll(), repeat_from_object.roll());
