@@ -111,8 +111,9 @@ void show_mapping_source( State &state, editor::Palette &p, editor::PaletteEntry
                 UUID uuid = state.project().uuid_generator();
                 ptr->uuid = uuid;
                 ptr->init_new();
+                Piece* ptr_raw = ptr.get();
                 list.push_back( std::move( ptr ) );
-                expand_piece( state, p, *ptr.get() );
+                expand_piece( state, p, *ptr_raw );
                 ret = true;
             }
         }
