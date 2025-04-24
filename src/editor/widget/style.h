@@ -8,7 +8,7 @@ namespace editor
 namespace style
 {
 
-constexpr float list_indent = 8.0f;
+constexpr float list_indent = 24.0f;
 
 } // namespace style
 } // namespace editor

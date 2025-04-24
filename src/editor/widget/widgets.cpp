@@ -682,12 +682,14 @@ bool VectorWidget::run_internal( size_t num )
 
         ImGui::PopID();
     }
+    bool has_end_drag_target = false;
     if( use_default_drag_drop || f_drag_drop ) {
         // Invisible "end of array" drop target
+        has_end_drag_target = true;
         ImGui::PushStyleColor( ImGuiCol_Button, editor::col_transparent );
         ImGui::PushStyleColor( ImGuiCol_ButtonHovered, editor::col_transparent );
         ImGui::PushStyleColor( ImGuiCol_ButtonActive, editor::col_transparent );
-        ImGui::Button( "###end-of-array", ImVec2( -1.0, 0.0 ) );
+        ImGui::ImageButton("drag", "me_draggable");
         ImGui::PopStyleColor( 3 );
         if( use_default_drag_drop ) {
             std::optional<size_t> tgt = handle_drag_drop_target( dd_payload_id.c_str() );
@@ -715,8 +717,13 @@ bool VectorWidget::run_internal( size_t num )
         f_duplicate( *dupe );
         ret = true;
     }
-    if( f_add && f_add() ) {
-        ret = true;
+    if (f_add) {
+        if (has_end_drag_target) {
+            ImGui::SameLine();
+        }
+        if( f_add() ) {
+            ret = true;
+        }
     }
     return ret;
 }
