@@ -11,6 +11,7 @@
 #include "vehicle_group.h"
 #include "vehicle.h"
 #include "item_factory.h"
+#include "omdata.h"
 
 namespace editor
 {
@@ -1062,32 +1063,277 @@ std::string PieceZone::fmt_data_summary() const
     }
 }
 
+std::unique_ptr<NestedCheck> NestedCheck::make(NestedCheckType type)
+{
+    switch (type) {
+    case NestedCheckType::Oter: return std::make_unique<NestedCheckOter>();
+    case NestedCheckType::Join: return std::make_unique<NestedCheckJoin>();
+    case NestedCheckType::Flag: return std::make_unique<NestedCheckFlag>();
+    case NestedCheckType::FlagAny: return std::make_unique<NestedCheckFlagAny>();
+    case NestedCheckType::Predecessor: return std::make_unique<NestedCheckPredecessor>();
+    case NestedCheckType::ZLevel: return std::make_unique<NestedCheckZLevel>();
+    }
+    std::abort();
+    return nullptr;
+}
+
+NestedCheckOter::NestedCheckOter() {
+    dir = direction::CENTER;
+    matches.emplace_back();
+    matches.back().first = "";
+    matches.back().second = ot_match_type::contains;
+}
+
+void NestedCheckOter::show_ui(State& state) {
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(ImGui::GetFrameHeight() * 8.0f);
+    if (ImGui::ComboEnum("Match Direction", dir)) {
+        state.mark_changed("dir");
+    }
+
+    // TODO: check for duplicates
+    ImGui::Text("Match Values");
+    ImGui::PushID("matches");
+    show_plain_list<std::pair<std::string, ot_match_type>>(state, matches,
+        [&](size_t i) {
+            auto& it = matches[i];
+            ImGui::SetNextItemWidth(ImGui::GetFrameHeight() * 5.0f);
+            if (ImGui::ComboEnum("##entry-type", it.second)) {
+                state.mark_changed("list-entry-type");
+            }
+            ImGui::HelpPopup("Match type.");
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::InputText("##entry-value", &it.first)) {
+                state.mark_changed("list-entry-value");
+            }
+            ImGui::HelpPopup("Match string.");
+        }
+    );
+    ImGui::PopID();
+}
+
+NestedCheckJoin::NestedCheckJoin() {
+    dir = cube_direction::north;
+    matches.emplace_back();
+}
+
+void NestedCheckJoin::show_ui(State& state) {
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(ImGui::GetFrameHeight() * 8.0f);
+    if (ImGui::ComboEnum("Match Direction", dir)) {
+        state.mark_changed("dir");
+    }
+
+    // TODO: check for duplicates
+    ImGui::Text("Match Values");
+    ImGui::PushID("matches");
+    show_plain_list<std::string>(state, matches,
+        [&](size_t i) {
+            auto& it = matches[i];
+            if (ImGui::InputText("##entry", &it)) {
+                state.mark_changed("list-entry");
+            }
+        }
+    );
+    ImGui::PopID();
+}
+
+NestedCheckFlag::NestedCheckFlag() {
+    dir = direction::CENTER;
+    matches.emplace_back(oter_flags::water);
+}
+
+void NestedCheckFlag::show_ui(State& state) {
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(ImGui::GetFrameHeight() * 8.0f);
+    if (ImGui::ComboEnum("Match Direction", dir)) {
+        state.mark_changed("dir");
+    }
+
+    // TODO: check for duplicates
+    ImGui::Text("Match Values");
+    ImGui::PushID("matches");
+    show_plain_list<oter_flags>(state, matches,
+        [&](size_t i) {
+            auto& it = matches[i];
+            if (ImGui::ComboEnum("##entry", it)) {
+                state.mark_changed("list-entry");
+            }
+        }
+    );
+    ImGui::PopID();
+}
+
+NestedCheckFlagAny::NestedCheckFlagAny() {
+    dir = direction::CENTER;
+    matches.emplace_back(oter_flags::water);
+}
+
+void NestedCheckFlagAny::show_ui(State& state) {
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(ImGui::GetFrameHeight() * 8.0f);
+    if (ImGui::ComboEnum("Match Direction", dir)) {
+        state.mark_changed("dir");
+    }
+
+    // TODO: check for duplicates
+    ImGui::Text("Match Values");
+    ImGui::PushID("matches");
+    show_plain_list<oter_flags>(state, matches,
+        [&](size_t i) {
+            auto& it = matches[i];
+            if (ImGui::ComboEnum("##entry", it)) {
+                state.mark_changed("list-entry");
+            }
+        }
+    );
+    ImGui::PopID();
+}
+
+NestedCheckPredecessor::NestedCheckPredecessor() {
+    match_type = ot_match_type::contains;
+}
+
+void NestedCheckPredecessor::show_ui(State& state) {
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(ImGui::GetFrameHeight() * 8.0f);
+    if (ImGui::ComboEnum("##match_type", match_type)) {
+        state.mark_changed("match_type");
+    }
+    ImGui::HelpPopup("Match type.");
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+    if (ImGui::InputText("##terrain", &match_terrain)) {
+        state.mark_changed("terrain");
+    }
+    ImGui::HelpPopup("Match string.");
+}
+
+NestedCheckZLevel::NestedCheckZLevel() {
+
+}
+
+void NestedCheckZLevel::show_ui(State& state) {
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(ImGui::GetFrameHeight() * 8.0f);
+    if (ImGui::InputIntClamped("z", z, -10, 10)) {
+        state.mark_changed("z");
+    }
+}
+
+PieceNested::PieceNested(const PieceNested& rhs) : Piece(rhs) {
+    chunks = rhs.chunks;
+    else_chunks = rhs.else_chunks;
+    checks.clear();
+    for (const auto& it : rhs.checks) {
+        checks.emplace_back(it->clone());
+    }
+}
+
 void PieceNested::show_ui( State &state )
 {
-    ImGui::Text( "TODO: more info" );
+    ImGui::PushID("chunks");
+    ImGui::SeparatorText("Chunks");
+    show_weighted_list(state, chunks);
+    ImGui::PopID();
 
-    show_weighted_list(state, list);
+    ImGui::PushID("else-chunks");
+    ImGui::SeparatorText("Else Chunks");
+    show_weighted_list(state, else_chunks);
+    ImGui::PopID();
+
+    ImGui::PushID("checks");
+    ImGui::SeparatorText("Checks");
+    ImGui::Indent(style::list_indent);
+
+    const auto show_val = [&](size_t i) {
+        NestedCheck& entry = *checks[i].get();
+
+        float indent = ImGui::GetFrameHeight() * 2.3f;
+        ImGui::Text("%s", io::enum_to_string<NestedCheckType>(entry.get_type()));
+        ImGui::Indent(indent);
+        entry.show_ui(state);
+        ImGui::Indent(-indent);
+    };
+
+    const auto show_add = [&]() -> bool {
+        bool ret = false;
+
+        if (ImGui::Button("+ Oter")) {
+            checks.emplace_back(NestedCheck::make(NestedCheckType::Oter));
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("+ Flag")) {
+            checks.emplace_back(NestedCheck::make(NestedCheckType::Flag));
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("+ Flag Any")) {
+            checks.emplace_back(NestedCheck::make(NestedCheckType::FlagAny));
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("+ Join")) {
+            checks.emplace_back(NestedCheck::make(NestedCheckType::Join));
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("+ Z Level")) {
+            checks.emplace_back(NestedCheck::make(NestedCheckType::ZLevel));
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("+ Predecessor")) {
+            checks.emplace_back(NestedCheck::make(NestedCheckType::Predecessor));
+        }
+
+        return ret;
+    };
+
+    if (
+        ImGui::VectorWidget()
+        .with_for_each(show_val)
+        .with_default_delete()
+        .with_default_move()
+        .with_default_drag_drop()
+        .with_add(show_add)
+        .run(checks)) {
+        state.mark_changed();
+    }
+
+    ImGui::Indent(-style::list_indent);
+    ImGui::PopID();
 }
 
 std::string PieceNested::fmt_data_summary() const
 {
-    std::string ret = list.entries[0].val.data;
-    if (list.entries.size() > 1) {
-        ret += string_format(" (+%d)", list.entries.size() - 1);
+    std::string ret;
+    if (chunks.entries.size() > 0) {
+        ret += chunks.entries[0].val.data;
+        if (chunks.entries.size() > 1) {
+            ret += string_format(" (+%d)", chunks.entries.size() - 1 + else_chunks.entries.size() - 1);
+        }
+    }
+    else if (else_chunks.entries.size() > 0) {
+        ret += "ELSE ";
+        ret += else_chunks.entries[0].val.data;
+        if (else_chunks.entries.size() > 1) {
+            ret += string_format(" (+%d)", else_chunks.entries.size() - 1);
+        }
+    }
+    else {
+        ret += "<null>";
     }
     return ret;
 }
 
 void PieceNested::init_new()
 {
-    list.entries.emplace_back();
-    list.entries.back().weight = 1;
+    chunks.entries.emplace_back();
+    chunks.entries.back().weight = 1;
 }
 
 std::unordered_set<point> PieceNested::silhouette() const
 {
     std::unordered_set<point> ret;
-    for (const auto& entry : list.entries) {
+    for (const auto& entry : chunks.entries) {
         if (entry.val.is_valid()) {
             const nested_mapgen& obj = entry.val.obj();
             for (const auto& it : obj.funcs()) {

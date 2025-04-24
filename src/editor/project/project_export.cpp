@@ -68,6 +68,13 @@ void emit_key( JsonOut &jo, const std::string &key )
     jo.member( key );
 }
 
+template<typename E>
+std::enable_if_t< std::is_enum_v<std::decay_t<E>>, void>
+emit_val(JsonOut& jo, E e)
+{
+    jo.write(io::enum_to_string<E>(e));
+}
+
 void emit_val( JsonOut &jo, int i )
 {
     jo.write( i );
@@ -561,7 +568,146 @@ void PieceZone::export_func( JsonOut &jo ) const
 
 void PieceNested::export_func( JsonOut &jo ) const
 {
-    // TODO
+    if (!chunks.entries.empty()) {
+        ee::emit(jo, "chunks", chunks);
+    }
+    if (!else_chunks.entries.empty()) {
+        ee::emit(jo, "else_chunks", else_chunks);
+    }
+
+    std::vector<NestedCheckOter*> checks_oter;
+    std::vector<NestedCheckJoin*> checks_join;
+    std::vector<NestedCheckFlag*> checks_flag;
+    std::vector<NestedCheckFlagAny*> checks_flag_any;
+    std::vector<NestedCheckPredecessor*> checks_pred;
+    std::vector<NestedCheckZLevel*> checks_zlevel;
+    for (const auto& it : checks) {
+        {
+            auto ptr = dynamic_cast<NestedCheckOter*>(it.get());
+            if (ptr) {
+                checks_oter.push_back(ptr);
+                continue;
+            }
+        }
+        {
+            auto ptr = dynamic_cast<NestedCheckJoin*>(it.get());
+            if (ptr) {
+                checks_join.push_back(ptr);
+                continue;
+            }
+        }
+        {
+            auto ptr = dynamic_cast<NestedCheckFlag*>(it.get());
+            if (ptr) {
+                checks_flag.push_back(ptr);
+                continue;
+            }
+        }
+        {
+            auto ptr = dynamic_cast<NestedCheckFlagAny*>(it.get());
+            if (ptr) {
+                checks_flag_any.push_back(ptr);
+                continue;
+            }
+        }
+        {
+            auto ptr = dynamic_cast<NestedCheckPredecessor*>(it.get());
+            if (ptr) {
+                checks_pred.push_back(ptr);
+                continue;
+            }
+        }
+        {
+            auto ptr = dynamic_cast<NestedCheckZLevel*>(it.get());
+            if (ptr) {
+                checks_zlevel.push_back(ptr);
+                continue;
+            }
+        }
+    }
+
+    std::sort(checks_oter.begin(), checks_oter.end(), []( auto *a, auto *b) { return (*a) < (*b); } );
+    std::sort(checks_join.begin(), checks_join.end(), [](auto* a, auto* b) { return (*a) < (*b); });
+    std::sort(checks_flag.begin(), checks_flag.end(), [](auto* a, auto* b) { return (*a) < (*b); });
+    std::sort(checks_flag_any.begin(), checks_flag_any.end(), [](auto* a, auto* b) { return (*a) < (*b); });
+    std::sort(checks_pred.begin(), checks_pred.end(), [](auto* a, auto* b) { return (*a) < (*b); });
+    std::sort(checks_zlevel.begin(), checks_zlevel.end(), [](auto* a, auto* b) { return (*a) < (*b); });
+
+    if (!checks_oter.empty()) {
+        ee::emit_object(jo, "neighbors", [&]() {
+            for (auto* it : checks_oter) {
+                ee::emit_key(jo, io::enum_to_string(it->dir));
+                if (it->matches.size() == 1 && it->matches[0].second == ot_match_type::contains) {
+                    // Simplified form
+                    ee::emit_val(jo, it->matches[0].first);
+                }
+                else {
+                    // Advanced form
+                    ee::emit_array(jo, [&]() {
+                        std::vector<std::pair<std::string, ot_match_type>> matches_copy = it->matches;
+                        std::sort(matches_copy.begin(), matches_copy.end());
+                        for (const auto& m : matches_copy) {
+                            if (m.second == ot_match_type::contains) {
+                                ee::emit_val(jo, m.first);
+                            }
+                            else {
+                                ee::emit_object(jo, [&]() {
+                                    ee::emit(jo, "om_terrain", m.first);
+                                    ee::emit(jo, "om_terrain_match_type", m.first);
+                                });
+                            }
+                        }
+                    });
+                }
+            }
+        });
+    }
+    if (!checks_join.empty()) {
+        ee::emit_object(jo, "joins", [&]() {
+            for (auto* it : checks_join) {
+                ee::emit_key(jo, io::enum_to_string(it->dir));
+                ee::emit_single_or_array(jo, it->matches);
+            }
+        });
+    }
+    if (!checks_flag.empty()) {
+        ee::emit_object(jo, "flags", [&]() {
+            for (auto* it : checks_flag) {
+                ee::emit_key(jo, io::enum_to_string(it->dir));
+                ee::emit_single_or_array(jo, it->matches);
+            }
+        });
+    }
+    if (!checks_flag_any.empty()) {
+        ee::emit_object(jo, "flags_any", [&]() {
+            for (auto* it : checks_flag_any) {
+                ee::emit_key(jo, io::enum_to_string(it->dir));
+                ee::emit_single_or_array(jo, it->matches);
+            }
+        });
+    }
+    if (!checks_pred.empty()) {
+        ee::emit_array(jo, "predecessors", [&]() {
+            for (auto* it : checks_pred) {
+                if (it->match_type == ot_match_type::contains) {
+                    ee::emit_val(jo, it->match_terrain);
+                }
+                else {
+                    ee::emit_object(jo, [&]() {
+                        ee::emit(jo, "om_terrain", it->match_terrain);
+                        ee::emit(jo, "om_terrain_match_type", it->match_type);
+                    });
+                }
+            }
+        });
+    }
+    if (!checks_zlevel.empty()) {
+        ee::emit_array(jo, "check_z", [&]() {
+            for (auto* it : checks_zlevel) {
+                ee::emit_val(jo, it->z);
+            }
+        });
+    }
 }
 
 void PieceAltTrap::export_func( JsonOut &jo ) const

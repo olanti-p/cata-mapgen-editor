@@ -42,6 +42,22 @@ class item;
     IMPLEMENT_ME_PIECE_NOCOPY(piece_class, piece_type)
 
 
+#define IMPLEMENT_NESTED_CHECK(check_class, check_type)                 \
+    check_class();                                                      \
+    check_class( const check_class&) = default;                         \
+    check_class( check_class&&) = default;                              \
+    virtual ~check_class() = default;                                   \
+    NestedCheckType get_type() const override {                         \
+        return check_type;                                              \
+    }                                                                   \
+    std::unique_ptr<NestedCheck> clone() const override {               \
+        return std::make_unique<check_class>( *this );                  \
+    };                                                                  \
+    void serialize( JsonOut &jsout ) const override;                    \
+    void deserialize( const TextJsonObject &jsin ) override;            \
+    void show_ui( State& state ) override;
+
+
 namespace editor
 {
 struct State;

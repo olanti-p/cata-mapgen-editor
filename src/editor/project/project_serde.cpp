@@ -12,6 +12,9 @@
 #include "mapgen/selection_mask.h"
 #include "project.h"
 
+#include "cube_direction.h"
+#include "omdata.h"
+
 void serialize( const std::unique_ptr<editor::Piece> &ptr, JsonOut &jsout )
 {
     jsout.start_object();
@@ -125,6 +128,25 @@ std::string enum_to_string<editor::VehicleStatus>( editor::VehicleStatus data )
             break;
     }
     debugmsg( "Invalid editor::VehicleStatus" );
+    abort();
+}
+
+template<>
+std::string enum_to_string<editor::NestedCheckType>(editor::NestedCheckType data)
+{
+    switch (data) {
+        // *INDENT-OFF*
+        case editor::NestedCheckType::Oter: return "Oter";
+        case editor::NestedCheckType::Join: return "Join";
+        case editor::NestedCheckType::Flag: return "Flag";
+        case editor::NestedCheckType::FlagAny: return "FlagAny";
+        case editor::NestedCheckType::Predecessor: return "Predecessor";
+        case editor::NestedCheckType::ZLevel: return "ZLevel";
+        // *INDENT-ON*
+        case editor::NestedCheckType::_Num:
+            break;
+    }
+    debugmsg("Invalid editor::NestedCheckType");
     abort();
 }
 
@@ -570,14 +592,102 @@ void PieceZone::deserialize( const JSON_OBJECT &jsin )
     jsin.read("filter", filter);
 }
 
+void NestedCheckOter::serialize(JsonOut& jsout) const
+{
+    jsout.member_as_string("dir", dir);
+    jsout.member("matches", matches);
+}
+
+void NestedCheckOter::deserialize(const JSON_OBJECT& jsin)
+{
+    dir = jsin.get_enum_value<direction>("dir");
+    jsin.read("matches", matches);
+}
+
+void NestedCheckJoin::serialize(JsonOut& jsout) const
+{
+    jsout.member_as_string("dir", dir);
+    jsout.member("matches", matches);
+}
+
+void NestedCheckJoin::deserialize(const JSON_OBJECT& jsin)
+{
+    dir = jsin.get_enum_value<cube_direction>("dir");
+    jsin.read("matches", matches);
+}
+
+void NestedCheckFlag::serialize(JsonOut& jsout) const
+{
+    jsout.member_as_string("dir", dir);
+    jsout.member("matches", matches);
+}
+
+void NestedCheckFlag::deserialize(const JSON_OBJECT& jsin)
+{
+    dir = jsin.get_enum_value<direction>("dir");
+    jsin.read("matches", matches);
+}
+
+void NestedCheckFlagAny::serialize(JsonOut& jsout) const
+{
+    jsout.member_as_string("dir", dir);
+    jsout.member("matches", matches);
+}
+
+void NestedCheckFlagAny::deserialize(const JSON_OBJECT& jsin)
+{
+    dir = jsin.get_enum_value<direction>("dir");
+    jsin.read("matches", matches);
+}
+
+void NestedCheckPredecessor::serialize(JsonOut& jsout) const
+{
+    jsout.member_as_string("match_type", match_type);
+    jsout.member("match_terrain", match_terrain);
+}
+
+void NestedCheckPredecessor::deserialize(const JSON_OBJECT& jsin)
+{
+    jsin.read("match_type", match_type);
+    jsin.read("match_terrain", match_terrain);
+}
+
+void NestedCheckZLevel::serialize(JsonOut& jsout) const
+{
+    jsout.member("z", z);
+}
+
+void NestedCheckZLevel::deserialize(const JSON_OBJECT& jsin)
+{
+    jsin.read("z", z);
+}
+
 void PieceNested::serialize( JsonOut &jsout ) const
 {
-    jsout.member("list", list);
+    jsout.member("chunks", chunks);
+    jsout.member("else_chunks", else_chunks);
+    jsout.member("checks");
+    jsout.start_array();
+    for (const auto& it : checks) {
+        jsout.start_object();
+        jsout.member_as_string("type", it->get_type());
+        it->serialize(jsout);
+        jsout.end_object();
+    }
+    jsout.end_array();
 }
 
 void PieceNested::deserialize( const JSON_OBJECT &jsin )
 {
-    jsin.read("list", list);
+    jsin.read("chunks", chunks);
+    jsin.read("else_chunks", else_chunks);
+    TextJsonArray arr = jsin.get_array("checks");
+    for (TextJsonObject obj : arr) {
+        NestedCheckType type = obj.get_enum_value<NestedCheckType>("type");
+        std::unique_ptr<NestedCheck> entry = NestedCheck::make(type);
+        entry->deserialize(obj);
+        checks.emplace_back(std::move(entry));
+    }
 }
 
 void PieceAltTrap::serialize( JsonOut &jsout ) const

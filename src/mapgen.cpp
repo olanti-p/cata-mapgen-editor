@@ -4126,11 +4126,12 @@ class jmapgen_remove_all : public jmapgen_piece
 class jmapgen_nested : public jmapgen_piece
 {
     private:
+    public:
         class neighbor_oter_check
         {
             private:
-                std::unordered_map<direction, cata::flat_set<std::pair<std::string, ot_match_type>>> neighbors;
             public:
+                std::unordered_map<direction, cata::flat_set<std::pair<std::string, ot_match_type>>> neighbors;
                 explicit neighbor_oter_check( const JsonObject &jsi ) {
                     for( direction dir : all_enum_values<direction>() ) {
                         std::string location = io::enum_to_string( dir );
@@ -4186,8 +4187,8 @@ class jmapgen_nested : public jmapgen_piece
         class neighbor_join_check
         {
             private:
-                std::unordered_map<cube_direction, cata::flat_set<std::string>> neighbors;
             public:
+                std::unordered_map<cube_direction, cata::flat_set<std::string>> neighbors;
                 explicit neighbor_join_check( const JsonObject &jsi ) {
                     for( cube_direction dir : all_enum_values<cube_direction>() ) {
                         cata::flat_set<std::string> dir_neighbors =
@@ -4225,8 +4226,8 @@ class jmapgen_nested : public jmapgen_piece
         class neighbor_flag_check
         {
             private:
-                std::unordered_map<direction, cata::flat_set<oter_flags>> neighbors;
             public:
+                std::unordered_map<direction, cata::flat_set<oter_flags>> neighbors;
                 explicit neighbor_flag_check( const JsonObject &jsi ) {
                     for( direction dir : all_enum_values<direction>() ) {
                         cata::flat_set<oter_flags> dir_neighbors;
@@ -4262,8 +4263,8 @@ class jmapgen_nested : public jmapgen_piece
         class neighbor_flag_any_check
         {
             private:
-                std::unordered_map<direction, cata::flat_set<oter_flags>> neighbors;
             public:
+                std::unordered_map<direction, cata::flat_set<oter_flags>> neighbors;
                 explicit neighbor_flag_any_check( const JsonObject &jsi ) {
                     for( direction dir : all_enum_values<direction>() ) {
                         cata::flat_set<oter_flags> dir_neighbors;
@@ -4295,8 +4296,8 @@ class jmapgen_nested : public jmapgen_piece
         class predecessor_oter_check
         {
             private:
-                cata::flat_set<std::pair<std::string, ot_match_type>> allowed_predecessors;
             public:
+                cata::flat_set<std::pair<std::string, ot_match_type>> allowed_predecessors;
                 explicit predecessor_oter_check( const JsonArray &jarr ) {
                     for( const JsonValue entry : jarr ) {
                         std::pair<std::string, ot_match_type> allowed_predecessor;
@@ -4328,8 +4329,8 @@ class jmapgen_nested : public jmapgen_piece
         class correct_z_level_check
         {
             private:
-                std::unordered_set<int> required_z;
             public:
+                std::unordered_set<int> required_z;
                 explicit correct_z_level_check( const JsonArray &jarr ) {
                     for( const JsonValue entry : jarr ) {
                         required_z.emplace( entry.get_int() );
@@ -9445,7 +9446,8 @@ bool PieceNested::try_import( const jmapgen_piece& piece, PaletteImportReport& r
     if (!casted) {
         return false;
     }
-    list.entries.clear();
+
+    chunks.entries.clear();
     for (const auto& entry : casted->entries) {
         // TODO: parametric
         auto val = entry.obj.collapse_import();
@@ -9455,11 +9457,71 @@ bool PieceNested::try_import( const jmapgen_piece& piece, PaletteImportReport& r
         if (val.second) {
              int weight = entry.weight;
              EID::Nest nested_id(val.second->str());
-             list.entries.emplace_back(nested_id, weight);
+             chunks.entries.emplace_back(nested_id, weight);
         }
     }
-    if (list.entries.empty()) {
-        list.entries.emplace_back(EID::Nest(), 1);
+
+    else_chunks.entries.clear();
+    for (const auto& entry : casted->else_entries) {
+        // TODO: parametric
+        auto val = entry.obj.collapse_import();
+        if (val.first) {
+            report.num_values_folded++;
+        }
+        if (val.second) {
+            int weight = entry.weight;
+            EID::Nest nested_id(val.second->str());
+            else_chunks.entries.emplace_back(nested_id, weight);
+        }
+    }
+
+    checks.clear();
+    for (const auto& it : casted->neighbor_oters.neighbors) {
+        NestedCheckOter check;
+        check.dir = it.first;
+        check.matches.clear();
+        for (const auto& it2 : it.second) {
+            check.matches.emplace_back(it2);
+        }
+        checks.emplace_back(std::make_unique<NestedCheckOter>(std::move(check)));
+    }
+    for (const auto& it : casted->neighbor_joins.neighbors) {
+        NestedCheckJoin check;
+        check.dir = it.first;
+        check.matches.clear();
+        for (const auto& it2 : it.second) {
+            check.matches.emplace_back(it2);
+        }
+        checks.emplace_back(std::make_unique<NestedCheckJoin>(std::move(check)));
+    }
+    for (const auto& it : casted->neighbor_flags.neighbors) {
+        NestedCheckFlag check;
+        check.dir = it.first;
+        check.matches.clear();
+        for (const auto& it2 : it.second) {
+            check.matches.emplace_back(it2);
+        }
+        checks.emplace_back(std::make_unique<NestedCheckFlag>(std::move(check)));
+    }
+    for (const auto& it : casted->neighbor_flags_any.neighbors) {
+        NestedCheckFlagAny check;
+        check.dir = it.first;
+        check.matches.clear();
+        for (const auto& it2 : it.second) {
+            check.matches.emplace_back(it2);
+        }
+        checks.emplace_back(std::make_unique<NestedCheckFlagAny>(std::move(check)));
+    }
+    for (const auto& it : casted->predecessors.allowed_predecessors) {
+        NestedCheckPredecessor check;
+        check.match_terrain = it.first;
+        check.match_type = it.second;
+        checks.emplace_back(std::make_unique<NestedCheckPredecessor>(std::move(check)));
+    }
+    for (const auto& it : casted->correct_z_level.required_z) {
+        NestedCheckZLevel check;
+        check.z = it;
+        checks.emplace_back(std::make_unique<NestedCheckZLevel>(std::move(check)));
     }
 
     return true; // TODO

@@ -13,6 +13,11 @@
 
 #include <set>
 
+enum class cube_direction : int;
+enum class direction : unsigned;
+enum class ot_match_type : int;
+enum class oter_flags : int;
+
 namespace editor
 {
 
@@ -287,14 +292,123 @@ struct PieceZone : public Piece {
     std::string filter;
 };
 
+enum NestedCheckType {
+    Oter,
+    Join,
+    Flag,
+    FlagAny,
+    Predecessor,
+    ZLevel,
+
+    _Num,
+};
+
+struct NestedCheck {
+    NestedCheck() = default;
+    virtual ~NestedCheck() = default;
+
+    static std::unique_ptr<NestedCheck> make(NestedCheckType type);
+
+    virtual NestedCheckType get_type() const = 0;
+    virtual std::unique_ptr<NestedCheck> clone() const = 0;
+    virtual void serialize(JsonOut& jsout) const = 0;
+    virtual void deserialize(const TextJsonObject& jsin) = 0;
+    virtual void show_ui(State& state) = 0;
+};
+
+struct NestedCheckOter : public NestedCheck {
+    IMPLEMENT_NESTED_CHECK(NestedCheckOter, NestedCheckType::Oter)
+
+    bool operator<(const NestedCheckOter& rhs) const {
+        if (dir < rhs.dir) {
+            return true;
+        }
+        return matches < rhs.matches;
+    }
+
+    direction dir;
+    std::vector<std::pair<std::string, ot_match_type>> matches;
+};
+
+struct NestedCheckJoin : public NestedCheck {
+    IMPLEMENT_NESTED_CHECK(NestedCheckJoin, NestedCheckType::Join)
+
+    bool operator<(const NestedCheckJoin& rhs) const {
+        if (dir < rhs.dir) {
+            return true;
+        }
+        return matches < rhs.matches;
+    }
+
+    cube_direction dir;
+    std::vector<std::string> matches;
+};
+
+struct NestedCheckFlag : public NestedCheck {
+    IMPLEMENT_NESTED_CHECK(NestedCheckFlag, NestedCheckType::Flag)
+
+    bool operator<(const NestedCheckFlag& rhs) const {
+        if (dir < rhs.dir) {
+            return true;
+        }
+        return matches < rhs.matches;
+    }
+
+    direction dir;
+    std::vector<oter_flags> matches;
+};
+
+struct NestedCheckFlagAny : public NestedCheck {
+    IMPLEMENT_NESTED_CHECK(NestedCheckFlagAny, NestedCheckType::FlagAny)
+
+    bool operator<(const NestedCheckFlagAny& rhs) const {
+        if (dir < rhs.dir) {
+            return true;
+        }
+        return matches < rhs.matches;
+    }
+
+    direction dir;
+    std::vector<oter_flags> matches;
+};
+
+struct NestedCheckPredecessor : public NestedCheck {
+    IMPLEMENT_NESTED_CHECK(NestedCheckPredecessor, NestedCheckType::Predecessor)
+
+    bool operator<(const NestedCheckPredecessor& rhs) const {
+        if (match_terrain < rhs.match_terrain) {
+            return true;
+        }
+        return match_type < rhs.match_type;
+    }
+
+    std::string match_terrain;
+    ot_match_type match_type;
+};
+
+struct NestedCheckZLevel : public NestedCheck {
+    IMPLEMENT_NESTED_CHECK(NestedCheckZLevel, NestedCheckType::ZLevel)
+
+    bool operator<(const NestedCheckZLevel& rhs) const {
+        return z < rhs.z;
+    }
+
+    int z = 0;
+};
+
 struct PieceNested : public Piece {
-    IMPLEMENT_ME_PIECE( PieceNested, PieceType::Nested )
+    IMPLEMENT_ME_PIECE_NOCOPY( PieceNested, PieceType::Nested )
+
+    PieceNested() = default;
+    PieceNested(const PieceNested& rhs);
 
     void init_new() override;
 
     std::unordered_set<point> silhouette() const;
 
-    WeightedList<EID::Nest> list;
+    WeightedList<EID::Nest> chunks;
+    WeightedList<EID::Nest> else_chunks;
+    std::vector<std::unique_ptr<NestedCheck>> checks;
 };
 
 struct PieceAltTrap : public Piece {
@@ -339,6 +453,11 @@ struct enum_traits<editor::GasPumpFuel> {
 template<>
 struct enum_traits<editor::VehicleStatus> {
     static constexpr editor::VehicleStatus last = editor::VehicleStatus::_Num;
+};
+
+template<>
+struct enum_traits<editor::NestedCheckType> {
+    static constexpr editor::NestedCheckType last = editor::NestedCheckType::_Num;
 };
 
 #endif // CATA_SRC_EDITOR_PIECE_IMPL_H
