@@ -41,7 +41,7 @@ static void show_flags(State& state, Mapgen& mapgen)
     ImGui::HelpPopup("The map won't be rotated even if the underlying overmap tile is.");
 
     ImGui::HelpMarkerInline(
-        "When the mapgen generates on top of existing tile, the tile may already contain preexisting furniture, traps and items. "
+        "When the mapgen generate terrain on top of existing tile, the tile may already contain preexisting furniture, traps and items. "
         "The following options provide a mechanism for specifying the behaviour to follow in such situations. "
         "It is an error if existing furniture, traps or items are encountered but no behaviour has been given.\n\n"
         "Allow: retains preexisting furniture, traps and items without triggering an error.\n\n"
@@ -49,7 +49,7 @@ static void show_flags(State& state, Mapgen& mapgen)
         "The outputs, along with any other preexisting items, are then retained.\n\n"
         "Erase: removes all preexisting furniture, traps and items before changing the terrain."
     );
-    ImGui::Text("Layering policy");
+    ImGui::Text("Terrain layering policy");
     if (ImGui::ComboEnum("Furniture", mapgen.flags.rule_furn)) {
         state.mark_changed();
     }
