@@ -257,6 +257,7 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
     MapKey tooltip_entry_uuid;
     bool tooltip_entry_error = false;
     bool tooltip_entry_fill_ter = false;
+    bool tooltip_entry_predecessor = false;
     std::string tooltip_error_msg;
 
     const Canvas2D<MapKey>& canvas_2d = mapgen.base.canvas;
@@ -264,8 +265,10 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
 
     float canvas_sprite_opacity = state.ui->canvas_sprite_opacity;
     bool show_canvas_sprites = state.ui->show_canvas_sprites && canvas_sprite_opacity > 0.01f;
-    bool show_fill_ter_fallback = show_canvas_sprites && state.ui->show_fill_ter_sprites;
-    bool has_fill_ter = !mapgen.oter.fill_ter.is_empty() && !mapgen.oter.fill_ter.is_null();
+    bool show_fill_ter_fallback = mapgen.oter.mapgen_base == OterMapgenFill::FillTer && show_canvas_sprites && state.ui->show_fill_ter_sprites;
+    bool has_fill_ter = mapgen.oter.mapgen_base == OterMapgenFill::FillTer && !mapgen.oter.fill_ter.is_empty() && !mapgen.oter.fill_ter.is_null();
+    bool show_predecessor = mapgen.oter.mapgen_base == OterMapgenFill::PredecessorMapgen || mapgen.oter.mapgen_base == OterMapgenFill::FallbackPredecessorMapgen;
+    bool has_predecessor = show_predecessor && !mapgen.oter.predecessor_mapgen.is_empty() && !mapgen.oter.predecessor_mapgen.is_null();
 
     if( view_hovered ) {
         if( ImGui::IsKeyDown( ImGuiKey_ModCtrl ) ) {
@@ -283,6 +286,14 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                         // No error - silent fill_ter fallback
                         tooltip_entry_error = false;
                         tooltip_entry_fill_ter = true;
+                    }
+                    else if (has_predecessor && uuid.is_default_fill_ter_allowed()) {
+                        // No error - silent predecessor fallback
+                        tooltip_entry_error = false;
+                        tooltip_entry_predecessor = true;
+                    }
+                    else if (uuid.is_default_fill_ter_allowed()) {
+                        tooltip_error_msg = "No filler specified, or symbol not present in palette";
                     }
                     else {
                         tooltip_error_msg = "Symbol not present in palette";
@@ -423,6 +434,10 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                             mk = &fallback;
                         }
                         else if (has_fill_ter && uuid.is_default_fill_ter_allowed()) {
+                            buf = uuid.str();
+                            mk = &buf;
+                        }
+                        else if (has_predecessor && uuid.is_default_fill_ter_allowed()) {
                             buf = uuid.str();
                             mk = &buf;
                         }
@@ -624,7 +639,11 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
     state.control->highlight_entry_in_palette = tooltip_entry_uuid;
 
     if( show_tooltip ) {
-        if( tooltip_entry || tooltip_entry_error || (tooltip_entry_fill_ter && show_fill_ter_fallback) || !hovered_objects.empty() ) {
+        if( tooltip_entry ||
+            tooltip_entry_error || 
+            (tooltip_entry_fill_ter && show_fill_ter_fallback) || 
+            (tooltip_entry_predecessor && show_predecessor) ||
+            !hovered_objects.empty() ) {
             ImGui::BeginTooltip();
             if( tooltip_needs_separator ) {
                 ImGui::SeparatorText( "Info" );
@@ -645,6 +664,11 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                 ImGui::TextDisabled("FILL");
                 ImGui::SameLine();
                 ImGui::Text("%s", mapgen.oter.fill_ter.data.c_str());
+            }
+            if (show_predecessor && has_predecessor && tooltip_entry_predecessor) {
+                ImGui::TextDisabled("PREDECESSOR");
+                ImGui::SameLine();
+                ImGui::Text("%s", mapgen.oter.predecessor_mapgen.data.c_str());
             }
             ImGui::EndTooltip();
             tooltip_needs_separator = true;

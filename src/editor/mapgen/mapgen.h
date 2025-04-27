@@ -38,10 +38,11 @@ struct MapgenBase {
     void deserialize( const TextJsonValue &jsin );
 };
 
-enum class OterMapgenBase {
+enum class OterMapgenFill {
+    None,
     FillTer,
     PredecessorMapgen,
-    Rows,
+    FallbackPredecessorMapgen,
     _Num,
 };
 
@@ -53,7 +54,8 @@ struct MapgenOter {
     Canvas2D<EID::OterType> om_terrain_matrix =
         Canvas2D<EID::OterType>( point( 1, 1 ), EID::OterType::NULL_ID() );
     int weight = DEFAULT_OTER_MAPGEN_WEIGHT;
-    OterMapgenBase mapgen_base = OterMapgenBase::Rows;
+    OterMapgenFill mapgen_base = OterMapgenFill::None;
+    bool uses_rows = true;
     EID::Ter fill_ter = EID::Ter::NULL_ID();
     EID::OterType predecessor_mapgen;
     IntRange rotation;
@@ -115,7 +117,7 @@ struct Mapgen {
             return mtype == editor::MapgenType::Nested ||
                    (
                        mtype == editor::MapgenType::Oter &&
-                       oter.mapgen_base == editor::OterMapgenBase::Rows
+                       oter.uses_rows
                    );
         }
 
@@ -153,8 +155,8 @@ void show_mapgen_info( State &state, Mapgen &mapgen, bool &show );
 } // namespace editor
 
 template<>
-struct enum_traits<editor::OterMapgenBase> {
-    static constexpr editor::OterMapgenBase last = editor::OterMapgenBase::_Num;
+struct enum_traits<editor::OterMapgenFill> {
+    static constexpr editor::OterMapgenFill last = editor::OterMapgenFill::_Num;
 };
 
 template<>

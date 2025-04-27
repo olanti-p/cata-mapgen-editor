@@ -131,55 +131,75 @@ void show_mapgen_info( State &state, Mapgen &mapgen, bool &show )
             state.mark_changed();
         }
         ImGui::Text( "Oter mapgen base:" );
-        ImGui::HelpPopup( "Defines how to fill in the 'empty' tiles in the canvas." );
+        ImGui::HelpPopup( "Defines how to fill in the empty tiles in the canvas.\nEmpty tiles are denoted by symbols ' ' or '.'" );
 
-        if( ImGui::RadioButton( "Fill terrain", mapgen.oter.mapgen_base == OterMapgenBase::FillTer ) ) {
-            mapgen.oter.mapgen_base = OterMapgenBase::FillTer;
+        if (ImGui::RadioButton("None", mapgen.oter.mapgen_base == OterMapgenFill::None)) {
+            mapgen.oter.mapgen_base = OterMapgenFill::None;
             state.mark_changed();
         }
         ImGui::HelpPopup(
-            "Fill with terrain type.\n\n"
-            "Useful for maps where most of the terrain is monotonic (e.g. solid rock, or open air)."
+            "No fallback.\n\n"
+            "All symbols must be defined in the palette."
+        );
+        ImGui::SameLine();
+        ImGui::SameLine();
+        if (ImGui::RadioButton("Fallback predecessor mapgen", mapgen.oter.mapgen_base == OterMapgenFill::FallbackPredecessorMapgen)) {
+            mapgen.oter.mapgen_base = OterMapgenFill::FallbackPredecessorMapgen;
+            state.mark_changed();
+        }
+        ImGui::HelpPopup(
+            "This mapgen will be run on top of a map generated for some other overmap terrain.\n\n"
+            "Can be used to generate maps with objects that don't occupy the whole 24x24 area, "
+            "and should blend in with the surrounding terrain."
+            "For example, an anthill entrance in the woods will generate on top of 'forest' mapgen, "
+            "and anthill entrance in the field will generate on top of 'field' mapgen.\n\n"
+            "Predecessors are specified in om definitions, this value will be used as fallback.\n\n"
+            "Keep in mind that predecessor mapgen may place items, monsters and vehices!"
+        );
+
+        if( ImGui::RadioButton( "Fill terrain", mapgen.oter.mapgen_base == OterMapgenFill::FillTer ) ) {
+            mapgen.oter.mapgen_base = OterMapgenFill::FillTer;
+            state.mark_changed();
+        }
+        ImGui::HelpPopup(
+            "Fill empty tiles with terrain type.\n\n"
+            "Useful for maps where most of the terrain is monotonic (e.g. solid rock, or open air, or groundcover)."
         );
         ImGui::SameLine();
         if( ImGui::RadioButton( "Predecessor mapgen",
-                                mapgen.oter.mapgen_base == OterMapgenBase::PredecessorMapgen ) ) {
-            mapgen.oter.mapgen_base = OterMapgenBase::PredecessorMapgen;
+                                mapgen.oter.mapgen_base == OterMapgenFill::PredecessorMapgen ) ) {
+            mapgen.oter.mapgen_base = OterMapgenFill::PredecessorMapgen;
             state.mark_changed();
         }
         ImGui::HelpPopup(
-            "Run this mapgen on top of a map created for some other overmap terrain type.\n\n"
-            "Useful for generating objects that don't occupy the whole 24x24 area, "
+            "This mapgen will be run on top of a map generated for some the specified overmap terrain type.\n\n"
+            "Can be used to generate maps with objects that don't occupy the whole 24x24 area, "
             "or maps that are extremely similar to some other maps."
             "For example, a small 8x8 glade in the woods may use 'forest' predecessor mapgen "
             "to generate the greenery, and then place some grass in the center.\n\n"
             "Keep in mind that predecessor mapgen may place items, monsters and vehices!"
         );
-        ImGui::SameLine();
-        if( ImGui::RadioButton( "Rows", mapgen.oter.mapgen_base == OterMapgenBase::Rows ) ) {
-            mapgen.oter.mapgen_base = OterMapgenBase::Rows;
-            state.mark_changed();
-        }
-        ImGui::HelpPopup(
-            "Use a 24x24 canvas to place tiles.\n\n"
-            "The most straightforward method, just define a bunch of palettes ('symbol: data' pairs) "
-            "and then place symbols on the canvas to define positions.\n"
-            "Most useful for complex layouts with little variation, such as buildings."
-        );
 
-        if( mapgen.oter.mapgen_base == OterMapgenBase::PredecessorMapgen ) {
+        if( mapgen.oter.mapgen_base == OterMapgenFill::PredecessorMapgen ) {
             if( ImGui::InputId( "predecessor_mapgen", mapgen.oter.predecessor_mapgen ) ) {
                 state.mark_changed();
             }
-            ImGui::HelpPopup( "Overmap type id to run predecessor mapgen for." );
-        } else {
+            ImGui::HelpPopup( "Overmap type id of predecessor mapgen." );
+        } else if (mapgen.oter.mapgen_base == OterMapgenFill::FallbackPredecessorMapgen) {
+            if (ImGui::InputId("fallback_predecessor_mapgen", mapgen.oter.predecessor_mapgen)) {
+                state.mark_changed();
+            }
+            ImGui::HelpPopup("Overmap type id of fallback predecessor mapgen.\nTODO: verbose description.");
+        }
+        else {
             if( ImGui::InputId( "fill_ter", mapgen.oter.fill_ter ) ) {
                 state.mark_changed();
             }
             ImGui::HelpPopup( "Terrain type to fill empty spots with." );
         }
-        if( mapgen.oter.mapgen_base == OterMapgenBase::Rows ) {
-            show_canvas_hint();
+        ImGui::HelpMarkerInline("Use mouse to paint canvas with palette entries.");
+        if (ImGui::Checkbox("Use Rows", &mapgen.oter.uses_rows)) {
+            state.mark_changed();
         }
     } else if( mapgen.mtype == MapgenType::Update ) {
         if( ImGui::InputText( "update_mapgen_id", &mapgen.update.update_mapgen_id ) ) {
@@ -226,7 +246,7 @@ point_rel_etile Mapgen::mapgensize() const
 {
     if( mtype == MapgenType::Nested ) {
         return point_rel_etile( nested.size );
-    } else if( mtype == editor::MapgenType::Oter && oter.mapgen_base == editor::OterMapgenBase::Rows ) {
+    } else if( mtype == editor::MapgenType::Oter && oter.uses_rows ) {
         return point_rel_etile( base.canvas.get_size() );
     } else {
         return point_rel_etile( SEEX * 2, SEEY * 2 );

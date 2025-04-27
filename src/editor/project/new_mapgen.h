@@ -12,7 +12,6 @@ struct State;
 struct NewMapgenState {
     MapgenType mtype = MapgenType::Oter;
     UUID palette;
-    OterMapgenBase oter_base = OterMapgenBase::Rows;
     std::string name;
 
     bool confirmed = false;

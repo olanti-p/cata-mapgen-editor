@@ -65,18 +65,19 @@ namespace io
 {
 
 template<>
-std::string enum_to_string<editor::OterMapgenBase>( editor::OterMapgenBase data )
+std::string enum_to_string<editor::OterMapgenFill>( editor::OterMapgenFill data )
 {
     switch( data ) {
         // *INDENT-OFF*
-        case editor::OterMapgenBase::FillTer: return "FillTer";
-        case editor::OterMapgenBase::PredecessorMapgen: return "PredecessorMapgen";
-        case editor::OterMapgenBase::Rows: return "Rows";
+        case editor::OterMapgenFill::None: return "None";
+        case editor::OterMapgenFill::FillTer: return "FillTer";
+        case editor::OterMapgenFill::PredecessorMapgen: return "PredecessorMapgen";
+        case editor::OterMapgenFill::FallbackPredecessorMapgen: return "FallbackPredecessorMapgen";
         // *INDENT-ON*
-        case editor::OterMapgenBase::_Num:
+        case editor::OterMapgenFill::_Num:
             break;
     }
-    debugmsg( "Invalid editor::OterMapgenBase" );
+    debugmsg( "Invalid editor::OterMapgenFill" );
     abort();
 }
 
@@ -865,6 +866,7 @@ void MapgenOter::serialize( JsonOut &jsout ) const
     jsout.member( "om_terrain_matrix", om_terrain_matrix );
     jsout.member( "weight", weight );
     jsout.member_as_string( "mapgen_base", mapgen_base );
+    jsout.member("uses_rows", uses_rows);
     jsout.member( "fill_ter", fill_ter );
     jsout.member( "predecessor_mapgen", predecessor_mapgen );
     jsout.member( "rotation", rotation );
@@ -880,6 +882,7 @@ void MapgenOter::deserialize( const TextJsonValue &jsin )
     jo.read( "om_terrain_matrix", om_terrain_matrix );
     jo.read( "weight", weight );
     jo.read( "mapgen_base", mapgen_base );
+    jo.read("uses_rows", uses_rows);
     jo.read( "fill_ter", fill_ter );
     jo.read( "predecessor_mapgen", predecessor_mapgen );
     jo.read( "rotation", rotation );

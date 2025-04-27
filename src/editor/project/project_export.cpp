@@ -933,10 +933,18 @@ static void emit_mapgen_contents( JsonOut &jo, const editor::Project &project,
     emit_object( jo, "object", [&]() {
 
         if( mapgen.mtype == editor::MapgenType::Oter ) {
-            if( mapgen.oter.mapgen_base == editor::OterMapgenBase::PredecessorMapgen ) {
-                emit( jo, "predecessor_mapgen", mapgen.oter.predecessor_mapgen );
-            } else if( !mapgen.oter.fill_ter.is_null() ) {
-                emit( jo, "fill_ter", mapgen.oter.fill_ter );
+            switch (mapgen.oter.mapgen_base) {
+            case editor::OterMapgenFill::FillTer:
+                emit(jo, "fill_ter", mapgen.oter.fill_ter);
+                break;
+            case editor::OterMapgenFill::PredecessorMapgen:
+                emit(jo, "predecessor_mapgen", mapgen.oter.predecessor_mapgen);
+                break;
+            case editor::OterMapgenFill::FallbackPredecessorMapgen:
+                emit(jo, "fallback_predecessor_mapgen", mapgen.oter.predecessor_mapgen);
+                break;
+            default:
+                break;
             }
             if( mapgen.oter.rotation ) {
                 emit( jo, "rotation", mapgen.oter.rotation );
