@@ -6,6 +6,6 @@
     "authors": [ "Olanti" ],
     "description": "Needed for the map editor UI to work.",
     "category": "graphical",
-    "dependencies": [ "bn" ]
+    "dependencies": [ "dda" ]
   }
 ]

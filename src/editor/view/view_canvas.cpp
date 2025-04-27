@@ -260,6 +260,8 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
     bool tooltip_entry_predecessor = false;
     std::string tooltip_error_msg;
 
+    SpriteRef sprite_predecessor("me_predecessor");
+
     const Canvas2D<MapKey>& canvas_2d = mapgen.base.canvas;
     const CanvasSnippet *snippet = snippets.get_snippet( mapgen.uuid );
 
@@ -342,23 +344,26 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
 
     if( mapgen.uses_rows() ) {
         bool show_canvas_symbols = state.ui->show_canvas_symbols;
-        std::optional<SpriteRef> fill_ter_fallback;
+        std::optional<SpriteRef> fallback_sprite;
 
         if (show_canvas_sprites) {
             if (show_fill_ter_fallback) {
-                fill_ter_fallback = SpriteRef( mapgen.oter.fill_ter.data );
+                fallback_sprite = SpriteRef( mapgen.oter.fill_ter.data );
+            }
+            else if (show_predecessor) {
+                fallback_sprite = sprite_predecessor;
             }
 
             // Run this for separate layers, then for each entry individually
             // to avoid draw command fragmentation from using different sprites
-            if (fill_ter_fallback) {
+            if (fallback_sprite) {
                 for (int y = 0; y < mapgen.mapgensize().y(); y++) {
                     for (int x = 0; x < mapgen.mapgensize().x(); x++) {
                         point_abs_etile p(x, y);
                         MapKey  uuid = get_key_at_pos(canvas_2d, snippet, p.raw());
                         SpritePair img = pal.sprite_from_uuid(uuid);
                         if (!img.ter) {
-                            fill_tile_sprited(draw_list, cam, p, *fill_ter_fallback);
+                            fill_tile_sprited(draw_list, cam, p, *fallback_sprite);
                         }
                     }
                 }
@@ -406,7 +411,7 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                 ImVec4 col = pal.color_from_uuid( uuid );
                 bool has_img = false;
                 if (show_canvas_sprites) {
-                    has_img = fill_ter_fallback.has_value() || !pal.sprite_from_uuid(uuid).is_empty();
+                    has_img = fallback_sprite.has_value() || !pal.sprite_from_uuid(uuid).is_empty();
                 }
                 if( has_img ) {
                     col.w *= (1.0f - canvas_sprite_opacity);
