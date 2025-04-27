@@ -216,11 +216,18 @@ Mapgen* import_mapgen(State& state, ImportMapgenState& mapgen)
         // TODO: parametric fill_ter
         auto fill_ter_original = ref->get_fill_ter();
         if (fill_ter_original) {
+            new_mapgen.oter.mapgen_base = OterMapgenFill::FillTer;
             new_mapgen.oter.fill_ter = fill_ter_original->id();
             if (!new_mapgen.oter.fill_ter.is_valid()) {
                 // TODO: this shouldn't happen
                 new_mapgen.oter.fill_ter = EID::Ter();
             }
+        } else if (ref->predecessor_mapgen.id() != oter_str_id::NULL_ID()) {
+            new_mapgen.oter.mapgen_base = OterMapgenFill::PredecessorMapgen;
+            new_mapgen.oter.predecessor_mapgen = EID::OterType( ref->predecessor_mapgen.id().str() );
+        } else if (ref->fallback_predecessor_mapgen_ != oter_str_id::NULL_ID()) {
+            new_mapgen.oter.mapgen_base = OterMapgenFill::FallbackPredecessorMapgen;
+            new_mapgen.oter.predecessor_mapgen = EID::OterType(ref->fallback_predecessor_mapgen_.str());
         }
 
         if (new_mapgen.oter.matrix_mode) {
