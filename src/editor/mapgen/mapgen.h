@@ -46,6 +46,21 @@ enum class OterMapgenFill {
     _Num,
 };
 
+enum class LayeringRuleTrapFurn {
+    Unspecified,
+    Allow,
+    Dismantle,
+    Erase,
+    _Num,
+};
+
+enum class LayeringRuleItems {
+    Unspecified,
+    Allow,
+    Erase,
+    _Num,
+};
+
 constexpr int DEFAULT_OTER_MAPGEN_WEIGHT = 1000;
 
 struct MapgenOter {
@@ -88,6 +103,17 @@ enum class MapgenType {
     _Num,
 };
 
+struct MapgenFlags {
+    bool avoid_creatures = false;
+    bool no_underlying_rotate = false;
+    LayeringRuleItems rule_items = LayeringRuleItems::Unspecified;
+    LayeringRuleTrapFurn rule_furn = LayeringRuleTrapFurn::Unspecified;
+    LayeringRuleTrapFurn rule_traps = LayeringRuleTrapFurn::Unspecified;
+
+    void serialize(JsonOut& jsout) const;
+    void deserialize(const TextJsonObject& jsin);
+};
+
 struct Mapgen {
     public:
         Mapgen() = default;
@@ -105,6 +131,7 @@ struct Mapgen {
         MapgenNested nested;
 
         std::vector<MapObject> objects;
+        MapgenFlags flags;
 
         std::string name;
 
@@ -157,6 +184,16 @@ void show_mapgen_info( State &state, Mapgen &mapgen, bool &show );
 template<>
 struct enum_traits<editor::OterMapgenFill> {
     static constexpr editor::OterMapgenFill last = editor::OterMapgenFill::_Num;
+};
+
+template<>
+struct enum_traits<editor::LayeringRuleItems> {
+    static constexpr editor::LayeringRuleItems last = editor::LayeringRuleItems::_Num;
+};
+
+template<>
+struct enum_traits<editor::LayeringRuleTrapFurn> {
+    static constexpr editor::LayeringRuleTrapFurn last = editor::LayeringRuleTrapFurn::_Num;
 };
 
 template<>

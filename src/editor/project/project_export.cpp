@@ -900,6 +900,69 @@ static void emit_palette_contents(JsonOut& jo, const editor::Project& project,
     emit_palette_entries(jo, palette);
 }
 
+static void emit_mapgen_flags(JsonOut& jo, const editor::Mapgen& mapgen) {
+    std::vector<std::string> flags;
+    if (mapgen.flags.avoid_creatures) {
+        flags.push_back("AVOID_CREATURES");
+    }
+    if (mapgen.flags.no_underlying_rotate) {
+        flags.push_back("NO_UNDERLYING_ROTATE");
+    }
+    if (
+        mapgen.flags.rule_furn == editor::LayeringRuleTrapFurn::Allow &&
+        mapgen.flags.rule_traps == editor::LayeringRuleTrapFurn::Allow &&
+        mapgen.flags.rule_items == editor::LayeringRuleItems::Allow
+        ) {
+        flags.push_back("ALLOW_TERRAIN_UNDER_OTHER_DATA");
+    }
+    else if (
+        mapgen.flags.rule_furn == editor::LayeringRuleTrapFurn::Dismantle &&
+        mapgen.flags.rule_traps == editor::LayeringRuleTrapFurn::Dismantle &&
+        mapgen.flags.rule_items == editor::LayeringRuleItems::Allow
+        ) {
+        flags.push_back("DISMANTLE_ALL_BEFORE_PLACING_TERRAIN");
+    }
+    else if (
+        mapgen.flags.rule_furn == editor::LayeringRuleTrapFurn::Erase &&
+        mapgen.flags.rule_traps == editor::LayeringRuleTrapFurn::Erase &&
+        mapgen.flags.rule_items == editor::LayeringRuleItems::Erase
+        ) {
+        flags.push_back("ERASE_ALL_BEFORE_PLACING_TERRAIN");
+    }
+    else {
+        if (mapgen.flags.rule_furn == editor::LayeringRuleTrapFurn::Allow) {
+            flags.push_back("ALLOW_TERRAIN_UNDER_FURNITURE");
+        }
+        else if (mapgen.flags.rule_furn == editor::LayeringRuleTrapFurn::Dismantle) {
+            flags.push_back("DISMANTLE_FURNITURE_BEFORE_PLACING_TERRAIN");
+        }
+        else if (mapgen.flags.rule_furn == editor::LayeringRuleTrapFurn::Erase) {
+            flags.push_back("ERASE_FURNITURE_BEFORE_PLACING_TERRAIN");
+        }
+
+        if (mapgen.flags.rule_traps == editor::LayeringRuleTrapFurn::Allow) {
+            flags.push_back("ALLOW_TERRAIN_UNDER_TRAP");
+        }
+        else if (mapgen.flags.rule_traps == editor::LayeringRuleTrapFurn::Dismantle) {
+            flags.push_back("DISMANTLE_TRAP_BEFORE_PLACING_TERRAIN");
+        }
+        else if (mapgen.flags.rule_traps == editor::LayeringRuleTrapFurn::Erase) {
+            flags.push_back("ERASE_TRAP_BEFORE_PLACING_TERRAIN");
+        }
+
+        if (mapgen.flags.rule_items == editor::LayeringRuleItems::Allow) {
+            flags.push_back("ALLOW_TERRAIN_UNDER_ITEMS");
+        }
+        else if (mapgen.flags.rule_items == editor::LayeringRuleItems::Erase) {
+            flags.push_back("ERASE_ITEMS_BEFORE_PLACING_TERRAIN");
+        }
+    }
+
+    if (!flags.empty()) {
+        emit_array(jo, "flags", flags);
+    }
+}
+
 static void emit_mapgen_contents( JsonOut &jo, const editor::Project &project,
                                   const editor::Mapgen &mapgen )
 {
@@ -977,6 +1040,8 @@ static void emit_mapgen_contents( JsonOut &jo, const editor::Project &project,
                 }
             } );
 
+            emit_mapgen_flags(jo, mapgen);
+
             if (pal.imported && !pal.temp_palette) {
                 emit_array(jo, "palettes", [&]() {
                     emit_val(jo, pal.imported_id);
@@ -990,6 +1055,9 @@ static void emit_mapgen_contents( JsonOut &jo, const editor::Project &project,
             else {
                 emit_palette_entries(jo, pal);
             }
+        }
+        else {
+            emit_mapgen_flags(jo, mapgen);
         }
 
         for( const auto &it : editor::get_piece_templates() ) {

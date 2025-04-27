@@ -82,6 +82,39 @@ std::string enum_to_string<editor::OterMapgenFill>( editor::OterMapgenFill data 
 }
 
 template<>
+std::string enum_to_string<editor::LayeringRuleTrapFurn>(editor::LayeringRuleTrapFurn data)
+{
+    switch (data) {
+        // *INDENT-OFF*
+    case editor::LayeringRuleTrapFurn::Unspecified: return "Unspecified";
+    case editor::LayeringRuleTrapFurn::Allow: return "Allow";
+    case editor::LayeringRuleTrapFurn::Dismantle: return "Dismantle";
+    case editor::LayeringRuleTrapFurn::Erase: return "Erase";
+        // *INDENT-ON*
+    case editor::LayeringRuleTrapFurn::_Num:
+        break;
+    }
+    debugmsg("Invalid editor::LayeringRuleTrapFurn");
+    abort();
+}
+
+template<>
+std::string enum_to_string<editor::LayeringRuleItems>(editor::LayeringRuleItems data)
+{
+    switch (data) {
+        // *INDENT-OFF*
+    case editor::LayeringRuleItems::Unspecified: return "Unspecified";
+    case editor::LayeringRuleItems::Allow: return "Allow";
+    case editor::LayeringRuleItems::Erase: return "Erase";
+        // *INDENT-ON*
+    case editor::LayeringRuleItems::_Num:
+        break;
+    }
+    debugmsg("Invalid editor::LayeringRuleItems");
+    abort();
+}
+
+template<>
 std::string enum_to_string<editor::MapgenType>( editor::MapgenType data )
 {
     switch( data ) {
@@ -922,6 +955,26 @@ void MapgenNested::deserialize( const TextJsonValue &jsin )
     jo.read( "rotation", rotation );
 }
 
+void MapgenFlags::serialize(JsonOut& jsout) const
+{
+    jsout.start_object();
+    jsout.member("avoid_creatures", avoid_creatures);
+    jsout.member("no_underlying_rotate", no_underlying_rotate);
+    jsout.member_as_string("rule_items", rule_items);
+    jsout.member_as_string("rule_furn", rule_furn);
+    jsout.member_as_string("rule_traps", rule_traps);
+    jsout.end_object();
+}
+
+void MapgenFlags::deserialize(const TextJsonObject& jo)
+{
+    jo.read("avoid_creatures", avoid_creatures);
+    jo.read("no_underlying_rotate", no_underlying_rotate);
+    jo.read("rule_items", rule_items);
+    jo.read("rule_furn", rule_furn);
+    jo.read("rule_traps", rule_traps);
+}
+
 static int project_load_version_val = PROJECT_FORMAT_VERSION;
 
 int project_load_version()
@@ -940,6 +993,7 @@ void Mapgen::serialize( JsonOut &jsout ) const
     jsout.member( "update", update );
     jsout.member( "nested", nested );
     jsout.member( "objects", objects );
+    jsout.member( "flags", flags );
     jsout.member( "selection_mask", selection_mask );
     jsout.end_object();
 }
@@ -956,6 +1010,7 @@ void Mapgen::deserialize( const TextJsonValue &jsin )
     jo.read( "update", update );
     jo.read( "nested", nested );
     jo.read( "objects", objects );
+    jo.read( "flags", flags );
     jo.read( "selection_mask", selection_mask );
 
     for (const MapObject& obj : objects) {

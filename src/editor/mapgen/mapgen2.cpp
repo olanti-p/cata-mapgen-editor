@@ -27,6 +27,40 @@ static void show_canvas_hint()
     ImGui::Text( "Use mouse to paint canvas with palette entries." );
 }
 
+static void show_flags(State& state, Mapgen& mapgen)
+{
+    ImGui::SeparatorText("Flags");
+    if (ImGui::Checkbox("AVOID_CREATURES", &mapgen.flags.avoid_creatures)) {
+        state.mark_changed();
+    }
+    ImGui::HelpPopup("If a creature is present, terrain, furniture and traps won't be placed.");
+
+    if (ImGui::Checkbox("NO_UNDERLYING_ROTATE", &mapgen.flags.no_underlying_rotate)) {
+        state.mark_changed();
+    }
+    ImGui::HelpPopup("The map won't be rotated even if the underlying overmap tile is.");
+
+    ImGui::HelpMarkerInline(
+        "When the mapgen generates on top of existing tile, the tile may already contain preexisting furniture, traps and items. "
+        "The following options provide a mechanism for specifying the behaviour to follow in such situations. "
+        "It is an error if existing furniture, traps or items are encountered but no behaviour has been given.\n\n"
+        "Allow: retains preexisting furniture, traps and items without triggering an error.\n\n"
+        "Dismantle: causes any furniture to be deconstructed or bashed, while traps are disarmed.\n"
+        "The outputs, along with any other preexisting items, are then retained.\n\n"
+        "Erase: removes all preexisting furniture, traps and items before changing the terrain."
+    );
+    ImGui::Text("Layering policy");
+    if (ImGui::ComboEnum("Furniture", mapgen.flags.rule_furn)) {
+        state.mark_changed();
+    }
+    if (ImGui::ComboEnum("Traps", mapgen.flags.rule_traps)) {
+        state.mark_changed();
+    }
+    if (ImGui::ComboEnum("Items", mapgen.flags.rule_items)) {
+        state.mark_changed();
+    }
+}
+
 void show_mapgen_info( State &state, Mapgen &mapgen, bool &show )
 {
     if( !ImGui::Begin( "Mapgen Info", &show ) ) {
@@ -228,6 +262,8 @@ void show_mapgen_info( State &state, Mapgen &mapgen, bool &show )
         ImGui::HelpPopup( "Size of this nested mapgen." );
         show_canvas_hint();
     }
+
+    show_flags(state, mapgen);
 
     ImGui::PopID();
     ImGui::End();

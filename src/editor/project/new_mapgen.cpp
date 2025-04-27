@@ -230,6 +230,50 @@ Mapgen* import_mapgen(State& state, ImportMapgenState& mapgen)
             new_mapgen.oter.predecessor_mapgen = EID::OterType(ref->fallback_predecessor_mapgen_.str());
         }
 
+        new_mapgen.flags.avoid_creatures = ref->flags_.test(jmapgen_flags::avoid_creatures);
+        new_mapgen.flags.no_underlying_rotate = ref->flags_.test(jmapgen_flags::no_underlying_rotate);
+        if (ref->flags_.test(jmapgen_flags::allow_terrain_under_other_data)) {
+            new_mapgen.flags.rule_items = LayeringRuleItems::Allow;
+            new_mapgen.flags.rule_furn = LayeringRuleTrapFurn::Allow;
+            new_mapgen.flags.rule_traps = LayeringRuleTrapFurn::Allow;
+        } else if (ref->flags_.test(jmapgen_flags::dismantle_all_before_placing_terrain)) {
+            new_mapgen.flags.rule_items = LayeringRuleItems::Allow;
+            new_mapgen.flags.rule_furn = LayeringRuleTrapFurn::Dismantle;
+            new_mapgen.flags.rule_traps = LayeringRuleTrapFurn::Dismantle;
+        } else if (ref->flags_.test(jmapgen_flags::erase_all_before_placing_terrain)) {
+            new_mapgen.flags.rule_items = LayeringRuleItems::Erase;
+            new_mapgen.flags.rule_furn = LayeringRuleTrapFurn::Erase;
+            new_mapgen.flags.rule_traps = LayeringRuleTrapFurn::Erase;
+        }
+        else {
+            if (ref->flags_.test(jmapgen_flags::allow_terrain_under_items)) {
+                new_mapgen.flags.rule_items = LayeringRuleItems::Allow;
+            }
+            else if (ref->flags_.test(jmapgen_flags::erase_items_before_placing_terrain)) {
+                new_mapgen.flags.rule_items = LayeringRuleItems::Erase;
+            }
+
+            if (ref->flags_.test(jmapgen_flags::allow_terrain_under_furniture)) {
+                new_mapgen.flags.rule_furn = LayeringRuleTrapFurn::Allow;
+            }
+            else if (ref->flags_.test(jmapgen_flags::dismantle_furniture_before_placing_terrain)) {
+                new_mapgen.flags.rule_furn = LayeringRuleTrapFurn::Dismantle;
+            }
+            else if (ref->flags_.test(jmapgen_flags::erase_furniture_before_placing_terrain)) {
+                new_mapgen.flags.rule_furn = LayeringRuleTrapFurn::Erase;
+            }
+
+            if (ref->flags_.test(jmapgen_flags::allow_terrain_under_trap)) {
+                new_mapgen.flags.rule_traps = LayeringRuleTrapFurn::Allow;
+            }
+            else if (ref->flags_.test(jmapgen_flags::dismantle_trap_before_placing_terrain)) {
+                new_mapgen.flags.rule_traps = LayeringRuleTrapFurn::Dismantle;
+            }
+            else if (ref->flags_.test(jmapgen_flags::erase_trap_before_placing_terrain)) {
+                new_mapgen.flags.rule_traps = LayeringRuleTrapFurn::Erase;
+            }
+        }
+
         if (new_mapgen.oter.matrix_mode) {
             for (size_t y = 0; y < oter_size.y; y++) {
                 for (size_t x = 0; x < oter_size.x; x++) {
