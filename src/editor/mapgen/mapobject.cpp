@@ -78,6 +78,27 @@ void show_mapobjects( State &state, Mapgen &f, bool is_active, bool &show )
     ImGui::PushID( f.uuid );
 
     std::vector<MapObject> &list = f.objects;
+
+    if (is_active) {
+        // TODO: move this into mapgen property
+        if (ImGui::ImageButton("hide", "me_hidden")) {
+            for (auto& it : list) {
+                it.visible = false;
+            }
+            state.mark_changed();
+        }
+        ImGui::HelpPopup("Hide all.");
+        ImGui::SameLine();
+        if (ImGui::ImageButton("show", "me_visible")) {
+            for (auto& it : list) {
+                it.visible = true;
+            }
+            state.mark_changed();
+        }
+        ImGui::HelpPopup("Show all.");
+        ImGui::SameLine();
+    }
+
     ImGui::Text("%d placements", list.size());
 
     bool changed = ImGui::VectorWidget()
