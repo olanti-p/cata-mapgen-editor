@@ -613,7 +613,7 @@ void PieceLoot::roll_loot(std::vector<item>& result, time_point turn, float spaw
         result_group.add_item_entry(item_controller->migrate_id(id), 100, variant);
     }
     Item_spawn_data::RecursionList rec;
-    spawn_flags flags;
+    spawn_flags flags = spawn_flags::none;
     result_group.create(result, turn, rec, flags);
 }
 
