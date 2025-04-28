@@ -3068,6 +3068,7 @@ class jmapgen_monster : public jmapgen_piece
         jmapgen_int chance;
         jmapgen_int pack_size;
         bool one_or_none;
+        bool editor_has_one_or_none;
         bool friendly;
         std::optional<translation> name = std::nullopt;
         std::string random_name_str;
@@ -3085,6 +3086,7 @@ class jmapgen_monster : public jmapgen_piece
             , target( jsi.get_bool( "target", false ) )
             , use_pack_size( jsi.get_bool( "use_pack_size", false ) ) {
 
+            editor_has_one_or_none = jsi.has_bool("one_or_none");
             {
                 translation translated_name;
                 if( jsi.read( "name", translated_name ) ) {
@@ -3123,6 +3125,7 @@ class jmapgen_monster : public jmapgen_piece
                         jmapgen_int ptx = jmapgen_int( p_pt, "x" );
                         jmapgen_int pty = jmapgen_int( p_pt, "y" );
                         //"unnecessary" temporary object created while calling emplace_back [modernize-use-emplace,-warnings-as-errors]
+                        // FIXME: eww, the value is rolled when loading instead of when applying
                         const point_rel_ms work_around = point_rel_ms( ptx.get(), pty.get() );
                         data.patrol_points_rel_ms.emplace_back( work_around );
                     }
@@ -9242,6 +9245,33 @@ bool PieceMonster::try_import( const jmapgen_piece& piece, PaletteImportReport& 
         type_list.entries.emplace_back(EID::Monster(), 1);
     }
     chance = casted->chance;
+    use_pack_size = casted->use_pack_size;
+    pack_size = casted->pack_size;
+    one_or_none = casted->editor_has_one_or_none ? ( casted->one_or_none ? OneOrNoneMode::On : OneOrNoneMode::Off ) : OneOrNoneMode::Default;
+    friendly = casted->friendly;
+    target = casted->target;
+    if (casted->random_name_str == "snippet") {
+        name_mode = MonsterNameMode::Snippet;
+    } else if (casted->random_name_str == "random") {
+        name_mode = MonsterNameMode::Random;
+    } else if (casted->random_name_str == "male") {
+        name_mode = MonsterNameMode::Male;
+    } else if (casted->random_name_str == "female") {
+        name_mode = MonsterNameMode::Female;
+    } else if (casted->name) {
+        name_mode = MonsterNameMode::Exact;
+    } else {
+        name_mode = MonsterNameMode::Unnamed;
+    }
+    if (casted->name) {
+        name = casted->name->raw;
+    }
+    for (const auto& it : casted->data.ammo) {
+        ammo.emplace_back(EID::Item(it.first), IntRange(it.second));
+    }
+    for (const auto& it : casted->data.patrol_points_rel_ms) {
+        patrol.emplace_back(it.raw());
+    }
     return true; // TODO
 }
 

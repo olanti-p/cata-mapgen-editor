@@ -605,21 +605,101 @@ void PieceMonster::show_ui( State &state )
         state.mark_changed();
     }
 
-    ImGui::BeginDisabled(use_mongroup);
+    ImGui::BeginDisabled(!use_mongroup);
     ImGui::HelpMarkerInline("Monster group to spawn.");
     if (ImGui::InputId("group_id", group_id)) {
         state.mark_changed();
     }
     ImGui::EndDisabled();
 
-    ImGui::BeginDisabled(!use_mongroup);
+    ImGui::BeginDisabled(use_mongroup);
     show_weighted_list(state, type_list);
     ImGui::EndDisabled();
 
     ImGui::HelpMarkerInline("TODO");
     if (ImGui::InputIntRange("chance", chance)) {
-        state.mark_changed("me-piece-monster-chance-input");
+        state.mark_changed("chance");
     }
+
+    ImGui::HelpMarkerInline("TODO");
+    if (ImGui::Checkbox("use_pack_size", &use_pack_size)) {
+        state.mark_changed("use_pack_size");
+    }
+
+    ImGui::HelpMarkerInline("TODO");
+    if (ImGui::InputIntRange("pack_size", pack_size)) {
+        state.mark_changed("pack_size");
+    }
+
+    ImGui::HelpMarkerInline("TODO");
+    if (ImGui::ComboEnum("one_or_none", one_or_none)) {
+        state.mark_changed("one_or_none");
+    }
+
+    ImGui::HelpMarkerInline("TODO");
+    if (ImGui::Checkbox("friendly", &friendly)) {
+        state.mark_changed("friendly");
+    }
+    ImGui::SameLine();
+    ImGui::HelpMarkerInline("TODO");
+    if (ImGui::Checkbox("target", &target)) {
+        state.mark_changed("target");
+    }
+
+    ImGui::HelpMarkerInline("TODO");
+    if (ImGui::ComboEnum("name_mode", name_mode)) {
+        state.mark_changed("name_mode");
+    }
+
+    ImGui::HelpMarkerInline("TODO");
+    ImGui::BeginDisabled(name_mode != MonsterNameMode::Snippet && name_mode != MonsterNameMode::Exact);
+    if (ImGui::InputText("name", &name)) {
+        state.mark_changed("name");
+    }
+    ImGui::EndDisabled();
+
+    // TODO: check for duplicates
+    ImGui::Text("Ammo");
+    ImGui::PushID("ammo");
+    show_plain_list<std::pair<EID::Item, IntRange>>(state, ammo,
+        [&](size_t i) {
+            auto& it = ammo[i];
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.7f);
+            if (ImGui::InputId("##ammo-type", it.first)) {
+                state.mark_changed("list-ammo-type");
+            }
+            ImGui::HelpPopup("Ammo type.");
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::InputIntRange("qty", it.second)) {
+                state.mark_changed("list-entry-value");
+            }
+            ImGui::HelpPopup("Quantity.");
+        }
+    );
+    ImGui::PopID();
+
+    // TODO: visualization
+    ImGui::Text("Patrol");
+    ImGui::PushID("patrol");
+    show_plain_list<point>(state, patrol,
+        [&](size_t i) {
+            auto& it = patrol[i];
+
+            ImGui::SetNextItemWidth(ImGui::GetFrameHeight() * 2.0f);
+            if (ImGui::InputIntClamped("x", it.x, 0, 23)) {
+                state.mark_changed("x");
+            }
+            ImGui::HelpPopup("Patrol point, in relative map squares.");
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(ImGui::GetFrameHeight() * 2.0f);
+            if (ImGui::InputIntClamped("y", it.y, 0, 23)) {
+                state.mark_changed("y");
+            }
+            ImGui::HelpPopup("Patrol point, in relative map squares.");
+        }
+    );
+    ImGui::PopID();
 }
 
 std::string PieceMonster::fmt_data_summary() const

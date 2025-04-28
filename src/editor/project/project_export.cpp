@@ -428,6 +428,62 @@ void PieceMonster::export_func( JsonOut &jo ) const
     if (chance.min != 100 || chance.max != 100) {
         ee::emit(jo, "chance", chance);
     }
+    if (use_pack_size) {
+        ee::emit(jo, "use_pack_size", use_pack_size);
+    }
+    if (pack_size.min != 1 || pack_size.max != 1) {
+        ee::emit(jo, "pack_size", pack_size);
+    }
+    if (one_or_none == OneOrNoneMode::On) {
+        ee::emit(jo, "one_or_none", true);
+    } else if (one_or_none == OneOrNoneMode::Off) {
+        ee::emit(jo, "one_or_none", false);
+    }
+    if (friendly) {
+        ee::emit(jo, "friendly", friendly);
+    }
+
+    if (name_mode == MonsterNameMode::Exact) {
+        ee::emit(jo, "name", name);
+    }
+    else if (name_mode == MonsterNameMode::Snippet) {
+        ee::emit(jo, "random_name", "snippet");
+        ee::emit(jo, "name", name);
+    }
+    else if (name_mode == MonsterNameMode::Male) {
+        ee::emit(jo, "random_name", "male");
+    }
+    else if (name_mode == MonsterNameMode::Female) {
+        ee::emit(jo, "random_name", "female");
+    }
+    else if (name_mode == MonsterNameMode::Random) {
+        ee::emit(jo, "random_name", "random");
+    }
+
+    if (!ammo.empty() || !patrol.empty()) {
+        ee::emit_object(jo, "spawn_data", [&]() {
+            if (!ammo.empty()) {
+                ee::emit_array(jo, "ammo", [&]() {
+                    for (const auto& it : ammo) {
+                        ee::emit_object(jo, [&]() {
+                            ee::emit(jo, "ammo_id", it.first);
+                            ee::emit(jo, "qty", it.second);
+                        });
+                    }
+                });
+            }
+            if (!patrol.empty()) {
+                ee::emit_array(jo, "patrol", [&]() {
+                    for (const auto& it : patrol) {
+                        ee::emit_object(jo, [&]() {
+                            ee::emit(jo, "x", it.x);
+                            ee::emit(jo, "y", it.y);
+                        });
+                    }
+                });
+            }
+        });
+    }
 }
 
 void PieceVehicle::export_func( JsonOut &jo ) const

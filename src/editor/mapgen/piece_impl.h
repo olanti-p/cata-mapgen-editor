@@ -3,6 +3,7 @@
 
 #include "piece.h"
 
+#include "point.h"
 #include "calendar.h"
 #include "computer_enums.h"
 #include "enum_traits.h"
@@ -152,6 +153,25 @@ struct PieceMGroup : public Piece {
     float density = -1.0f;
 };
 
+enum class MonsterNameMode {
+    Unnamed,
+    Exact,
+    Random,
+    Male,
+    Female,
+    Snippet,
+
+    _Num,
+};
+
+enum class OneOrNoneMode {
+    Default,
+    On,
+    Off,
+
+    _Num,
+};
+
 struct PieceMonster : public Piece {
     IMPLEMENT_ME_PIECE( PieceMonster, PieceType::Monster )
 
@@ -161,8 +181,15 @@ struct PieceMonster : public Piece {
     WeightedList<EID::Monster> type_list;
     EID::MGroup group_id;
     IntRange chance = IntRange(100,100);
-
-    // TODO: other fields
+    bool use_pack_size = false;
+    IntRange pack_size = IntRange(1,1);
+    OneOrNoneMode one_or_none = OneOrNoneMode::Default;
+    bool friendly = false;
+    bool target = false;
+    MonsterNameMode name_mode = MonsterNameMode::Unnamed;
+    std::string name;
+    std::vector<std::pair<EID::Item, IntRange>> ammo;
+    std::vector<point> patrol;
 };
 
 enum class VehicleStatus {
@@ -458,6 +485,16 @@ struct enum_traits<editor::VehicleStatus> {
 template<>
 struct enum_traits<editor::NestedCheckType> {
     static constexpr editor::NestedCheckType last = editor::NestedCheckType::_Num;
+};
+
+template<>
+struct enum_traits<editor::MonsterNameMode> {
+    static constexpr editor::MonsterNameMode last = editor::MonsterNameMode::_Num;
+};
+
+template<>
+struct enum_traits<editor::OneOrNoneMode> {
+    static constexpr editor::OneOrNoneMode last = editor::OneOrNoneMode::_Num;
 };
 
 #endif // CATA_SRC_EDITOR_PIECE_IMPL_H

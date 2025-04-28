@@ -286,6 +286,41 @@ std::string enum_to_string<editor::SetMapType>(editor::SetMapType data)
     abort();
 }
 
+template<>
+std::string enum_to_string<editor::MonsterNameMode>(editor::MonsterNameMode data)
+{
+    switch (data) {
+        // *INDENT-OFF*
+    case editor::MonsterNameMode::Unnamed: return "Unnamed";
+    case editor::MonsterNameMode::Exact: return "Exact";
+    case editor::MonsterNameMode::Random: return "Random";
+    case editor::MonsterNameMode::Male: return "Male";
+    case editor::MonsterNameMode::Female: return "Female";
+    case editor::MonsterNameMode::Snippet: return "Snippet";
+        // *INDENT-ON*
+    case editor::MonsterNameMode::_Num:
+        break;
+    }
+    debugmsg("Invalid editor::MonsterNameMode");
+    abort();
+}
+
+template<>
+std::string enum_to_string<editor::OneOrNoneMode>(editor::OneOrNoneMode data)
+{
+    switch (data) {
+        // *INDENT-OFF*
+    case editor::OneOrNoneMode::On: return "On";
+    case editor::OneOrNoneMode::Off: return "Off";
+    case editor::OneOrNoneMode::Default: return "Default";
+        // *INDENT-ON*
+    case editor::OneOrNoneMode::_Num:
+        break;
+    }
+    debugmsg("Invalid editor::OneOrNoneMode");
+    abort();
+}
+
 } // namespace io
 
 namespace editor
@@ -496,6 +531,15 @@ void PieceMonster::serialize( JsonOut &jsout ) const
     jsout.member("type_list", type_list);
     jsout.member("group_id", group_id);
     jsout.member("chance", chance);
+    jsout.member("use_pack_size", use_pack_size);
+    jsout.member("pack_size", pack_size);
+    jsout.member_as_string("one_or_none", one_or_none);
+    jsout.member("friendly", friendly);
+    jsout.member("target", target);
+    jsout.member_as_string("name_mode", name_mode);
+    jsout.member("name", name);
+    jsout.member("ammo", ammo);
+    jsout.member("patrol", patrol);
 }
 
 void PieceMonster::deserialize( const JSON_OBJECT &jsin )
@@ -504,6 +548,15 @@ void PieceMonster::deserialize( const JSON_OBJECT &jsin )
     jsin.read("type_list", type_list);
     jsin.read("group_id", group_id);
     jsin.read("chance", chance);
+    jsin.read("use_pack_size", use_pack_size);
+    jsin.read("pack_size", pack_size);
+    jsin.read("one_or_none", one_or_none);
+    jsin.read("friendly", friendly);
+    jsin.read("target", target);
+    jsin.read("name_mode", name_mode);
+    jsin.read("name", name);
+    jsin.read("ammo", ammo);
+    jsin.read("patrol", patrol);
 }
 
 void PieceVehicle::serialize( JsonOut &jsout ) const
