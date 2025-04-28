@@ -196,48 +196,23 @@ void show_setmaps( State &state, Mapgen &f, bool is_active, bool &show )
     ImGui::Text("%d setmaps", list.size());
 
     bool changed = ImGui::VectorWidget()
-    /*
     .with_add([&]() -> bool {
-        std::vector<std::pair<std::string, PieceType>> object_opts;
-        for( const auto &it : editor::get_piece_templates() )
-        {
-            PieceType pt = it->get_type();
-            if( !is_available_as_mapobject( pt ) ) {
-                continue;
-            }
-            object_opts.emplace_back( io::enum_to_string<PieceType>( pt ), pt );
-        }
-
-        std::sort( object_opts.begin(), object_opts.end(), []( const auto & a, const auto & b ) -> bool {
-            return localized_compare( a, b );
-        } );
-
-        std::string new_object_str;
-        new_object_str += "Add object...";
-        new_object_str += '\0';
-        for( const auto &it : object_opts )
-        {
-            new_object_str += it.first;
-            new_object_str += '\0';
-        }
         bool ret = false;
-        int new_object_type = 0;
-        if( ImGui::Combo( "##pick-new-object", &new_object_type, new_object_str.c_str() ) )
+        SetMapType new_setmap_type = SetMapType::_Num;
+        ImGui::Text("Add:");
+        ImGui::SameLine();
+        if( ImGui::ComboEnum( "##pick-new-setmap", new_setmap_type, static_cast<int>( SetMapType::_Num ) ) )
         {
-            if( new_object_type != 0 ) {
-                SetMap obj;
-                obj.piece = editor::make_new_piece( object_opts[new_object_type - 1].second );
-                UUID uuid = state.project().uuid_generator();
-                obj.piece->uuid = uuid;
-                obj.piece->is_object = true;
-                obj.piece->init_new();
-                list.push_back( std::move( obj ) );
-                expand_object( state, uuid );
-                ret = true;
-            }
+            SetMap obj;
+            obj.data = editor::make_new_setmap_data( new_setmap_type );
+            UUID uuid = state.project().uuid_generator();
+            obj.uuid = uuid;
+            list.push_back( std::move( obj ) );
+            expand_object( state, uuid );
+            ret = true;
         }
         return ret;
-    } )*/
+    } )
     .with_for_each( [&]( size_t idx ) {
         if( list[idx].visible ) {
             if( ImGui::ImageButton( "hide", "me_visible" ) ) {

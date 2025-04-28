@@ -122,7 +122,7 @@ bool PaletteSelector( const char *label, editor::UUID &current_item,
                       std::vector<editor::Palette> &options );
 
 template<typename E>
-bool ComboEnum(const char* label, E& current_item) {
+bool ComboEnum(const char* label, E& current_item, int popup_max_height_in_items = -1) {
     static_assert(has_enum_traits<E>::value, "enum E needs a specialization of enum_traits");
 
     using Int = std::underlying_type_t<E>;
@@ -134,7 +134,7 @@ bool ComboEnum(const char* label, E& current_item) {
     }
     // Must use int here because of widget
     int current = static_cast<int>( current_item );
-    bool ret = ComboWithFilter(label, &current, entries);
+    bool ret = ComboWithFilter(label, &current, entries, popup_max_height_in_items);
     current_item = static_cast<E>( current );
     return ret;
 }
