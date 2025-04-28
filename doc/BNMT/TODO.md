@@ -22,13 +22,12 @@ Vague list of what changes are planned, and what changes would be nice to have b
 - Better vehicle placement preview (graphical tiles; choose which vehicle is visualized)
 - Better nested placement preview (recursive placement; graphical tiles and tooltip data; choose which nested is visualized)
 - Design simple overmap specials that use the mapgen (like in Hostile Architect)
-- Support "set"-based placement
 - Flip/mirror/rotate tool
 
 
 ## UI
 - "Discard changes?" when closing game window with Alt+F4 (right now only asks when closing project with `Ctrl+Q`)
-- Draw & manipulate mapgenobjects with mouse
+- Draw & manipulate mapgenobjects and set functions with mouse
 - Localization (may be hard to deal with text layout and rendering)
 - Hotkey customization
 - Interface colors customization

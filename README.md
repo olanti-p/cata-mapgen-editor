@@ -46,6 +46,7 @@ Such functionality is marked with (*).
 - Automatic JSON formatting on export
 - *Assign different mappings to symbols (terrain/furniture/items/fields/graffiti/vehicle/monster/NPC/other)
 - *Mapgen objects (aka `place_*` functions, i.e. objects placed within an area)
+- *Set functions (`set` placement, i.e. data placed as point/line/square)
 - *QoL UI features (hotkeys, tooltips)
 - Tooltip preview for symbol contents when editing
 - Visual preview for terrain and furniture (including `t/f_region_*` preudo objects)
