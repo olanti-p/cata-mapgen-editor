@@ -1028,17 +1028,30 @@ static void emit_mapgen_contents( JsonOut &jo, const editor::Project &project,
 
         if( mapgen.uses_rows() ) {
             const editor::Palette &pal = *project.get_palette( mapgen.base.palette );
-            emit_array( jo, "rows", [&]() {
-                const editor::Canvas2D<editor::MapKey> &canvas = mapgen.base.canvas;
-                for( int y = 0; y < canvas.get_size().y; y++ ) {
-                    std::string s;
-                    for( int x = 0; x < canvas.get_size().x; x++ ) {
-                        const editor::MapKey &mk = canvas.get( point( x, y ) );
-                        s += mk.str();
-                    }
-                    emit_val( jo, s );
+
+            const editor::Canvas2D<editor::MapKey> &canvas = mapgen.base.canvas;
+            
+            bool is_canvas_monotonic = true;
+            const editor::MapKey space_key(' ');
+            for (const editor::MapKey& it : canvas.get_data()) {
+                if (it != space_key) {
+                    is_canvas_monotonic = false;
+                    break;
                 }
-            } );
+            }
+            
+            if (!is_canvas_monotonic) {
+                emit_array( jo, "rows", [&]() {
+                    for( int y = 0; y < canvas.get_size().y; y++ ) {
+                        std::string s;
+                        for( int x = 0; x < canvas.get_size().x; x++ ) {
+                            const editor::MapKey &mk = canvas.get( point( x, y ) );
+                            s += mk.str();
+                        }
+                        emit_val( jo, s );
+                    }
+                } );
+            }
 
             emit_mapgen_flags(jo, mapgen);
 
