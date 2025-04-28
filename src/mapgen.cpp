@@ -8922,6 +8922,7 @@ bool has_update_mapgen_for( const update_mapgen_id &key )
 }
 
 #include "editor/mapgen/piece_impl.h"
+#include "editor/mapgen/setmap_impl.h"
 #include "editor/common/weighted_list.h"
 #include "editor/widget/editable_id.h"
 #include "editor/mapgen/palette_import_report.h"
@@ -9635,6 +9636,104 @@ bool PieceRemoveAll::try_import(const jmapgen_piece& piece, PaletteImportReport&
 
 bool PieceUnknown::try_import(const jmapgen_piece& piece, PaletteImportReport& report)
 {
+    return false;
+}
+
+static jmapgen_setmap_op get_op(jmapgen_setmap piece) {
+    return static_cast<jmapgen_setmap_op>( static_cast<int>(piece.op) % 100 );
+}
+
+bool SetMapTer::try_import(const jmapgen_setmap& piece, PaletteImportReport& report)
+{
+    if (get_op(piece) == JMAPGEN_SETMAP_TER) {
+        id = ter_id(piece.val.get()).id().str();
+        return true;
+    }
+    return false;
+}
+
+bool SetMapFurn::try_import(const jmapgen_setmap& piece, PaletteImportReport& report)
+{
+    if (get_op(piece) == JMAPGEN_SETMAP_FURN) {
+        id = furn_id(piece.val.get()).id().str();
+        return true;
+    }
+    return false;
+}
+
+bool SetMapTrap::try_import(const jmapgen_setmap& piece, PaletteImportReport& report)
+{
+    if (get_op(piece) == JMAPGEN_SETMAP_TRAP) {
+        id = trap_id(piece.val.get()).id().str();
+        return true;
+    }
+    return false;
+}
+
+bool SetMapVariable::try_import(const jmapgen_setmap& piece, PaletteImportReport& report)
+{
+    if (get_op(piece) == JMAPGEN_SETMAP_VARIABLE) {
+        id = piece.string_val;
+        return true;
+    }
+    return false;
+}
+
+bool SetMapBash::try_import(const jmapgen_setmap& piece, PaletteImportReport& report)
+{
+    if (get_op(piece) == JMAPGEN_SETMAP_BASH) {
+        return true;
+    }
+    return false;
+}
+
+bool SetMapBurn::try_import(const jmapgen_setmap& piece, PaletteImportReport& report)
+{
+    if (get_op(piece) == JMAPGEN_SETMAP_BURN) {
+        return true;
+    }
+    return false;
+}
+
+bool SetMapRadiation::try_import(const jmapgen_setmap& piece, PaletteImportReport& report)
+{
+    if (get_op(piece) == JMAPGEN_SETMAP_RADIATION) {
+        amount = piece.val;
+        return true;
+    }
+    return false;
+}
+
+bool SetMapRemoveTrap::try_import(const jmapgen_setmap& piece, PaletteImportReport& report)
+{
+    if (get_op(piece) == JMAPGEN_SETMAP_TRAP_REMOVE) {
+        id = trap_id(piece.val.get()).id().str();
+        return true;
+    }
+    return false;
+}
+
+bool SetMapRemoveCreature::try_import(const jmapgen_setmap& piece, PaletteImportReport& report)
+{
+    if (get_op(piece) == JMAPGEN_SETMAP_CREATURE_REMOVE) {
+        return true;
+    }
+    return false;
+}
+
+bool SetMapRemoveItem::try_import(const jmapgen_setmap& piece, PaletteImportReport& report)
+{
+    if (get_op(piece) == JMAPGEN_SETMAP_ITEM_REMOVE) {
+        return true;
+    }
+    return false;
+}
+
+bool SetMapRemoveField::try_import(const jmapgen_setmap& piece, PaletteImportReport& report)
+{
+    if (get_op(piece) == JMAPGEN_SETMAP_FIELD_REMOVE) {
+        return true;
+    }
     return false;
 }
 

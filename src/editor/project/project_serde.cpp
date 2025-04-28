@@ -10,6 +10,8 @@
 #include "mapgen/piece_impl.h"
 #include "mapgen/piece_type.h"
 #include "mapgen/selection_mask.h"
+#include "mapgen/setmap.h"
+#include "mapgen/setmap_impl.h"
 #include "project.h"
 
 #include "cube_direction.h"
@@ -39,6 +41,24 @@ void deserialize( std::unique_ptr<editor::Piece> &ptr, const TextJsonObject &jo 
     val->uuid = uuid;
     val->constraint = std::move( constraint );
     ptr = std::move( val );
+}
+
+void serialize(const std::unique_ptr<editor::SetMapData>& ptr, JsonOut& jsout)
+{
+    jsout.start_object();
+    jsout.member_as_string("data_type", ptr->get_type());
+    ptr->serialize(jsout);
+    jsout.end_object();
+}
+
+void deserialize(std::unique_ptr<editor::SetMapData>& ptr, const TextJsonObject& jo)
+{
+    editor::SetMapType pt = editor::SetMapType::_Num;
+    jo.read("data_type", pt);
+
+    std::unique_ptr<editor::SetMapData> val = editor::make_new_setmap_data(pt);
+    val->deserialize(jo);
+    ptr = std::move(val);
 }
 
 void serialize( const ImVec4 &v, JsonOut &jsout )
@@ -223,6 +243,46 @@ std::string enum_to_string<editor::PieceType>( editor::PieceType data )
             break;
     }
     debugmsg( "Invalid editor::PieceType" );
+    abort();
+}
+
+template<>
+std::string enum_to_string<editor::SetMapMode>(editor::SetMapMode data)
+{
+    switch (data) {
+        // *INDENT-OFF*
+    case editor::SetMapMode::Point: return "Point";
+    case editor::SetMapMode::Line: return "Line";
+    case editor::SetMapMode::Square: return "Square";
+        // *INDENT-ON*
+    case editor::SetMapMode::_Num:
+        break;
+    }
+    debugmsg("Invalid editor::SetMapMode");
+    abort();
+}
+
+template<>
+std::string enum_to_string<editor::SetMapType>(editor::SetMapType data)
+{
+    switch (data) {
+        // *INDENT-OFF*
+    case editor::SetMapType::Ter: return "Ter";
+    case editor::SetMapType::Furn: return "Furn";
+    case editor::SetMapType::Trap: return "Trap";
+    case editor::SetMapType::Variable: return "Variable";
+    case editor::SetMapType::Bash: return "Bash";
+    case editor::SetMapType::Burn: return "Burn";
+    case editor::SetMapType::Radiation: return "Radiation";
+    case editor::SetMapType::RemoveTrap: return "RemoveTrap";
+    case editor::SetMapType::RemoveCreature: return "RemoveCreature";
+    case editor::SetMapType::RemoveItem: return "RemoveItem";
+    case editor::SetMapType::RemoveField: return "RemoveField";
+        // *INDENT-ON*
+    case editor::SetMapType::_Num:
+        break;
+    }
+    debugmsg("Invalid editor::SetMapType");
     abort();
 }
 
@@ -774,6 +834,116 @@ void PieceUnknown::deserialize(const JSON_OBJECT& jsin)
 
 }
 
+void SetMapTer::serialize(JsonOut& jsout) const
+{
+    jsout.member("id", id);
+}
+
+void SetMapTer::deserialize(const JSON_OBJECT& jsin)
+{
+    jsin.read("id", id);
+}
+
+void SetMapFurn::serialize(JsonOut& jsout) const
+{
+    jsout.member("id", id);
+}
+
+void SetMapFurn::deserialize(const JSON_OBJECT& jsin)
+{
+    jsin.read("id", id);
+}
+
+void SetMapTrap::serialize(JsonOut& jsout) const
+{
+    jsout.member("id", id);
+}
+
+void SetMapTrap::deserialize(const JSON_OBJECT& jsin)
+{
+    jsin.read("id", id);
+}
+
+void SetMapVariable::serialize(JsonOut& jsout) const
+{
+    jsout.member("id", id);
+}
+
+void SetMapVariable::deserialize(const JSON_OBJECT& jsin)
+{
+    jsin.read("id", id);
+}
+
+void SetMapBash::serialize(JsonOut& jsout) const
+{
+    // No data
+}
+
+void SetMapBash::deserialize(const JSON_OBJECT& jsin)
+{
+    // No data
+}
+
+void SetMapBurn::serialize(JsonOut& jsout) const
+{
+    // No data
+}
+
+void SetMapBurn::deserialize(const JSON_OBJECT& jsin)
+{
+    // No data
+}
+
+void SetMapRadiation::serialize(JsonOut& jsout) const
+{
+    jsout.member("amount", amount);
+}
+
+void SetMapRadiation::deserialize(const JSON_OBJECT& jsin)
+{
+    jsin.read("amount", amount);
+}
+
+void SetMapRemoveTrap::serialize(JsonOut& jsout) const
+{
+    jsout.member("id", id);
+}
+
+void SetMapRemoveTrap::deserialize(const JSON_OBJECT& jsin)
+{
+    jsin.read("id", id);
+}
+
+void SetMapRemoveCreature::serialize(JsonOut& jsout) const
+{
+    // No data
+}
+
+void SetMapRemoveCreature::deserialize(const JSON_OBJECT& jsin)
+{
+    // No data
+}
+
+void SetMapRemoveItem::serialize(JsonOut& jsout) const
+{
+    // No data
+}
+
+void SetMapRemoveItem::deserialize(const JSON_OBJECT& jsin)
+{
+    // No data
+}
+
+void SetMapRemoveField::serialize(JsonOut& jsout) const
+{
+    // No data
+}
+
+void SetMapRemoveField::deserialize(const JSON_OBJECT& jsin)
+{
+    // No data
+}
+
 namespace detail
 {
 
@@ -873,6 +1043,40 @@ void MapObject::deserialize( const TextJsonValue &jsin )
     jo.read( "color", color );
     jo.read( "visible", visible );
     jo.read( "piece", piece );
+}
+
+void SetMap::serialize(JsonOut& jsout) const
+{
+    jsout.start_object();
+    jsout.member("uuid", uuid);
+    jsout.member("x", x);
+    jsout.member("y", y);
+    jsout.member("x2", x2);
+    jsout.member("y2", y2);
+    jsout.member("z", z);
+    jsout.member("chance", chance);
+    jsout.member("repeat", repeat);
+    jsout.member("color", color);
+    jsout.member("visible", visible);
+    jsout.member_as_string("mode", mode);
+    jsout.member("data", data);
+    jsout.end_object();
+}
+
+void SetMap::deserialize(const TextJsonObject& jo)
+{
+    jo.read("uuid", uuid);
+    jo.read("x", x);
+    jo.read("y", y);
+    jo.read("x2", x2);
+    jo.read("y2", y2);
+    jo.read("z", z);
+    jo.read("chance", chance);
+    jo.read("repeat", repeat);
+    jo.read("color", color);
+    jo.read("visible", visible);
+    jo.read("mode", mode);
+    jo.read("data", data);
 }
 
 void MapgenBase::serialize( JsonOut &jsout ) const
@@ -995,6 +1199,7 @@ void Mapgen::serialize( JsonOut &jsout ) const
     jsout.member( "update", update );
     jsout.member( "nested", nested );
     jsout.member( "objects", objects );
+    jsout.member( "setmaps", setmaps );
     jsout.member( "flags", flags );
     jsout.member( "selection_mask", selection_mask );
     jsout.end_object();
@@ -1012,6 +1217,7 @@ void Mapgen::deserialize( const TextJsonValue &jsin )
     jo.read( "update", update );
     jo.read( "nested", nested );
     jo.read( "objects", objects );
+    jo.read( "setmaps", setmaps );
     jo.read( "flags", flags );
     jo.read( "selection_mask", selection_mask );
 

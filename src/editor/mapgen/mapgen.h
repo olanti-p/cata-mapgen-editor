@@ -12,6 +12,7 @@
 #include "common/canvas_2d.h"
 #include "common/uuid.h"
 #include "mapgen/mapobject.h"
+#include "mapgen/setmap.h"
 #include "mapgen/palette.h"
 #include "selection_mask.h"
 #include "widget/editable_id.h"
@@ -132,6 +133,7 @@ struct Mapgen {
         MapgenNested nested;
 
         std::vector<MapObject> objects;
+        std::vector<SetMap> setmaps;
         MapgenFlags flags;
 
         std::string name;

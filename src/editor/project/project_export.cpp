@@ -5,6 +5,7 @@
 
 #include "mapgen/palette.h"
 #include "mapgen/piece_impl.h"
+#include "mapgen/setmap_impl.h"
 
 #include "json.h"
 #include "../../tools/format/format.h"
@@ -735,6 +736,61 @@ void PieceUnknown::export_func(JsonOut& jo) const
     // TODO: print some error or something
 }
 
+void SetMapTer::export_func(JsonOut& jo) const
+{
+    ee::emit(jo, "id", id);
+}
+
+void SetMapFurn::export_func(JsonOut& jo) const
+{
+    ee::emit(jo, "id", id);
+}
+
+void SetMapTrap::export_func(JsonOut& jo) const
+{
+    ee::emit(jo, "id", id);
+}
+
+void SetMapVariable::export_func(JsonOut& jo) const
+{
+    ee::emit(jo, "id", id);
+}
+
+void SetMapBash::export_func(JsonOut& jo) const
+{
+    // Empty object
+}
+
+void SetMapBurn::export_func(JsonOut& jo) const
+{
+    // Empty object
+}
+
+void SetMapRadiation::export_func(JsonOut& jo) const
+{
+    ee::emit(jo, "amount", amount);
+}
+
+void SetMapRemoveTrap::export_func(JsonOut& jo) const
+{
+    ee::emit(jo, "id", id);
+}
+
+void SetMapRemoveCreature::export_func(JsonOut& jo) const
+{
+    // Empty object
+}
+
+void SetMapRemoveItem::export_func(JsonOut& jo) const
+{
+    // Empty object
+}
+
+void SetMapRemoveField::export_func(JsonOut& jo) const
+{
+    // Empty object
+}
+
 } // namespace editor
 
 namespace editor_export
@@ -825,6 +881,44 @@ std::string get_object_category( editor::PieceType data )
             break;
     }
     debugmsg( "Invalid editor::PieceType" );
+    abort();
+}
+
+static std::string get_setmap_mode(editor::SetMapMode data)
+{
+    switch (data) {
+        // *INDENT-OFF*
+    case editor::SetMapMode::Point: return "point";
+    case editor::SetMapMode::Line: return "line";
+    case editor::SetMapMode::Square: return "square";
+        // *INDENT-ON*
+    default:
+        break;
+    }
+    debugmsg("Invalid editor::SetMapMode");
+    abort();
+}
+
+static std::string get_setmap_type(editor::SetMapType data)
+{
+    switch (data) {
+        // *INDENT-OFF*
+    case editor::SetMapType::Ter: return "terrain";
+    case editor::SetMapType::Furn: return "furniture";
+    case editor::SetMapType::Trap: return "trap";
+    case editor::SetMapType::Variable: return "variable";
+    case editor::SetMapType::Bash: return "bash";
+    case editor::SetMapType::Burn: return "burn";
+    case editor::SetMapType::Radiation: return "radiation";
+    case editor::SetMapType::RemoveTrap: return "trap_remove";
+    case editor::SetMapType::RemoveCreature: return "creature_remove";
+    case editor::SetMapType::RemoveItem: return "item_remove";
+    case editor::SetMapType::RemoveField: return "field_remove";
+        // *INDENT-ON*
+    default:
+        break;
+    }
+    debugmsg("Invalid editor::SetMapType");
     abort();
 }
 
@@ -1071,6 +1165,32 @@ static void emit_mapgen_contents( JsonOut &jo, const editor::Project &project,
         }
         else {
             emit_mapgen_flags(jo, mapgen);
+        }
+
+        if (!mapgen.setmaps.empty()) {
+            emit_array(jo, "set", [&]() {
+                for (const editor::SetMap& it : mapgen.setmaps) {
+                    emit_object(jo, [&]() {
+                        emit(jo, get_setmap_mode(it.mode), get_setmap_type(it.data->get_type()));
+                        it.data->export_func(jo);
+                        emit(jo, "x", it.x);
+                        emit(jo, "y", it.y);
+                        if (it.mode != editor::SetMapMode::Point) {
+                            emit(jo, "x2", it.x2);
+                            emit(jo, "y2", it.y2);
+                        }
+                        if (it.z.min != 0 || it.z.max != 0) {
+                            emit(jo, "z", it.z);
+                        }
+                        if (it.chance != 1) {
+                            emit(jo, "chance", it.chance);
+                        }
+                        if (it.repeat.min != 1 || it.repeat.max != 1) {
+                            emit(jo, "repeat", it.repeat);
+                        }
+                    });
+                }
+            });
         }
 
         for( const auto &it : editor::get_piece_templates() ) {

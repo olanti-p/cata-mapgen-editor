@@ -182,6 +182,28 @@ void add_mapgen( State &state, NewMapgenState &mapgen )
     new_mapgen.base.palette = mapgen.palette;
 }
 
+static std::unique_ptr<SetMapData> import_setmap(const jmapgen_setmap& sm, PaletteImportReport& report)
+{
+    std::unique_ptr<SetMapData> ret;
+    // TODO: optimize (avoid allocating new pieces)
+    const std::vector<std::unique_ptr<SetMapData>>& available_types = get_setmap_data_templates();
+    for (const auto& type : available_types) {
+        ret = type->clone();
+        if (ret->try_import(sm, report)) {
+            break;
+        }
+        else {
+            ret.reset();
+        }
+    }
+
+    if (!ret) {
+        // Shouldn't happen
+        std::abort();
+    }
+    return ret;
+}
+
 static void import_common(State& state, Mapgen& mapgen, Project&project, mapgen_function_json_base& ref) {
     Palette* loaded_palette = project.find_palette_by_string(ref.editor_palette_id);
     if (!loaded_palette) {
@@ -260,6 +282,15 @@ static void import_common(State& state, Mapgen& mapgen, Project&project, mapgen_
     int color_counter = 0;
     int num_colors = 19;
     int color_step = 11;
+
+    const auto roll_color = [&]() -> ImColor {
+        // TODO: assign specific colors to types
+        int color_fraction = (color_counter * color_step) % num_colors;
+        float h = float(color_fraction) / float(num_colors);
+        color_counter++;
+        return ImColor::HSV(h, 1.0f, 1.0f, 0.6f);
+    };
+
     for (const auto& obj : ref.objects.objects) {
         const jmapgen_place& place = obj.first;
         const jmapgen_piece& piece = *obj.second.get();
@@ -273,13 +304,34 @@ static void import_common(State& state, Mapgen& mapgen, Project&project, mapgen_
         // No z coord. Screw it.
         // TODO: maybe implement it later
         mo.repeat = place.repeat;
-        // TODO: assign specific colors to types
-        int color_fraction = (color_counter * color_step) % num_colors;
-        float h = float(color_fraction) / float(num_colors);
-        color_counter++;
-        mo.color = ImColor::HSV(h, 1.0f, 1.0f, 0.6f);
+        mo.color = roll_color();
 
         mapgen.objects.emplace_back(std::move(mo));
+    }
+
+    for (const jmapgen_setmap& it : ref.setmap_points) {
+        SetMapMode mode = SetMapMode::Point;
+        if (it.op >= JMAPGEN_SETMAP_OPTYPE_SQUARE) {
+            mode = SetMapMode::Square;
+        }
+        else if (it.op >= JMAPGEN_SETMAP_OPTYPE_LINE) {
+            mode = SetMapMode::Line;
+        }
+        SetMap sm;
+
+        sm.data = import_setmap(it, report);
+        sm.mode = mode;
+        sm.uuid = project.uuid_generator();
+        sm.x = it.x;
+        sm.x2 = it.x2;
+        sm.y = it.y;
+        sm.y2 = it.y2;
+        sm.z = it.z;
+        sm.chance = it.chance;
+        sm.repeat = it.repeat;
+        sm.color = roll_color();
+
+        mapgen.setmaps.emplace_back(std::move(sm));
     }
 }
 

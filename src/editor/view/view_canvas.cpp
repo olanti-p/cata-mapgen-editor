@@ -538,6 +538,37 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
         }
     }
 
+    if (state.ui->show_canvas_setmaps) {
+        // FIXME: undupe this from objects
+        for (const SetMap& obj : mapgen.setmaps) {
+            if (!obj.visible) {
+                continue;
+            }
+
+            inclusive_rectangle<point> bb = obj.get_bounding_box();
+            point_abs_etile p1(bb.p_min);
+            point_abs_etile p2(bb.p_max);
+            ImVec4 col_border = obj.color;
+            ImVec4 col_text = obj.color;
+            col_text.w = 1.0f;
+            ImVec4 col_bg = obj.color;
+            col_bg.w *= 0.4f;
+            highlight_region(draw_list, cam, p1, p2, col_bg, col_border);
+
+            std::string label = obj.fmt_summary();
+            point_abs_epos pos1 = coords::project_combine(p1, point_etile_epos(ETILE_SIZE / 2,
+                ETILE_SIZE / 2));
+            point_abs_epos pos2 = coords::project_combine(p2, point_etile_epos(ETILE_SIZE / 2,
+                ETILE_SIZE / 2));
+            point_abs_epos center((pos1.raw() + pos2.raw()) / 2);
+            point_abs_screen text_center = cam.world_to_screen(center);
+            point_rel_screen text_size(ImGui::CalcTextSize(label.c_str()));
+            point_abs_screen text_pos = text_center - text_size.raw() / 2;
+            ImGui::SetCursorPos(text_pos.raw());
+            ImGui::TextColored(col_text, "%s", label.c_str());
+        }
+    }
+
     if( snippet ) {
         draw_selection_mask( draw_list, snippet->get_selection_mask(),
                              point_abs_etile( snippet->get_pos() ), cam, true );
@@ -547,6 +578,7 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
     }
 
     std::vector<const MapObject*> hovered_objects;
+    std::vector<const SetMap*> hovered_setmaps;
 
     if( view_hovered ) {
         for (const MapObject& obj : mapgen.objects) {
@@ -558,6 +590,14 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                 continue;
             }
             hovered_objects.push_back(&obj);
+        }
+
+        for (const SetMap& setmap : mapgen.setmaps) {
+            inclusive_rectangle bb = setmap.get_bounding_box();
+            if (!bb.contains(tile_pos.raw())) {
+                continue;
+            }
+            hovered_setmaps.push_back(&setmap);
         }
 
         std::unordered_set<point> nested_info;
@@ -663,6 +703,7 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
             (tooltip_entry_fill_ter && show_fill_ter_fallback) || 
             (tooltip_entry_predecessor && show_predecessor) ||
             (tooltip_entry_update_or_nested_bg && show_update_or_nested_bg) ||
+            !hovered_setmaps.empty() ||
             !hovered_objects.empty() ) {
             ImGui::BeginTooltip();
             if( tooltip_needs_separator ) {
@@ -679,6 +720,11 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                 ImGui::TextDisabled( "OBJ" );
                 ImGui::SameLine();
                 ImGui::Text( "%s", obj->piece->fmt_summary().c_str() );
+            }
+            for (const SetMap* setmap : hovered_setmaps) {
+                ImGui::TextDisabled("SET");
+                ImGui::SameLine();
+                ImGui::Text("%s", setmap->fmt_summary().c_str());
             }
             if (show_fill_ter_fallback && has_fill_ter && (tooltip_entry_fill_ter || !pal.sprite_from_uuid(tooltip_entry_uuid).ter)) {
                 ImGui::TextDisabled("FILL");

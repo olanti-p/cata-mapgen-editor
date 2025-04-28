@@ -243,6 +243,7 @@ void UiState::serialize( JsonOut &jsout ) const
     jsout.member( "show_canvas_symbols", show_canvas_symbols );
     jsout.member( "show_canvas_sprites", show_canvas_sprites );
     jsout.member( "show_canvas_objects", show_canvas_objects );
+    jsout.member( "show_canvas_setmaps", show_canvas_setmaps );
     jsout.member( "show_fill_ter_sprites", show_fill_ter_sprites );
     jsout.member( "canvas_sprite_opacity", canvas_sprite_opacity );
     jsout.member( "autosave_enabled", autosave_enabled );
@@ -252,12 +253,14 @@ void UiState::serialize( JsonOut &jsout ) const
     jsout.member( "open_palette_previews", open_palette_previews );
     jsout.member( "open_source_mappings", open_source_mappings );
     jsout.member( "open_mapgenobjects", open_mapgenobjects );
+    jsout.member( "open_setmaps", open_setmaps );
     jsout.member( "open_loot_designers", open_loot_designers );
     jsout.member( "camera", camera );
     jsout.member( "tools", tools );
     jsout.member( "expanded_pieces_source", expanded_pieces_source );
     jsout.member( "expanded_pieces_resolved", expanded_pieces_resolved );
     jsout.member( "expanded_mapobjects", expanded_mapobjects );
+    jsout.member( "expanded_setmaps", expanded_setmaps );
     jsout.member( "project_export_path", project_export_path );
     jsout.end_object();
 }
@@ -282,6 +285,7 @@ void UiState::deserialize( JSON_IN &jsin )
     jo.read( "show_canvas_symbols", show_canvas_symbols );
     jo.read( "show_canvas_sprites", show_canvas_sprites );
     jo.read( "show_canvas_objects", show_canvas_objects );
+    jo.read( "show_canvas_setmaps", show_canvas_setmaps );
     jo.read( "show_fill_ter_sprites", show_fill_ter_sprites );
     jo.read( "canvas_sprite_opacity", canvas_sprite_opacity );
     jo.read( "autosave_enabled", autosave_enabled );
@@ -291,12 +295,14 @@ void UiState::deserialize( JSON_IN &jsin )
     jo.read( "open_palette_previews", open_palette_previews );
     jo.read( "open_source_mappings", open_source_mappings );
     jo.read( "open_mapgenobjects", open_mapgenobjects );
+    jo.read( "open_setmaps", open_setmaps );
     jo.read( "open_loot_designers", open_loot_designers );
     jo.read( "camera", camera );
     jo.read( "tools", tools );
     jo.read( "expanded_pieces_source", expanded_pieces_source );
     jo.read( "expanded_pieces_resolved", expanded_pieces_resolved );
     jo.read( "expanded_mapobjects", expanded_mapobjects );
+    jo.read( "expanded_setmaps", expanded_setmaps );
     jo.read( "project_export_path", project_export_path );
 }
 

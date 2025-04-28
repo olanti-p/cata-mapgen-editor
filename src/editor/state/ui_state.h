@@ -145,6 +145,7 @@ struct UiState {
     bool show_mapgen_palette_simple = true; // Whether to show mapgen palette (simple)
     bool show_mapgen_palette_verbose = true;// Whether to show mapgen palette (verbose)
     bool show_mapgen_objects = true;        // Whether to show mapgen objects
+    bool show_mapgen_setmaps = true;        // Whether to show mapgen objects
     bool show_history = true;               // Whether to show undo/redo history
     bool show_camera_controls = true;       // Whether to show camera controls
     bool show_toolbar = true;               // Whether to show canvas toolbar
@@ -155,6 +156,7 @@ struct UiState {
     bool show_canvas_symbols = true;        // Whether to show symbols on canvas
     bool show_canvas_sprites = true;        // Whether to show sprites on canvas
     bool show_canvas_objects = true;        // Whether to show objects on canvas
+    bool show_canvas_setmaps = true;        // Whether to show setmaps on canvas
     bool show_fill_ter_sprites = true;      // Whether to show fill_ter sprites as fallback
     float canvas_sprite_opacity = 0.6f;     // Opacity for sprites on canvas
 
@@ -168,6 +170,7 @@ struct UiState {
     std::vector<detail::OpenMapping> open_source_mappings; // List of open mappings (in source mode)
     std::vector<detail::OpenMapping> open_resolved_mappings; // List of open mappings (in resolved mode)
     std::vector<detail::OpenMapgenObject> open_mapgenobjects; // List of open mapgenobjects
+    std::vector<detail::OpenMapgenObject> open_setmaps; // List of open setpoints
     std::unordered_map<UUID, ViewPaletteTreeState> view_palette_tree_states;
 
     std::vector<detail::OpenLootDesigner> open_loot_designers; // List of open item spawn views (for mappings)
@@ -178,6 +181,7 @@ struct UiState {
     std::set<detail::ExpandedPiece> expanded_pieces_source;
     std::set<detail::ExpandedPiece> expanded_pieces_resolved;
     std::set<UUID> expanded_mapobjects;
+    std::set<UUID> expanded_setmaps;
 
     // TODO: move to control state?
     std::unique_ptr<NewMapgenState> new_mapgen_window;
@@ -190,6 +194,7 @@ struct UiState {
     void toggle_show_source_mapping( UUID palette, MapKey uuid );
     void toggle_show_resolved_mapping(UUID palette, MapKey uuid);
     void toggle_show_mapobjects( UUID uuid );
+    void toggle_show_setmaps(UUID uuid);
 
     void toggle_loot_designer_source_mappping(UUID palette, MapKey map_key);
     void toggle_loot_designer_resolved_mappping(UUID palette, MapKey map_key);

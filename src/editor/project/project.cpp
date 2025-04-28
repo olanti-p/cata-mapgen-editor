@@ -106,6 +106,12 @@ static bool show_mapgens_tab(State& state, Project& project) {
         }
         ImGui::HelpPopup("Show/hide map objects for this mapgen.");
         ImGui::SameLine();
+        // FIXME: custom icon
+        if (ImGui::ImageButton("toggle_setmaps", "me_set_rows_brush")) {
+            state.ui->toggle_show_setmaps(mapgen.uuid);
+        }
+        ImGui::HelpPopup("Show/hide set points for this mapgen.");
+        ImGui::SameLine();
         if (ImGui::Selectable(
             mapgen.display_name().c_str(),
             state.ui->active_mapgen_id && *state.ui->active_mapgen_id == mapgen.uuid)

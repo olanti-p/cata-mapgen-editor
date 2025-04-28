@@ -52,6 +52,7 @@ void show_main_menu_bar( State &state )
             ImGui::MenuItem( "Active Palette", nullptr, &state.ui->show_mapgen_palette_simple );
             ImGui::MenuItem( "Active Palette Details", nullptr, &state.ui->show_mapgen_palette_verbose );
             ImGui::MenuItem( "Active Placements", nullptr, &state.ui->show_mapgen_objects );
+            ImGui::MenuItem( "Active Set Points", nullptr, &state.ui->show_mapgen_setmaps );
             ImGui::MenuItem( "History", nullptr, &state.ui->show_history );
             ImGui::MenuItem( "Toolbar", nullptr, &state.ui->show_toolbar );
             ImGui::MenuItem( "Camera Controls", nullptr, &state.ui->show_camera_controls );
@@ -69,6 +70,7 @@ void show_main_menu_bar( State &state )
             ImGui::MenuItem( "Show symbols on canvas", nullptr, &state.ui->show_canvas_symbols );
             ImGui::MenuItem( "Show sprites on canvas", nullptr, &state.ui->show_canvas_sprites );
             ImGui::MenuItem( "Show placements on canvas", nullptr, &state.ui->show_canvas_objects );
+            ImGui::MenuItem( "Show setpoints on canvas", nullptr, &state.ui->show_canvas_setmaps );
             ImGui::MenuItem( "Show fill_ter sprites", nullptr, &state.ui->show_fill_ter_sprites);
             ImGui::SliderFloat("Sprite opacity", &state.ui->canvas_sprite_opacity, 0.0, 1.0);
             ImGui::EndMenu();

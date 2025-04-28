@@ -95,6 +95,18 @@ void UiState::toggle_show_mapobjects( UUID uuid )
     open_mapgenobjects.back().uuid = uuid;
 }
 
+void UiState::toggle_show_setmaps(UUID uuid)
+{
+    for (auto& it : open_setmaps) {
+        if (it.uuid == uuid) {
+            it.open = false;
+            return;
+        }
+    }
+    open_setmaps.emplace_back();
+    open_setmaps.back().uuid = uuid;
+}
+
 static void toggle_loot_designer(std::vector<detail::OpenLootDesigner>& list, detail::OpenLootDesigner&& value) {
     for (auto& it : list) {
         if (it.open && it.same_data_as(value)) {
@@ -255,6 +267,9 @@ void run_ui_for_state( State &state )
     if (uistate.show_mapgen_objects && active_mapgen) {
         show_mapobjects(state, *active_mapgen, true, uistate.show_mapgen_objects);
     }
+    if (uistate.show_mapgen_setmaps && active_mapgen) {
+        show_setmaps(state, *active_mapgen, true, uistate.show_mapgen_setmaps);
+    }
     if( uistate.show_project_overview ) {
         show_project_overview_ui( state, proj, uistate.show_project_overview );
     }
@@ -347,6 +362,18 @@ void run_ui_for_state( State &state )
             it.open = false;
         }
     }
+    for (auto& it : uistate.open_setmaps) {
+        if (!it.open) {
+            continue;
+        }
+        Mapgen* f = proj.get_mapgen(it.uuid);
+        if (f) {
+            show_setmaps(state, *f, false, it.open);
+        }
+        else {
+            it.open = false;
+        }
+    }
     for (auto& it : uistate.open_loot_designers) {
         show_loot_designer(state, it);
     }
@@ -369,6 +396,7 @@ void run_ui_for_state( State &state )
     erase_closed_windows(uistate.open_source_mappings);
     erase_closed_windows(uistate.open_resolved_mappings);
     erase_closed_windows(uistate.open_mapgenobjects);
+    erase_closed_windows(uistate.open_setmaps);
     erase_closed_windows(uistate.open_loot_designers);
 
     if( !control.quick_add_state.active ) {
