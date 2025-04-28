@@ -140,7 +140,14 @@ struct PieceLoot : public Piece {
     IMPLEMENT_ME_PIECE( PieceLoot, PieceType::Loot )
 
     void roll_loot(std::vector<item>& result, time_point turn, float spawnrate) const override;
-    // TODO
+    
+    int chance = 100;
+    int ammo_chance = 0;
+    int magazine_chance = 0;
+    bool is_group_mode = true;
+    EID::IGroup group_id;
+    EID::Item item_id;
+    std::string variant;
 };
 
 struct PieceMGroup : public Piece {

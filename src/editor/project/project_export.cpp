@@ -403,7 +403,24 @@ void PieceIGroup::export_func( JsonOut &jo ) const
 
 void PieceLoot::export_func( JsonOut &jo ) const
 {
-    // TODO
+    if (is_group_mode) {
+        ee::emit(jo, "group", group_id);
+    }
+    else {
+        ee::emit(jo, "item", item_id);
+        if (!variant.empty()) {
+            ee::emit(jo, "variant", variant);
+        }
+    }
+    if (ammo_chance != 0) {
+        ee::emit(jo, "ammo", ammo_chance);
+    }
+    if (magazine_chance != 0) {
+        ee::emit(jo, "magazine", magazine_chance);
+    }
+    if (chance != 100) {
+        ee::emit(jo, "chance", chance);
+    }
 }
 
 void PieceMGroup::export_func( JsonOut &jo ) const

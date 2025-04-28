@@ -499,12 +499,24 @@ void PieceIGroup::deserialize( const JSON_OBJECT &jsin )
 
 void PieceLoot::serialize( JsonOut &jsout ) const
 {
-    // TODO
+    jsout.member("chance", chance);
+    jsout.member("ammo_chance", ammo_chance);
+    jsout.member("magazine_chance", magazine_chance);
+    jsout.member("is_group_mode", is_group_mode);
+    jsout.member("group_id", group_id);
+    jsout.member("item_id", item_id);
+    jsout.member("variant", variant);
 }
 
 void PieceLoot::deserialize( const JSON_OBJECT &jsin )
 {
-    // TODO
+    jsin.read("chance", chance);
+    jsin.read("ammo_chance", ammo_chance);
+    jsin.read("magazine_chance", magazine_chance);
+    jsin.read("is_group_mode", is_group_mode);
+    jsin.read("group_id", group_id);
+    jsin.read("item_id", item_id);
+    jsin.read("variant", variant);
 }
 
 void PieceMGroup::serialize( JsonOut &jsout ) const

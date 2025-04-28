@@ -2990,8 +2990,13 @@ class jmapgen_loot : public jmapgen_piece
                 if( jsi.has_string( "variant" ) ) {
                     variant = jsi.get_string( "variant" );
                 }
+                editor_is_group = false;
+                editor_item = ity;
+                editor_variant = variant;
                 result_group.add_item_entry( item_controller->migrate_id( ity ), 100, variant );
             } else {
+                editor_is_group = true;
+                editor_group = group;
                 result_group.add_group_entry( group, 100 );
             }
         }
@@ -3009,7 +3014,12 @@ class jmapgen_loot : public jmapgen_piece
             }
         }
 
-    private:
+    public:
+        bool editor_is_group = false;
+        item_group_id editor_group;
+        itype_id editor_item;
+        std::string editor_variant;
+
         Item_group result_group;
         int chance;
 };
@@ -9181,7 +9191,20 @@ bool PieceLoot::try_import( const jmapgen_piece& piece, PaletteImportReport& rep
     if (!casted) {
         return false;
     }
-    return true; // TODO
+    chance = casted->chance;
+    ammo_chance = casted->result_group.with_ammo;
+    magazine_chance = casted->result_group.with_magazine;
+    is_group_mode = casted->editor_is_group;
+
+    if (is_group_mode) {
+        group_id = casted->editor_group.str();
+    }
+    else {
+        item_id = casted->editor_item.str();
+        variant = casted->editor_variant;
+    }
+
+    return true;
 }
 
 bool PieceMGroup::try_import( const jmapgen_piece& piece, PaletteImportReport& report )

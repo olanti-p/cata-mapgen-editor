@@ -543,17 +543,78 @@ void PieceIGroup::roll_loot(std::vector<item>& result, time_point turn, float sp
 
 void PieceLoot::show_ui( State &state )
 {
-    ImGui::Text( "TODO" );
+    ImGui::HelpMarkerInline("Spawn chance, in percent.");
+    if (ImGui::InputIntClamped("chance (%)", chance, 0, 100)) {
+        state.mark_changed("chance");
+    }
+
+    ImGui::HelpMarkerInline("Chance to spawn with ammo, in percent.");
+    if (ImGui::InputIntClamped("ammo_chance (%)", ammo_chance, 0, 100)) {
+        state.mark_changed("ammo_chance");
+    }
+
+    ImGui::HelpMarkerInline("Chance to spawn with magazine, in percent.");
+    if (ImGui::InputIntClamped("magazine_chance (%)", magazine_chance, 0, 100)) {
+        state.mark_changed("magazine_chance");
+    }
+
+    ImGui::HelpMarkerInline("Whether to spawn from item group.");
+    if (ImGui::Checkbox("use item group", &is_group_mode)) {
+        state.mark_changed();
+    }
+
+    ImGui::BeginDisabled(!is_group_mode);
+    ImGui::HelpMarkerInline("Item group id.");
+    if (ImGui::InputId("group", group_id)) {
+        state.mark_changed("group_id");
+    }
+    ImGui::EndDisabled();
+
+    ImGui::BeginDisabled(is_group_mode);
+    ImGui::HelpMarkerInline("Item type id.");
+    if (ImGui::InputId("item", item_id)) {
+        state.mark_changed("item_id");
+    }
+    ImGui::HelpMarkerInline("Item variant, optional.");
+    if (ImGui::InputText("variant", &variant)) {
+        state.mark_changed("variant");
+    }
+    ImGui::EndDisabled();
 }
 
 std::string PieceLoot::fmt_data_summary() const
 {
-    return "TODO";
+    if (is_group_mode) {
+        return group_id.data;
+    }
+    else {
+        return item_id.data;
+    }
 }
 
 void PieceLoot::roll_loot(std::vector<item>& result, time_point turn, float spawnrate) const
 {
-    
+    if (rng(0, 99) >= chance) {
+        return;
+    }
+    Item_group result_group(Item_group::Type::G_COLLECTION, 100, ammo_chance, magazine_chance, "Map Editor Loot Designer");
+    if (is_group_mode) {
+        item_group_id id(group_id.data);
+        if (!id.is_valid()) {
+            return;
+        }
+        result_group.add_group_entry(id, 100);
+    }
+    else {
+        itype_id id(item_id.data);
+        if (!id.is_valid()) {
+            return;
+        }
+        result_group.add_item_entry(item_controller->migrate_id(id), 100, variant);
+    }
+    Item_spawn_data::RecursionList rec;
+    spawn_flags flags;
+    result_group.create(result, turn, rec, flags);
 }
 
 void PieceMGroup::show_ui( State &state )
