@@ -40,14 +40,15 @@ Such functionality is marked with (*).
 - Autocomplete, fuzzy search and validation for identifiers
 - *UI retains its state between sessions
 - Configurable autosaves
-- Support for big mapgens (e.g. 48x48, 72x96 - any multiple of 24)
+- Supports editing nested and update mapgens
+- Supports editing big oter mapgens (e.g. 48x48, 72x96 - any multiple of 24)
 - Export palettes and mapgens into JSON
 - Automatic JSON formatting on export
 - *Assign different mappings to symbols (terrain/furniture/items/fields/graffiti/vehicle/monster/NPC/other)
 - *Mapgen objects (aka `place_*` functions, i.e. objects placed within an area)
 - *QoL UI features (hotkeys, tooltips)
 - Tooltip preview for symbol contents when editing
-- Visual preview for terrain and furniture
+- Visual preview for terrain and furniture (including `t/f_region_*` preudo objects)
 - Configurable display options (sprites, symbols, OMT boundaries)
 - *Visual preview for vehicle and nested placement boundaries
 - Loot Designer tool that provides a quick way to test various item spawn results

@@ -14,8 +14,6 @@ Vague list of what changes are planned, and what changes would be nice to have b
 
 ## Features
 - Configure mod list on start
-- Edit Nested-type mapgens
-- Edit Update-type mapgens
 - Propagate palette symbol change into mapgen & related palettes
 - Quick test of mapgen in game (press button -> be spawned in game next to your building)
 - Implement all mapgen pieces
