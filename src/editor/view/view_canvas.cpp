@@ -258,6 +258,7 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
     bool tooltip_entry_error = false;
     bool tooltip_entry_fill_ter = false;
     bool tooltip_entry_predecessor = false;
+    bool tooltip_entry_update_or_nested_bg = false;
     std::string tooltip_error_msg;
 
     SpriteRef sprite_predecessor("me_predecessor");
@@ -267,9 +268,10 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
 
     float canvas_sprite_opacity = state.ui->canvas_sprite_opacity;
     bool show_canvas_sprites = state.ui->show_canvas_sprites && canvas_sprite_opacity > 0.01f;
-    bool show_fill_ter_fallback = mapgen.oter.mapgen_base == OterMapgenFill::FillTer && show_canvas_sprites && state.ui->show_fill_ter_sprites;
-    bool has_fill_ter = mapgen.oter.mapgen_base == OterMapgenFill::FillTer && !mapgen.oter.fill_ter.is_empty() && !mapgen.oter.fill_ter.is_null();
-    bool show_predecessor = mapgen.oter.mapgen_base == OterMapgenFill::PredecessorMapgen || mapgen.oter.mapgen_base == OterMapgenFill::FallbackPredecessorMapgen;
+    bool show_update_or_nested_bg = mapgen.mtype != MapgenType::Oter;
+    bool show_fill_ter_fallback = mapgen.mtype == MapgenType::Oter && mapgen.oter.mapgen_base == OterMapgenFill::FillTer && show_canvas_sprites && state.ui->show_fill_ter_sprites;
+    bool has_fill_ter = mapgen.mtype == MapgenType::Oter && mapgen.oter.mapgen_base == OterMapgenFill::FillTer && !mapgen.oter.fill_ter.is_empty() && !mapgen.oter.fill_ter.is_null();
+    bool show_predecessor = mapgen.mtype == MapgenType::Oter && mapgen.oter.mapgen_base == OterMapgenFill::PredecessorMapgen || mapgen.oter.mapgen_base == OterMapgenFill::FallbackPredecessorMapgen;
     bool has_predecessor = show_predecessor && !mapgen.oter.predecessor_mapgen.is_empty() && !mapgen.oter.predecessor_mapgen.is_null();
 
     if( view_hovered ) {
@@ -283,6 +285,11 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                 if (tooltip_entry_error) {
                     if (!uuid) {
                         tooltip_error_msg = "No symbol assigned here";
+                    }
+                    else if (show_update_or_nested_bg && uuid.is_default_fill_ter_allowed()) {
+                        // No error - no change applied
+                        tooltip_entry_error = false;
+                        tooltip_entry_update_or_nested_bg = true;
                     }
                     else if (has_fill_ter && uuid.is_default_fill_ter_allowed() ) {
                         // No error - silent fill_ter fallback
@@ -347,7 +354,10 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
         std::optional<SpriteRef> fallback_sprite;
 
         if (show_canvas_sprites) {
-            if (show_fill_ter_fallback) {
+            if (show_update_or_nested_bg) {
+                fallback_sprite = sprite_predecessor;
+            }
+            else if (show_fill_ter_fallback) {
                 fallback_sprite = SpriteRef( mapgen.oter.fill_ter.data );
             }
             else if (show_predecessor) {
@@ -438,6 +448,10 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                             static std::string fallback = "#";
                             mk = &fallback;
                         }
+                        else if (show_update_or_nested_bg && uuid.is_default_fill_ter_allowed()) {
+                            buf = uuid.str();
+                            mk = &buf;
+                        }
                         else if (has_fill_ter && uuid.is_default_fill_ter_allowed()) {
                             buf = uuid.str();
                             mk = &buf;
@@ -470,7 +484,7 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
         }
     }
 
-    if( mapgen.oter.matrix_mode && state.ui->show_omt_grid ) {
+    if( mapgen.mtype == MapgenType::Oter && mapgen.oter.matrix_mode && state.ui->show_omt_grid ) {
         point size = mapgen.oter.om_terrain_matrix.get_size();
         constexpr point_rel_etile oter_size( SEEX * 2, SEEY * 2 );
         for( int y = 0; y < size.y; y++ ) {
@@ -648,6 +662,7 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
             tooltip_entry_error || 
             (tooltip_entry_fill_ter && show_fill_ter_fallback) || 
             (tooltip_entry_predecessor && show_predecessor) ||
+            (tooltip_entry_update_or_nested_bg && show_update_or_nested_bg) ||
             !hovered_objects.empty() ) {
             ImGui::BeginTooltip();
             if( tooltip_needs_separator ) {
@@ -674,6 +689,14 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
                 ImGui::TextDisabled("PREDECESSOR");
                 ImGui::SameLine();
                 ImGui::Text("%s", mapgen.oter.predecessor_mapgen.data.c_str());
+            }
+            if (show_update_or_nested_bg && tooltip_entry_update_or_nested_bg) {
+                if (mapgen.mtype == MapgenType::Nested) {
+                    ImGui::TextDisabled("PARENT");
+                }
+                else {
+                    ImGui::TextDisabled("UNCHANGED");
+                }
             }
             ImGui::EndTooltip();
             tooltip_needs_separator = true;

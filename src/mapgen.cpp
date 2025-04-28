@@ -954,7 +954,11 @@ class mapgen_factory
 static mapgen_factory oter_mapgen;
 
 std::vector<std::shared_ptr<mapgen_function>> editor_mapgen_storage;
+std::vector<std::shared_ptr<mapgen_function_json_nested>> editor_mapgen_storage_nested;
+std::vector<std::shared_ptr<update_mapgen_function_json>> editor_mapgen_storage_update;
 std::map<std::string, mapgen_function_json*> editor_mapgen_refs;
+std::map<std::string, mapgen_function_json_nested*> editor_mapgen_refs_nested;
+std::map<std::string, update_mapgen_function_json*> editor_mapgen_refs_update;
 std::map<nested_mapgen_id, nested_mapgen> nested_mapgens;
 std::map<update_mapgen_id, update_mapgen> update_mapgens;
 static std::unordered_map<std::string, tripoint_abs_ms> queued_points;
@@ -1001,6 +1005,12 @@ const update_mapgen &string_id<update_mapgen>::obj() const
 void calculate_mapgen_weights()   // TODO: rename as it runs jsonfunction setup too
 {
     for (const auto& ref : editor_mapgen_storage) {
+        ref->setup();
+    }
+    for (const auto& ref : editor_mapgen_storage_nested) {
+        ref->setup();
+    }
+    for (const auto& ref : editor_mapgen_storage_update) {
         ref->setup();
     }
     oter_mapgen.setup();
@@ -1132,7 +1142,7 @@ load_mapgen_function( const JsonObject &jio, const std::string &id_base,
     return nullptr;
 }
 
-static void add_editor_mapgen(const std::string& editor_id_base, std::shared_ptr<mapgen_function> f) {
+static void add_editor_mapgen(const std::string& editor_id_base, std::shared_ptr<mapgen_function_json> f) {
     std::string combined_id = editor_id_base;
     int counter = 0;
     while (true) {
@@ -1142,13 +1152,36 @@ static void add_editor_mapgen(const std::string& editor_id_base, std::shared_ptr
         counter++;
         combined_id = string_format("%s _%d", editor_id_base, counter);
     }
-
     editor_mapgen_storage.push_back(f);
-    mapgen_function_json* f_raw = dynamic_cast<mapgen_function_json*>( f.get() );
-    if (!f_raw) {
-        std::abort();
+    editor_mapgen_refs.emplace(combined_id, f.get());
+}
+
+static void add_editor_mapgen(const std::string& editor_id_base, std::shared_ptr<mapgen_function_json_nested> f) {
+    std::string combined_id = editor_id_base;
+    int counter = 0;
+    while (true) {
+        if (editor_mapgen_refs_nested.find(combined_id) == editor_mapgen_refs_nested.end()) {
+            break;
+        }
+        counter++;
+        combined_id = string_format("%s _%d", editor_id_base, counter);
     }
-    editor_mapgen_refs.emplace(combined_id, f_raw);
+    editor_mapgen_storage_nested.push_back(f);
+    editor_mapgen_refs_nested.emplace(combined_id, f.get());
+}
+
+static void add_editor_mapgen(const std::string& editor_id_base, std::shared_ptr<update_mapgen_function_json> f) {
+    std::string combined_id = editor_id_base;
+    int counter = 0;
+    while (true) {
+        if (editor_mapgen_refs_update.find(combined_id) == editor_mapgen_refs_update.end()) {
+            break;
+        }
+        counter++;
+        combined_id = string_format("%s _%d", editor_id_base, counter);
+    }
+    editor_mapgen_storage_update.push_back(f);
+    editor_mapgen_refs_update.emplace(combined_id, f.get());
 }
 
 mapgen_function_json* load_and_add_mapgen_function( const JsonObject &jio, const std::string &id_base,
@@ -1158,7 +1191,7 @@ mapgen_function_json* load_and_add_mapgen_function( const JsonObject &jio, const
     std::shared_ptr<mapgen_function> f = load_mapgen_function( jio, id_base, offset, total, editor_mode );
     if( f ) {
         if (editor_mode) {
-            add_editor_mapgen(id_base, f);
+            add_editor_mapgen(id_base, std::dynamic_pointer_cast<mapgen_function_json, mapgen_function>( f));
         }
         else {
             oter_mapgen.add( id_base, f );
@@ -1177,7 +1210,9 @@ static void load_nested_mapgen( const JsonObject &jio, const nested_mapgen_id &i
             jo.allow_omitted_members();
             auto mgfunc = std::make_shared<mapgen_function_json_nested>( jo, "nested mapgen " + id_base.str(), editor_mode);
             if (editor_mode) {
-                // TODO: implement
+                mgfunc->editor_weight = weight;
+                mgfunc->editor_mapgen_id = id_base.str();
+                add_editor_mapgen(id_base.str(), mgfunc);
             }
             else {
                 nested_mapgens[id_base].add( mgfunc, weight );
@@ -1200,7 +1235,9 @@ static void load_update_mapgen( const JsonObject &jio, const update_mapgen_id &i
             jo.allow_omitted_members();
             auto mgfunc = std::make_unique<update_mapgen_function_json>( jo, "update mapgen " + id_base.str(), editor_mode );
             if (editor_mode) {
-                // TODO: implement
+                std::shared_ptr<update_mapgen_function_json> shared = std::move(mgfunc);
+                shared->editor_mapgen_id = id_base.str();
+                add_editor_mapgen(id_base.str(), shared);
             }
             else {
                 update_mapgens[id_base].add(std::move(mgfunc));
@@ -1270,8 +1307,8 @@ void load_mapgen( const JsonObject &jo )
                         editor_id += i;
                     }
                     const auto mgfunc2 = load_mapgen_function(jo, editor_id, point_rel_omt::zero, point_one, true );
-                    add_editor_mapgen(editor_id, mgfunc2);
-					auto ptr2 = dynamic_cast<mapgen_function_json*>(mgfunc2.get());
+					auto ptr2 = std::dynamic_pointer_cast<mapgen_function_json, mapgen_function>(mgfunc2);
+                    add_editor_mapgen(editor_id, ptr2);
 					ptr2->editor_oter_list = std::move(mapgenid_list);
                 }
             }
@@ -1290,13 +1327,13 @@ void load_mapgen( const JsonObject &jo )
         JsonObject jo_copy = jo;
         jo_copy.allow_omitted_members();
         load_nested_mapgen( jo, nested_mapgen_id( id ), false );
-        //load_nested_mapgen( jo_copy, nested_mapgen_id( id ), true );
+        load_nested_mapgen( jo_copy, nested_mapgen_id( id ), true );
     } else if( jo.has_string( "update_mapgen_id" ) ) {
         std::string id = jo.get_string("update_mapgen_id");
         JsonObject jo_copy = jo;
         jo_copy.allow_omitted_members();
         load_update_mapgen( jo, update_mapgen_id( id ), false );
-        //load_update_mapgen( jo_copy, update_mapgen_id( id ), true );
+        load_update_mapgen( jo_copy, update_mapgen_id( id ), true );
     } else {
         debugmsg( "mapgen entry requires \"om_terrain\" or \"nested_mapgen_id\"(string, array of strings, or array of array of strings)\n%s\n",
                   jo.str() );
@@ -1332,7 +1369,7 @@ static bool common_check_bounds( const jmapgen_int &x, const jmapgen_int &y, con
     if( !bounds.contains( point_rel_ms( x.val, y.val ) ) ) {
         return false;
     }
-
+    
     if( x.valmax < x.val ) {
         jso.throw_error( "x maximum is less than x minimum" );
     }
@@ -1368,18 +1405,21 @@ bool mapgen_function_json_base::check_inbounds( const jmapgen_int &x, const jmap
         const jmapgen_int &z,
         const JsonObject &jso ) const
 {
+    if (editor_mode) {
+        return true;
+    }
     return common_check_bounds( x, y, z, mapgensize, jso );
 }
 
 mapgen_function_json_base::mapgen_function_json_base(
     const JsonObject &jsobj, const std::string &context, bool editor_mode_)
-    : jsobj( jsobj )
-    , editor_mode(editor_mode_)
+    : editor_mode(editor_mode_)
+    , jsobj( jsobj )
     , context_( context )
     , is_ready( false )
     , mapgensize( SEEX * 2, SEEY * 2 )
     , total_size( mapgensize )
-    , objects( m_offset, mapgensize, total_size )
+    , objects( m_offset, mapgensize, total_size, editor_mode_)
 {
     this->jsobj.allow_omitted_members();
 }
@@ -1399,7 +1439,7 @@ mapgen_function_json::mapgen_function_json( const JsonObject &jsobj,
     m_offset.z() = 0;
     total_size.x() = grid_total.x() * mapgensize.x();
     total_size.y() = grid_total.y() * mapgensize.y();
-    objects = jmapgen_objects( m_offset, mapgensize, total_size );
+    objects = jmapgen_objects( m_offset, mapgensize, total_size, editor_mode_);
 }
 
 mapgen_function_json_nested::mapgen_function_json_nested(
@@ -4529,14 +4569,19 @@ class jmapgen_nested : public jmapgen_piece
 };
 
 jmapgen_objects::jmapgen_objects( const tripoint_rel_ms &offset, const point_rel_ms &mapsize,
-                                  const point_rel_ms &tot_size )
-    : m_offset( offset )
+                                  const point_rel_ms &tot_size, bool editor_mode )
+    : editor_mode( editor_mode )
+    , m_offset( offset )
     , mapgensize( mapsize )
     , total_size( tot_size )
 {}
 
 bool jmapgen_objects::check_bounds( const jmapgen_place &place, const JsonObject &jso )
 {
+    if (editor_mode) {
+        // FIXME: apparently it is a bug in vanilla DDA that these checks don't work
+        return true;
+    }
     return common_check_bounds( place.x, place.y, place.z, mapgensize, jso );
 }
 

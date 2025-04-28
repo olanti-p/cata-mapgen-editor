@@ -372,7 +372,7 @@ struct jmapgen_objects {
     public:
 
         jmapgen_objects( const tripoint_rel_ms &offset, const point_rel_ms &mapsize,
-                         const point_rel_ms &tot_size );
+                         const point_rel_ms &tot_size, bool editor_mode );
 
         bool check_bounds( const jmapgen_place &place, const JsonObject &jso );
 
@@ -419,6 +419,7 @@ struct jmapgen_objects {
         tripoint_rel_ms m_offset;
         point_rel_ms mapgensize;
         point_rel_ms total_size;
+        bool editor_mode = false;
 };
 
 class mapgen_function_json_base
@@ -463,6 +464,7 @@ class mapgen_function_json_base
         std::string editor_palette_id;
         std::vector<std::string> editor_oter_list;
         std::vector<std::vector<std::string>> editor_oter_matrix;
+        std::string editor_mapgen_id;
 
         point_rel_ms mapgensize;
         tripoint_rel_ms m_offset;
@@ -655,6 +657,8 @@ void add_corpse( map *m, const point_bub_ms & );
 const std::map<std::string, mapgen_palette>& get_temp_mapgen_palettes();
 const mapgen_palette& get_temp_mapgen_palette(const std::string& key);
 extern std::map<std::string, mapgen_function_json*> editor_mapgen_refs;
+extern std::map<std::string, mapgen_function_json_nested*> editor_mapgen_refs_nested;
+extern std::map<std::string, update_mapgen_function_json*> editor_mapgen_refs_update;
 extern std::map<nested_mapgen_id, nested_mapgen> nested_mapgens;
 extern std::map<update_mapgen_id, update_mapgen> update_mapgens;
 

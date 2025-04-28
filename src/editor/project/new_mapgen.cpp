@@ -87,6 +87,21 @@ bool show_new_mapgen_window( State &state, NewMapgenState &mapgen )
     return true;
 }
 
+static void choose_mapgen_id( std::string& chosen, bool&input_ok, const std::vector<std::string>& opts) {
+    auto chosen_it = std::find(opts.begin(), opts.end(), chosen);
+    int chosen_idx = chosen_it == opts.end() ? -1 : static_cast<int>( std::distance(opts.begin(), chosen_it) );
+
+    ImGui::ComboWithFilter("##choice", &chosen_idx, opts, 16);
+
+    if (chosen_idx >= 0) {
+        chosen = opts[chosen_idx];
+        input_ok = true;
+    }
+    else {
+        input_ok = false;
+    }
+}
+
 bool show_import_mapgen_window(State& state, ImportMapgenState& mapgen)
 {
     bool keep_open = true;
@@ -96,7 +111,6 @@ bool show_import_mapgen_window(State& state, ImportMapgenState& mapgen)
     }
 
     ImGui::Text("Mapgen type:");
-    ImGui::BeginDisabled(); // TODO: implement update and nested
     if (ImGui::RadioButton("Oter", mapgen.mtype == MapgenType::Oter)) {
         mapgen.mtype = MapgenType::Oter;
     }
@@ -108,7 +122,6 @@ bool show_import_mapgen_window(State& state, ImportMapgenState& mapgen)
     if (ImGui::RadioButton("Nested", mapgen.mtype == MapgenType::Nested)) {
         mapgen.mtype = MapgenType::Nested;
     }
-    ImGui::EndDisabled();
 
     ImGui::Separator();
 
@@ -117,14 +130,23 @@ bool show_import_mapgen_window(State& state, ImportMapgenState& mapgen)
     // FIXME: size math here is probably wrong
     ImGui::PushItemWidth(ImGui::GetWindowWidth() - ImGui::GetFrameHeight() );
     if (mapgen.mtype == MapgenType::Oter) {
-        ImGui::InputId("##oter", mapgen.oter);
-        input_ok = mapgen.oter.is_valid();
+        std::vector<std::string> opts;
+        for (const auto& it : editor_mapgen_refs) {
+            opts.push_back(it.first);
+        }
+        choose_mapgen_id(mapgen.oter, input_ok, opts);
     } else if (mapgen.mtype == MapgenType::Nested) {
-        ImGui::InputId("##nested", mapgen.nested);
-        input_ok = mapgen.nested.is_valid();
+        std::vector<std::string> opts;
+        for (const auto& it : editor_mapgen_refs_nested) {
+            opts.push_back(it.first);
+        }
+        choose_mapgen_id(mapgen.nested, input_ok, opts);
     } else {
-        ImGui::InputId("##update", mapgen.update);
-        input_ok = mapgen.update.is_valid();
+        std::vector<std::string> opts;
+        for (const auto& it : editor_mapgen_refs_update) {
+            opts.push_back(it.first);
+        }
+        choose_mapgen_id(mapgen.update, input_ok, opts);
     }
     ImGui::PopItemWidth();
 
@@ -160,6 +182,107 @@ void add_mapgen( State &state, NewMapgenState &mapgen )
     new_mapgen.base.palette = mapgen.palette;
 }
 
+static void import_common(State& state, Mapgen& mapgen, Project&project, mapgen_function_json_base& ref) {
+    Palette* loaded_palette = project.find_palette_by_string(ref.editor_palette_id);
+    if (!loaded_palette) {
+        quick_import_temp_palette(state, EID::TempPalette(ref.editor_palette_id));
+        loaded_palette = state.project().find_palette_by_string(ref.editor_palette_id);
+        if (!loaded_palette) {
+            std::abort();
+        }
+        recursive_import_palette(state, *loaded_palette);
+        // FIXME: palettes need to be persistent in memory...
+        loaded_palette = state.project().find_palette_by_string(ref.editor_palette_id);
+    }
+    loaded_palette->temp_palette = true;
+    mapgen.base.palette = loaded_palette->uuid;
+
+
+    auto& matrix = ref.editor_matrix;
+    point ms_size(matrix[0].size(), matrix.size());
+    mapgen.set_canvas_size(ms_size);
+
+    for (size_t y = 0; y < ms_size.y; y++) {
+        for (size_t x = 0; x < ms_size.x; x++) {
+            mapgen.base.canvas.set(point(x, y), MapKey(matrix[y][x]));
+        }
+    }
+
+
+    mapgen.flags.avoid_creatures = ref.flags_.test(jmapgen_flags::avoid_creatures);
+    mapgen.flags.no_underlying_rotate = ref.flags_.test(jmapgen_flags::no_underlying_rotate);
+    if (ref.flags_.test(jmapgen_flags::allow_terrain_under_other_data)) {
+        mapgen.flags.rule_items = LayeringRuleItems::Allow;
+        mapgen.flags.rule_furn = LayeringRuleTrapFurn::Allow;
+        mapgen.flags.rule_traps = LayeringRuleTrapFurn::Allow;
+    }
+    else if (ref.flags_.test(jmapgen_flags::dismantle_all_before_placing_terrain)) {
+        mapgen.flags.rule_items = LayeringRuleItems::Allow;
+        mapgen.flags.rule_furn = LayeringRuleTrapFurn::Dismantle;
+        mapgen.flags.rule_traps = LayeringRuleTrapFurn::Dismantle;
+    }
+    else if (ref.flags_.test(jmapgen_flags::erase_all_before_placing_terrain)) {
+        mapgen.flags.rule_items = LayeringRuleItems::Erase;
+        mapgen.flags.rule_furn = LayeringRuleTrapFurn::Erase;
+        mapgen.flags.rule_traps = LayeringRuleTrapFurn::Erase;
+    }
+    else {
+        if (ref.flags_.test(jmapgen_flags::allow_terrain_under_items)) {
+            mapgen.flags.rule_items = LayeringRuleItems::Allow;
+        }
+        else if (ref.flags_.test(jmapgen_flags::erase_items_before_placing_terrain)) {
+            mapgen.flags.rule_items = LayeringRuleItems::Erase;
+        }
+
+        if (ref.flags_.test(jmapgen_flags::allow_terrain_under_furniture)) {
+            mapgen.flags.rule_furn = LayeringRuleTrapFurn::Allow;
+        }
+        else if (ref.flags_.test(jmapgen_flags::dismantle_furniture_before_placing_terrain)) {
+            mapgen.flags.rule_furn = LayeringRuleTrapFurn::Dismantle;
+        }
+        else if (ref.flags_.test(jmapgen_flags::erase_furniture_before_placing_terrain)) {
+            mapgen.flags.rule_furn = LayeringRuleTrapFurn::Erase;
+        }
+
+        if (ref.flags_.test(jmapgen_flags::allow_terrain_under_trap)) {
+            mapgen.flags.rule_traps = LayeringRuleTrapFurn::Allow;
+        }
+        else if (ref.flags_.test(jmapgen_flags::dismantle_trap_before_placing_terrain)) {
+            mapgen.flags.rule_traps = LayeringRuleTrapFurn::Dismantle;
+        }
+        else if (ref.flags_.test(jmapgen_flags::erase_trap_before_placing_terrain)) {
+            mapgen.flags.rule_traps = LayeringRuleTrapFurn::Erase;
+        }
+    }
+
+
+    PaletteImportReport report; // TODO: make use of this
+    int color_counter = 0;
+    int num_colors = 19;
+    int color_step = 11;
+    for (const auto& obj : ref.objects.objects) {
+        const jmapgen_place& place = obj.first;
+        const jmapgen_piece& piece = *obj.second.get();
+        MapObject mo = MapObject();
+
+        mo.piece = import_simple_piece(piece, report, true);
+        mo.piece->is_object = true;
+        mo.set_uuid(project.uuid_generator());
+        mo.x = place.x;
+        mo.y = place.y;
+        // No z coord. Screw it.
+        // TODO: maybe implement it later
+        mo.repeat = place.repeat;
+        // TODO: assign specific colors to types
+        int color_fraction = (color_counter * color_step) % num_colors;
+        float h = float(color_fraction) / float(num_colors);
+        color_counter++;
+        mo.color = ImColor::HSV(h, 1.0f, 1.0f, 0.6f);
+
+        mapgen.objects.emplace_back(std::move(mo));
+    }
+}
+
 Mapgen* import_mapgen(State& state, ImportMapgenState& mapgen)
 {
     Project& project = state.project();
@@ -168,50 +291,21 @@ Mapgen* import_mapgen(State& state, ImportMapgenState& mapgen)
     Mapgen& new_mapgen = project.mapgens.back();
     new_mapgen.uuid = new_mapgen_uuid;
     new_mapgen.mtype = mapgen.mtype;
-    UUID new_palette = UUID_INVALID;
 
     if (mapgen.mtype == MapgenType::Oter) {
-        mapgen_function_json* ref = editor_mapgen_refs[mapgen.oter.data];
+        new_mapgen.mtype = MapgenType::Oter;
+        new_mapgen.name = mapgen.oter;
+
+        mapgen_function_json* ref = editor_mapgen_refs[mapgen.oter];
         if (!ref->editor_mode) {
             // Shouldn't happen
             std::abort();
         }
-        new_mapgen.name = mapgen.oter.data;
+
+        import_common(state, new_mapgen, project, *ref);
+
         new_mapgen.oter.weight = ref->editor_weight;
-        auto &matrix = ref->editor_matrix;
-        point ms_size(matrix[0].size(), matrix.size());
-        point oter_size = ms_size / 24;
-        if (oter_size.x == 0 || oter_size.y == 0) {
-            std::abort();
-        }
-        if (oter_size != point(1, 1)) {
-            new_mapgen.oter.matrix_mode = true;
-            new_mapgen.oter.om_terrain_matrix.set_size(oter_size);
-        }
-        else {
-            new_mapgen.oter.matrix_mode = false;
-        }
-        new_mapgen.set_canvas_size(ms_size);
-
-        for (size_t y = 0; y < ms_size.y; y++) {
-            for (size_t x = 0; x < ms_size.x; x++) {
-                new_mapgen.base.canvas.set(point(x, y), MapKey( matrix[y][x] ));
-            }
-        }
-
-        Palette* loaded_palette = state.project().find_palette_by_string(ref->editor_palette_id);
-        if (!loaded_palette) {
-            quick_import_temp_palette(state, EID::TempPalette(ref->editor_palette_id));
-            loaded_palette = state.project().find_palette_by_string(ref->editor_palette_id);
-            if (!loaded_palette) {
-                std::abort();
-            }
-            recursive_import_palette(state, *loaded_palette);
-            // FIXME: palettes need to be persistent in memory...
-            loaded_palette = state.project().find_palette_by_string(ref->editor_palette_id);
-        }
-        loaded_palette->temp_palette = true;
-        new_palette = loaded_palette->uuid;
+        new_mapgen.oter.rotation = ref->rotation;
 
         // TODO: parametric fill_ter
         auto fill_ter_original = ref->get_fill_ter();
@@ -230,48 +324,16 @@ Mapgen* import_mapgen(State& state, ImportMapgenState& mapgen)
             new_mapgen.oter.predecessor_mapgen = EID::OterType(ref->fallback_predecessor_mapgen_.str());
         }
 
-        new_mapgen.flags.avoid_creatures = ref->flags_.test(jmapgen_flags::avoid_creatures);
-        new_mapgen.flags.no_underlying_rotate = ref->flags_.test(jmapgen_flags::no_underlying_rotate);
-        if (ref->flags_.test(jmapgen_flags::allow_terrain_under_other_data)) {
-            new_mapgen.flags.rule_items = LayeringRuleItems::Allow;
-            new_mapgen.flags.rule_furn = LayeringRuleTrapFurn::Allow;
-            new_mapgen.flags.rule_traps = LayeringRuleTrapFurn::Allow;
-        } else if (ref->flags_.test(jmapgen_flags::dismantle_all_before_placing_terrain)) {
-            new_mapgen.flags.rule_items = LayeringRuleItems::Allow;
-            new_mapgen.flags.rule_furn = LayeringRuleTrapFurn::Dismantle;
-            new_mapgen.flags.rule_traps = LayeringRuleTrapFurn::Dismantle;
-        } else if (ref->flags_.test(jmapgen_flags::erase_all_before_placing_terrain)) {
-            new_mapgen.flags.rule_items = LayeringRuleItems::Erase;
-            new_mapgen.flags.rule_furn = LayeringRuleTrapFurn::Erase;
-            new_mapgen.flags.rule_traps = LayeringRuleTrapFurn::Erase;
+        point oter_size = new_mapgen.base.canvas.get_size() / 24;
+        if (oter_size.x == 0 || oter_size.y == 0) {
+            std::abort();
+        }
+        if (oter_size != point(1, 1)) {
+            new_mapgen.oter.matrix_mode = true;
+            new_mapgen.oter.om_terrain_matrix.set_size(oter_size);
         }
         else {
-            if (ref->flags_.test(jmapgen_flags::allow_terrain_under_items)) {
-                new_mapgen.flags.rule_items = LayeringRuleItems::Allow;
-            }
-            else if (ref->flags_.test(jmapgen_flags::erase_items_before_placing_terrain)) {
-                new_mapgen.flags.rule_items = LayeringRuleItems::Erase;
-            }
-
-            if (ref->flags_.test(jmapgen_flags::allow_terrain_under_furniture)) {
-                new_mapgen.flags.rule_furn = LayeringRuleTrapFurn::Allow;
-            }
-            else if (ref->flags_.test(jmapgen_flags::dismantle_furniture_before_placing_terrain)) {
-                new_mapgen.flags.rule_furn = LayeringRuleTrapFurn::Dismantle;
-            }
-            else if (ref->flags_.test(jmapgen_flags::erase_furniture_before_placing_terrain)) {
-                new_mapgen.flags.rule_furn = LayeringRuleTrapFurn::Erase;
-            }
-
-            if (ref->flags_.test(jmapgen_flags::allow_terrain_under_trap)) {
-                new_mapgen.flags.rule_traps = LayeringRuleTrapFurn::Allow;
-            }
-            else if (ref->flags_.test(jmapgen_flags::dismantle_trap_before_placing_terrain)) {
-                new_mapgen.flags.rule_traps = LayeringRuleTrapFurn::Dismantle;
-            }
-            else if (ref->flags_.test(jmapgen_flags::erase_trap_before_placing_terrain)) {
-                new_mapgen.flags.rule_traps = LayeringRuleTrapFurn::Erase;
-            }
+            new_mapgen.oter.matrix_mode = false;
         }
 
         if (new_mapgen.oter.matrix_mode) {
@@ -290,41 +352,43 @@ Mapgen* import_mapgen(State& state, ImportMapgenState& mapgen)
                 new_mapgen.oter.om_terrain.emplace_back(EID::OterType(id));
             }
         }
-
-        PaletteImportReport report; // TODO: make use of this
-        int color_counter = 0;
-        int num_colors = 19;
-        int color_step = 11;
-        for (const auto& obj : ref->objects.objects) {
-            const jmapgen_place& place = obj.first;
-            const jmapgen_piece& piece = *obj.second.get();
-            MapObject mo = MapObject();
-
-            mo.piece = import_simple_piece(piece, report, true);
-            mo.piece->is_object = true;
-            mo.set_uuid(project.uuid_generator());
-            mo.x = place.x;
-            mo.y = place.y;
-            // No z coord. Screw it.
-            // TODO: maybe implement it later
-            mo.repeat = place.repeat;
-            // TODO: assign specific colors to types
-            int color_fraction = (color_counter * color_step) % num_colors;
-            float h = float(color_fraction) / float(num_colors);
-            color_counter++;
-            mo.color = ImColor::HSV(h, 1.0f, 1.0f, 0.6f);
-
-            new_mapgen.objects.emplace_back(std::move(mo));
-        }
     }
     else if (mapgen.mtype == MapgenType::Nested) {
+        new_mapgen.mtype = MapgenType::Nested;
+        new_mapgen.name = mapgen.nested;
+
+        mapgen_function_json_nested* ref = editor_mapgen_refs_nested[mapgen.nested];
+        if (!ref->editor_mode) {
+            // Shouldn't happen
+            std::abort();
+        }
+
+        import_common(state, new_mapgen, project, *ref);
+
+        new_mapgen.nested.size = new_mapgen.base.canvas.get_size();
+        new_mapgen.nested.rotation = ref->rotation;
+        new_mapgen.nested.nested_mapgen_id = ref->editor_mapgen_id;
+
         // TODO
     }
     else {
+        new_mapgen.mtype = MapgenType::Update;
+        new_mapgen.name = mapgen.update;
+
+        update_mapgen_function_json* ref = editor_mapgen_refs_update[mapgen.update];
+        if (!ref->editor_mode) {
+            // Shouldn't happen
+            std::abort();
+        }
+
+        import_common(state, new_mapgen, project, *ref);
+
+        new_mapgen.update.uses_rows = !ref->editor_matrix.empty();
+        new_mapgen.update.update_mapgen_id = ref->editor_mapgen_id;
+
         // TODO
     }
 
-    new_mapgen.base.palette = new_palette;
     return &new_mapgen;
 }
 

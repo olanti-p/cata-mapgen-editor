@@ -926,6 +926,7 @@ void MapgenUpdate::serialize( JsonOut &jsout ) const
     jsout.start_object();
     jsout.member( "update_mapgen_id", update_mapgen_id );
     jsout.member( "fill_ter", fill_ter );
+    jsout.member( "uses_rows", uses_rows );
     jsout.end_object();
 }
 
@@ -935,6 +936,7 @@ void MapgenUpdate::deserialize( const TextJsonValue &jsin )
 
     jo.read( "update_mapgen_id", update_mapgen_id );
     jo.read( "fill_ter", fill_ter );
+    jo.read( "uses_rows", uses_rows );
 }
 
 void MapgenNested::serialize( JsonOut &jsout ) const

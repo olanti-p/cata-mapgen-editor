@@ -82,6 +82,7 @@ struct MapgenOter {
 struct MapgenUpdate {
     std::string update_mapgen_id;
     EID::Ter fill_ter = EID::Ter::NULL_ID();
+    bool uses_rows = true;
 
     void serialize( JsonOut &jsout ) const;
     void deserialize( const TextJsonValue &jsin );
@@ -145,7 +146,11 @@ struct Mapgen {
                    (
                        mtype == editor::MapgenType::Oter &&
                        oter.uses_rows
-                   );
+                   ) ||
+                    (
+                        mtype == editor::MapgenType::Update &&
+                        update.uses_rows
+                    );
         }
 
         point_rel_etile mapgensize() const;

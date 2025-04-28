@@ -244,6 +244,10 @@ void show_mapgen_info( State &state, Mapgen &mapgen, bool &show )
             state.mark_changed();
         }
         ImGui::HelpPopup( "Terrain type to fill empty spots with." );
+        ImGui::HelpMarkerInline("Use mouse to paint canvas with palette entries.");
+        if (ImGui::Checkbox("Use Rows", &mapgen.update.uses_rows)) {
+            state.mark_changed();
+        }
     } else { // MapgenType::Nested
         if( ImGui::InputText( "nested_mapgen_id", &mapgen.nested.nested_mapgen_id ) ) {
             state.mark_changed( "nested-mapgen-id" );

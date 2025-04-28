@@ -20,9 +20,9 @@ struct NewMapgenState {
 
 struct ImportMapgenState {
     MapgenType mtype = MapgenType::Oter;
-    EID::ImportMapgen oter;
-    EID::Nest nested;
-    EID::Update update;
+    std::string oter;
+    std::string nested;
+    std::string update;
 
     bool confirmed = false;
     bool cancelled = false;

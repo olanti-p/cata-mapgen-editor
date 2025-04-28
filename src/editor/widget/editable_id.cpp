@@ -96,18 +96,6 @@ const std::vector<std::string> &EditableID<item_group_tag>::get_all_opts()
 }
 
 template<>
-const std::vector<std::string>& EditableID<import_mapgen_tag>::get_all_opts()
-{
-    if (all_opts.empty()) {
-        all_opts.reserve(editor_mapgen_refs.size());
-        for (const auto& it : editor_mapgen_refs) {
-            all_opts.push_back(it.first);
-        }
-    }
-    return all_opts;
-}
-
-template<>
 const std::vector<std::string> &EditableID<itype>::get_all_opts()
 {
     if( all_opts.empty() ) {
@@ -379,12 +367,6 @@ template<>
 bool string_id<editor::temp_palette_tag>::is_valid() const
 {
     return get_temp_mapgen_palettes().count(this->str()) > 0;
-}
-
-template<>
-bool string_id<editor::import_mapgen_tag>::is_valid() const
-{
-    return editor_mapgen_refs.count(this->str()) > 0;
 }
 
 template<>
