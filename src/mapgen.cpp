@@ -9195,6 +9195,7 @@ bool PieceMonster::try_import( const jmapgen_piece& piece, PaletteImportReport& 
     if (type_list.entries.empty()) {
         type_list.entries.emplace_back(EID::Monster(), 1);
     }
+    chance = casted->chance;
     return true; // TODO
 }
 
