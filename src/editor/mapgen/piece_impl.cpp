@@ -1159,17 +1159,69 @@ std::string PieceComputer::fmt_data_summary() const
 
 void PieceSealeditem::show_ui( State &state )
 {
-    ImGui::Text( "TODO" );
+    ImGui::HelpMarkerInline("Furniture id to spawn.");
+    if (ImGui::InputId("furniture", furniture)) {
+        state.mark_changed("furniture");
+    }
+
+    ImGui::HelpMarkerInline("Chance to spawn.");
+    if (ImGui::InputIntRange("chance", chance)) {
+        state.mark_changed("chance");
+    }
+
+    ImGui::SeparatorText("Item");
+    ImGui::HelpMarkerInline("Whether to spawn item.");
+    if (ImGui::Checkbox("use_item", &use_item)) {
+        state.mark_changed("use_item");
+    }
+
+    ImGui::BeginDisabled(!use_item);
+    ImGui::PushID("item");
+    item_data.show_ui(state);
+    ImGui::PopID();
+    ImGui::EndDisabled();
+
+    ImGui::SeparatorText("Group");
+    ImGui::HelpMarkerInline("Whether to spawn item group.");
+    if (ImGui::Checkbox("use_group", &use_group)) {
+        state.mark_changed("use_group");
+    }
+
+    ImGui::BeginDisabled(!use_group);
+    ImGui::PushID("group");
+    group_data.show_ui(state);
+    ImGui::PopID();
+    ImGui::EndDisabled();
 }
 
 std::string PieceSealeditem::fmt_data_summary() const
 {
-    return "TODO";
+    if (use_group) {
+        return group_data.fmt_data_summary();
+    }
+    else if (use_item) {
+        return item_data.fmt_data_summary();
+    }
+    else {
+        return "<none>";
+    }
 }
 
 void PieceSealeditem::roll_loot(std::vector<item>& result, time_point turn, float spawnrate) const
 {
+    // TODO: copied from source piece, undiplicate it
+    const int c = chance.roll();
+    const float spawn_rate = get_option<float>("ITEM_SPAWNRATE");
+    if (!x_in_y((c == 100) ? 1 : c * spawn_rate / 100.0f, 1)) {
+        return;
+    }
 
+    if (use_item) {
+        item_data.roll_loot(result, turn, spawnrate);
+    }
+    if (use_group) {
+        group_data.roll_loot(result, turn, spawnrate);
+    }
 }
 
 void PieceZone::show_ui( State &state )

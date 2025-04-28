@@ -314,7 +314,14 @@ struct PieceSealeditem : public Piece {
     IMPLEMENT_ME_PIECE( PieceSealeditem, PieceType::SealedItem )
 
     void roll_loot(std::vector<item>& result, time_point turn, float spawnrate) const override;
-    // TODO
+    
+    EID::Furn furniture;
+    IntRange chance;
+    bool use_item = true;
+    PieceItem item_data;
+    bool use_group = false;
+    PieceIGroup group_data;
+    // TODO: show on canvas
 };
 
 struct PieceZone : public Piece {

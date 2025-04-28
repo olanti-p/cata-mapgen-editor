@@ -625,7 +625,20 @@ void PieceComputer::export_func( JsonOut &jo ) const
 
 void PieceSealeditem::export_func( JsonOut &jo ) const
 {
-    // TODO
+    ee::emit(jo, "furniture", furniture);
+    if (chance.min != 100 || chance.max != 100) {
+        ee::emit(jo, "chance", chance);
+    }
+    if (use_item) {
+        ee::emit_object(jo, "item", [&]() {
+            item_data.export_func(jo);
+        });
+    }
+    if (use_group) {
+        ee::emit_object(jo, "items", [&]() {
+            group_data.export_func(jo);
+        });
+    }
 }
 
 void PieceZone::export_func( JsonOut &jo ) const

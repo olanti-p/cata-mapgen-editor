@@ -9506,7 +9506,26 @@ bool PieceSealeditem::try_import( const jmapgen_piece& piece, PaletteImportRepor
     if (!casted) {
         return false;
     }
-    return true; // TODO
+    chance = casted->chance;
+    {
+        // TODO: parametric
+        auto val = casted->furniture.collapse_import();
+        if (val.first) {
+            report.num_values_folded++;
+        }
+        if (val.second) {
+            furniture = EID::Furn(val.second->str());
+        }
+    }
+    if (casted->item_spawner) {
+        use_item = true;
+        item_data.try_import(*casted->item_spawner, report);
+    }
+    if (casted->item_group_spawner) {
+        use_group = true;
+        group_data.try_import(*casted->item_group_spawner, report);
+    }
+    return true;
 }
 
 bool PieceZone::try_import( const jmapgen_piece& piece, PaletteImportReport& report )

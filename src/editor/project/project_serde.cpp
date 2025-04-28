@@ -727,12 +727,22 @@ void PieceComputer::deserialize( const JSON_OBJECT &jsin )
 
 void PieceSealeditem::serialize( JsonOut &jsout ) const
 {
-    // TODO
+    jsout.member("furniture", furniture);
+    jsout.member("chance", chance);
+    jsout.member("use_item", use_item);
+    jsout.member("item_data", item_data);
+    jsout.member("use_group", use_group);
+    jsout.member("group_data", group_data);
 }
 
 void PieceSealeditem::deserialize( const JSON_OBJECT &jsin )
 {
-    // TODO
+    jsin.read("furniture", furniture);
+    jsin.read("chance", chance);
+    jsin.read("use_item", use_item);
+    jsin.read("item_data", item_data);
+    jsin.read("use_group", use_group);
+    jsin.read("group_data", group_data);
 }
 
 void PieceZone::serialize( JsonOut &jsout ) const
