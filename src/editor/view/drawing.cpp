@@ -91,14 +91,15 @@ void fill_tile_sprited(
     ImDrawList *draw_list,
     const Camera &cam,
     point_abs_etile tile,
-    const SpriteRef &img
+    const SpriteRef &img,
+    ImColor col
 )
 {
     ImVec2 p_min = cam.world_to_screen( project_combine( tile, point_etile_epos() ) ).raw();
     ImVec2 p_max = cam.world_to_screen( project_combine( tile, point_etile_epos( ETILE_SIZE - 1,
                                         ETILE_SIZE - 1 ) ) ).raw();
     auto uvs = img.make_uvs();
-    draw_list->AddImage( img.get_tex_id(), p_min, p_max, uvs.first, uvs.second );
+    draw_list->AddImage( img.get_tex_id(), p_min, p_max, uvs.first, uvs.second, col );
 }
 
 void highlight_region(

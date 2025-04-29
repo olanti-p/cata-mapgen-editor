@@ -3,6 +3,8 @@
 
 #include "common/int_range.h"
 #include "common/uuid.h"
+#include "cuboid_rectangle.h"
+
 #include <imgui/imgui.h>
 
 #include <memory>
@@ -27,6 +29,10 @@ struct MapObject {
 
     void serialize( JsonOut &jsout ) const;
     void deserialize( const TextJsonValue &jsin );
+
+    inclusive_rectangle<point> get_bounding_box() const {
+        return inclusive_rectangle<point>(point(x.min, y.min), point(x.max, y.max));
+    }
 
     std::unique_ptr<Piece> piece;
     IntRange x;

@@ -56,7 +56,8 @@ void fill_tile_sprited(
     ImDrawList *draw_list,
     const Camera &cam,
     point_abs_etile tile,
-    const SpriteRef &img
+    const SpriteRef &img,
+    ImColor col
 );
 
 void highlight_region(

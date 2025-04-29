@@ -9,7 +9,6 @@
 #include "common/uuid.h"
 #include "coordinates.h"
 #include "drawing.h"
-#include <imgui/imgui.h>
 #include "mapgen/canvas_snippet.h"
 #include "mapgen/mapgen.h"
 #include "mapgen/palette.h"
@@ -32,6 +31,8 @@
 #include <optional>
 #include <set>
 #include <functional>
+
+#include <imgui/imgui.h>
 
 namespace editor
 {
@@ -147,6 +148,457 @@ static MapKey get_key_at_pos(const Canvas2D<MapKey>& canvas, const editor::Canva
     return canvas.get(pos);
 }
 
+ViewCanvas::ViewCanvas(State& state, Mapgen& mapgen) : mapgen(mapgen), palette(state.project()), matrix(point::zero)
+{
+    Project& project = state.project();
+    
+    Palette& pal_data = *project.get_palette(mapgen.base.palette);
+    palette.add_palette_recursive(pal_data, state.ui->view_palette_tree_states[pal_data.uuid]);
+    palette.finalize();
+
+    const Canvas2D<MapKey>& canvas_2d = mapgen.base.canvas;
+    CanvasSnippet* snippet = state.control->snippets.get_snippet(mapgen.uuid);
+
+    matrix.set_size(canvas_2d.get_size());
+    for (int y = 0; y < mapgen.mapgensize().y(); y++) {
+        for (int x = 0; x < mapgen.mapgensize().x(); x++) {
+            point_abs_etile p(x, y);
+            MapKey key = get_key_at_pos(canvas_2d, snippet, p.raw());
+            SpritePair img = palette.sprite_from_uuid(key);
+            ViewEntry* entry = palette.find_entry(key);
+            ViewCanvasCell cell;
+            cell.key = key;
+            cell.data = entry;
+            if (img.furn) {
+                cell.furn = *img.furn;
+                furniture_sprites.insert(*img.furn);
+            }
+            if (img.ter) {
+                cell.ter = *img.ter;
+                terrain_sprites.insert(*img.ter);
+                cell.has_terrain = true;
+            }
+            else {
+                // TODO: is it correct to use sprite to test for terrain presence?
+                cell.has_terrain = false;
+            }
+            matrix.set(p.raw(), cell);
+        }
+    }
+}
+
+void ViewCanvas::draw_background(ImDrawList* draw_list, Camera& cam, UiState&ui) const {
+    fill_region(
+        draw_list,
+        cam,
+        point_abs_etile(0, 0),
+        point_abs_etile(-1, -1) + mapgen.mapgensize(),
+        col_mapgensize_bg
+    );
+}
+
+bool ViewCanvas::show_sprites(UiState& ui) const {
+    return ui.show_canvas_sprites && ui.canvas_sprite_opacity > 0.01f;
+}
+
+bool ViewCanvas::show_fill_ter(UiState& ui) const {
+    return mapgen.mtype == MapgenType::Oter && mapgen.oter.mapgen_base == OterMapgenFill::FillTer && ui.show_fill_ter_sprites;
+}
+
+bool ViewCanvas::has_fill_ter() const {
+    return mapgen.mtype == MapgenType::Oter && mapgen.oter.mapgen_base == OterMapgenFill::FillTer && !mapgen.oter.fill_ter.is_empty() && !mapgen.oter.fill_ter.is_null();
+}
+
+bool ViewCanvas::show_predecessor(UiState& ui) const {
+    return mapgen.mtype == MapgenType::Oter && mapgen.oter.mapgen_base == OterMapgenFill::PredecessorMapgen || mapgen.oter.mapgen_base == OterMapgenFill::FallbackPredecessorMapgen;
+}
+
+bool ViewCanvas::has_predecessor() const
+{
+    return mapgen.mtype == MapgenType::Oter && !mapgen.oter.predecessor_mapgen.is_empty() && !mapgen.oter.predecessor_mapgen.is_null();
+}
+
+bool ViewCanvas::has_parent() const
+{
+    return mapgen.mtype == MapgenType::Nested || mapgen.mtype == MapgenType::Update;
+}
+
+ViewCanvasFallback ViewCanvas::get_fallback_display() const
+{
+    if (mapgen.mtype != MapgenType::Oter || has_predecessor()) {
+        return ViewCanvasFallback::Predecessor;
+    }
+    else {
+        if (has_fill_ter()) {
+            return ViewCanvasFallback::FillTer;
+        }
+        else {
+            return ViewCanvasFallback::None;
+        }
+    }
+}
+
+void ViewCanvas::draw_main_layer(ImDrawList* draw_list, Camera& cam, UiState& ui) const {
+    float canvas_sprite_opacity = ui.canvas_sprite_opacity;
+    bool show_canvas_sprites = ui.show_canvas_sprites && canvas_sprite_opacity > 0.01f;
+
+    if (mapgen.uses_rows()) {
+        bool show_canvas_symbols = ui.show_canvas_symbols;
+        SpriteRef fallback_sprite;
+        ViewCanvasFallback fallback_display = get_fallback_display();
+
+        if (show_canvas_sprites) {
+            ImColor col = ImColor::ImColor(1.0f, 1.0f, 1.0f, canvas_sprite_opacity);
+
+            if (fallback_display == ViewCanvasFallback::FillTer) {
+                fallback_sprite = SpriteRef(mapgen.oter.fill_ter.data);
+            }
+            else if (fallback_display == ViewCanvasFallback::Predecessor) {
+                fallback_sprite = SpriteRef("me_predecessor");
+            }
+
+            if (fallback_display != ViewCanvasFallback::None && fallback_sprite) {
+                for (int y = 0; y < matrix.get_size().y; y++) {
+                    for (int x = 0; x < matrix.get_size().x; x++) {
+                        point p(x, y);
+                        if (!matrix.get(p).has_terrain) {
+                            fill_tile_sprited(draw_list, cam, point_abs_etile(p), fallback_sprite, col);
+                        }
+                    }
+                }
+            }
+
+            for (const SpriteRef& ref : terrain_sprites) {
+                for (int y = 0; y < matrix.get_size().y; y++) {
+                    for (int x = 0; x < matrix.get_size().x; x++) {
+                        point p(x, y);
+                        if (matrix.get(p).ter == ref) {
+                            fill_tile_sprited(draw_list, cam, point_abs_etile(p), ref, col);
+                        }
+                    }
+                }
+            }
+
+            for (const SpriteRef& ref : furniture_sprites) {
+                for (int y = 0; y < matrix.get_size().y; y++) {
+                    for (int x = 0; x < matrix.get_size().x; x++) {
+                        point p(x, y);
+                        if (matrix.get(p).furn == ref) {
+                            fill_tile_sprited(draw_list, cam, point_abs_etile(p), ref, col);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (show_canvas_symbols) {
+            for (int y = 0; y < matrix.get_size().y; y++) {
+                for (int x = 0; x < matrix.get_size().x; x++) {
+                    point_abs_etile p(x, y);
+                    MapKey key = matrix.get(p.raw()).key;
+                    std::string buf;
+                    const std::string* mk;
+                    bool using_fallback = false;
+                    bool has_key_in_palette = palette.find_entry(key);
+                    if (has_key_in_palette) {
+                        buf = key.str();
+                        mk = &buf;
+                    }
+                    else {
+                        using_fallback = true;
+                        if (!key) {
+                            static std::string fallback = "#";
+                            mk = &fallback;
+                        }
+                        else if (key.is_default_fill_ter_allowed() && (
+                            has_fill_ter() || has_predecessor()  || has_parent()
+                        ) ) {
+                            buf = key.str();
+                            mk = &buf;
+                        }
+                        else {
+                            buf = "<" + key.str() + ">";
+                            mk = &buf;
+                        }
+                    }
+
+                    point_abs_epos center = coords::project_combine(p,
+                        point_etile_epos(ETILE_SIZE / 2, ETILE_SIZE / 2));
+                    point_abs_screen text_center = cam.world_to_screen(center);
+                    point_rel_screen text_size(ImGui::CalcTextSize(mk->c_str()));
+                    point_abs_screen text_pos = text_center - text_size.raw() / 2;
+                    ImGui::SetCursorPos(text_pos.raw());
+                    if (using_fallback) {
+                        ImGui::PushStyleColor(ImGuiCol_Text, col_missing_palette_text);
+                    }
+                    ImGui::Text("%s", mk->c_str());
+                    if (using_fallback) {
+                        ImGui::PopStyleColor();
+                    }
+                }
+            }
+        }
+    }
+}
+
+void ViewCanvas::draw_overlays(ImDrawList* draw_list, Camera& cam, UiState& ui) const {
+    if (mapgen.mtype == MapgenType::Oter && mapgen.oter.matrix_mode && ui.show_omt_grid) {
+        point size = mapgen.oter.om_terrain_matrix.get_size();
+        constexpr point_rel_etile oter_size(SEEX * 2, SEEY * 2);
+        for (int y = 0; y < size.y; y++) {
+            for (int x = 0; x < size.x; x++) {
+                const point_abs_etile pos_zero(oter_size.x() * x, oter_size.y() * y);
+                outline_region(
+                    draw_list,
+                    cam,
+                    pos_zero,
+                    pos_zero + point_rel_etile(-1, -1) + oter_size,
+                    col_mapgensize_border
+                );
+            }
+        }
+    }
+    else {
+        outline_region(
+            draw_list,
+            cam,
+            point_abs_etile(0, 0),
+            point_abs_etile(-1, -1) + mapgen.mapgensize(),
+            col_mapgensize_border
+        );
+    }
+
+    if (ui.show_canvas_objects) {
+        for (const MapObject& it : mapgen.objects) {
+            if (!it.visible) {
+                continue;
+            }
+            inclusive_rectangle<point> bb = it.get_bounding_box();
+            std::string label = it.piece->fmt_summary();
+            draw_object(draw_list, cam, label, bb, it.color);
+        }
+    }
+
+    if (ui.show_canvas_setmaps) {
+        for (const SetMap& it : mapgen.setmaps) {
+            if (!it.visible) {
+                continue;
+            }
+            inclusive_rectangle<point> bb = it.get_bounding_box();
+            std::string label = it.fmt_summary();
+            draw_object(draw_list, cam, label, bb, it.color);
+        }
+    }
+}
+
+point ViewCanvas::get_tile_mouse_pos_unbounded(Camera& cam) const
+{
+    return get_mouse_tile_pos(cam).raw();
+}
+
+std::optional<point> ViewCanvas::get_tile_mouse_pos_in_bounds(Camera& cam) const
+{
+    point_abs_etile tile_pos = get_mouse_tile_pos(cam);
+    point_rel_etile mapgensize = mapgen.mapgensize();
+    bool is_mouse_in_bounds = tile_pos.x() >= 0 && tile_pos.y() >= 0 && tile_pos.x() < mapgensize.x() &&
+        tile_pos.y() < mapgensize.y();
+    if (is_mouse_in_bounds) {
+        return tile_pos.raw();
+    }
+    else {
+        return std::nullopt;
+    }
+}
+
+void ViewCanvas::draw_tooltip_data_objects(Camera& cam, UiState& ui) const
+{
+    point mouse_tile_pos = get_tile_mouse_pos_unbounded(cam);
+    if (ui.show_canvas_objects) {
+        for (const MapObject& it : mapgen.objects) {
+            if (!it.visible) {
+                continue;
+            }
+            if (it.get_bounding_box().contains(mouse_tile_pos)) {
+                ImGui::TextDisabled("OBJ");
+                ImGui::SameLine();
+                ImGui::Text("%s", it.piece->fmt_summary().c_str());
+            }
+        }
+    }
+    if (ui.show_canvas_setmaps) {
+        for (const SetMap& it : mapgen.setmaps) {
+            if (!it.visible) {
+                continue;
+            }
+            if (it.get_bounding_box().contains(mouse_tile_pos)) {
+                ImGui::TextDisabled("SET");
+                ImGui::SameLine();
+                ImGui::Text("%s", it.fmt_summary().c_str());
+            }
+        }
+    }
+}
+
+MapKey ViewCanvas::get_tooltip_highlighted_key(Camera& cam) const
+{
+    std::optional<point> mouse_tile_pos = get_tile_mouse_pos_in_bounds(cam);
+    if (mouse_tile_pos) {
+        return matrix.get(*mouse_tile_pos).key;
+    }
+    return MapKey();
+}
+
+void ViewCanvas::draw_tooltip(Camera& cam, UiState& ui) const {
+    std::optional<point> mouse_tile_pos = get_tile_mouse_pos_in_bounds(cam);
+
+    if (mouse_tile_pos) {
+        const ViewCanvasCell& cell = matrix.get(*mouse_tile_pos);
+        const ViewEntry* entry = palette.find_entry(cell.key);
+
+        ImGui::BeginTooltip();
+        if (!cell.key) {
+            ImGui::Text("ERROR: No symbol assigned here");
+        }
+        else if (entry) {
+            show_palette_entry_tooltip(*entry);
+        }
+        else if (cell.key.is_default_fill_ter_allowed()) {
+            if (!has_fill_ter() && !has_predecessor() && !has_parent()) {
+                ImGui::Text(
+                    "ERROR: No valid filler specified,\n"
+                    "or terrain data not present in palette"
+                );
+            }
+        } else {
+            ImGui::Text("ERROR: Symbol not present in palette");
+        }
+        draw_tooltip_data_objects(cam, ui);
+        // FIXME: improve logic around this check, take overwrite rules into account
+        if (!cell.has_terrain) {
+            if (has_fill_ter()) {
+                ImGui::TextDisabled("FILL");
+                ImGui::SameLine();
+                ImGui::Text("%s", mapgen.oter.fill_ter.data.c_str());
+            }
+            else if (has_predecessor()) {
+                ImGui::TextDisabled("PREDECESSOR");
+                ImGui::SameLine();
+                ImGui::Text("%s", mapgen.oter.predecessor_mapgen.data.c_str());
+            }
+            else if (has_parent()) {
+                if (mapgen.mtype == MapgenType::Nested) {
+                    ImGui::TextDisabled("PARENT");
+                }
+                else {
+                    ImGui::TextDisabled("UNCHANGED");
+                }
+            }
+            else {
+                ImGui::Text("ERROR: No filler specified, or symbol not present in palette");
+            }
+        }
+        ImGui::EndTooltip();
+    }
+    else {
+        ImGui::BeginTooltip();
+        ImGui::TextDisabled("Out of bounds");
+        draw_tooltip_data_objects(cam, ui);
+        ImGui::EndTooltip();
+    }
+}
+
+void ViewCanvas::draw_object(ImDrawList* draw_list, Camera& cam, const std::string& label, const inclusive_rectangle<point>& bb, ImColor col) const
+{
+    point_abs_etile p1(bb.p_min);
+    point_abs_etile p2(bb.p_max);
+    ImVec4 col_border = col;
+    ImVec4 col_text = col;
+    col_text.w = 1.0f;
+    ImVec4 col_bg = col;
+    col_bg.w *= 0.4f;
+    highlight_region(draw_list, cam, p1, p2, col_bg, col_border);
+    point_abs_epos pos1 = coords::project_combine(p1, point_etile_epos(ETILE_SIZE / 2,
+        ETILE_SIZE / 2));
+    point_abs_epos pos2 = coords::project_combine(p2, point_etile_epos(ETILE_SIZE / 2,
+        ETILE_SIZE / 2));
+    point_abs_epos center((pos1.raw() + pos2.raw()) / 2);
+    point_abs_screen text_center = cam.world_to_screen(center);
+    point_rel_screen text_size(ImGui::CalcTextSize(label.c_str()));
+    point_abs_screen text_pos = text_center - text_size.raw() / 2;
+    ImGui::SetCursorPos(text_pos.raw());
+    ImGui::TextColored(col_text, "%s", label.c_str());
+}
+
+void ViewCanvas::draw_hovered_outline(ImDrawList* draw_list, Camera& cam, UiState& ui) const
+{
+    point tile_pos = get_tile_mouse_pos_unbounded(cam);
+    bool is_mouse_in_bounds = get_tile_mouse_pos_in_bounds(cam).has_value();
+
+    std::unordered_set<point> nested_info;
+    std::unordered_set<point> vehicle_info;
+    std::unordered_set<int> vehicle_rotations;
+
+    for (const MapObject& obj : mapgen.objects) {
+        if (!obj.get_bounding_box().contains(tile_pos)) {
+            continue;
+        }
+        const PieceNested* nested = dynamic_cast<const PieceNested*>(obj.piece.get());
+        if (nested) {
+            std::unordered_set<point> sil = nested->silhouette();
+            nested_info.insert(sil.begin(), sil.end());
+        }
+        const PieceVehicle* vehicle = dynamic_cast<const PieceVehicle*>(obj.piece.get());
+        if (vehicle) {
+            vehicle_rotations.insert(vehicle->allowed_rotations.begin(), vehicle->allowed_rotations.end());
+            std::unordered_set<point> sil = vehicle->silhouette();
+            vehicle_info.insert(sil.begin(), sil.end());
+        }
+    }
+
+    if (mapgen.uses_rows() && is_mouse_in_bounds) {
+        const ViewEntry* hovered_entry = matrix.get(tile_pos).data;
+        if (hovered_entry) {
+            for (const ViewPiece& piece : hovered_entry->pieces) {
+                const PieceNested* nested = dynamic_cast<const PieceNested*>(piece.piece);
+                if (nested) {
+                    std::unordered_set<point> sil = nested->silhouette();
+                    nested_info.insert(sil.begin(), sil.end());
+                }
+                const PieceVehicle* vehicle = dynamic_cast<const PieceVehicle*>(piece.piece);
+                if (vehicle) {
+                    vehicle_rotations.insert(vehicle->allowed_rotations.begin(), vehicle->allowed_rotations.end());
+                    std::unordered_set<point> sil = vehicle->silhouette();
+                    vehicle_info.insert(sil.begin(), sil.end());
+                }
+            }
+        }
+    }
+    bool show_nest = false;
+    if (nested_info.size() > 1) {
+        show_nest = true;
+    }
+    else if (nested_info.size() == 1) {
+        show_nest = *nested_info.begin() != point_zero;
+    }
+    if (show_nest) {
+        for (const point& delta : nested_info) {
+            fill_tile(draw_list, cam, point_abs_etile( tile_pos + delta ), col_nest);
+        }
+    }
+
+    bool show_vehicle = !vehicle_info.empty();
+    if (show_vehicle) {
+        for (const point& delta : vehicle_info) {
+            fill_tile(draw_list, cam, point_abs_etile( tile_pos + delta ), col_vehicle_outline);
+        }
+        for (int angle : vehicle_rotations) {
+            // Reminder: 0 degrees means east, rotations are clockwise
+            int angle_normalized = (angle - 90 + 360) % 360;
+            draw_ray(draw_list, cam, point_abs_etile(tile_pos), units::from_degrees(angle_normalized), 1.4f, col_vehicle_dir);
+        }
+    }
+}
+
 void show_editor_view( State &state, Mapgen *mapgen_ptr )
 {
     ImVec2 disp_size = ImGui::GetIO().DisplaySize;
@@ -183,571 +635,150 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
 
     ImDrawList *draw_list = ImGui::GetWindowDrawList();
     Camera &cam = *state.ui->camera;
-    editor::Mapgen &mapgen = *mapgen_ptr;
-    ImGui::PushID( mapgen.uuid );
+    ViewCanvas vc(state, *mapgen_ptr);
 
-    fill_region(
-        draw_list,
-        cam,
-        point_abs_etile( 0, 0 ),
-        point_abs_etile( -1, -1 ) + mapgen.mapgensize(),
-        col_mapgensize_bg
-    );
-
-    ImGuiIO &io = ImGui::GetIO();
-    ToolsState &tools = *state.ui->tools;
-
+    ImGui::PushID( vc.mapgen.uuid );
     if( view_hovered ) {
         handle_view_change_hotkey(state);
     }
+    
+    ImGuiIO& io = ImGui::GetIO();
+    ToolsState& tools = *state.ui->tools;
 
-    ViewPalette pal(state.project());
-    Palette &pal_data = *state.project().get_palette( mapgen.base.palette );
-    pal.add_palette_recursive(pal_data, state.ui->view_palette_tree_states[pal_data.uuid]);
-    pal.finalize();
-
-    point_abs_etile tile_pos = get_mouse_tile_pos( cam );
-    point_rel_etile mapgensize = mapgen.mapgensize();
-    bool is_mouse_in_bounds = tile_pos.x() >= 0 && tile_pos.y() >= 0 && tile_pos.x() < mapgensize.x() &&
-                              tile_pos.y() < mapgensize.y();
-    tools::ToolSettings *settings = &state.ui->tools->get_settings( tools.get_tool() );
+    tools::ToolSettings* settings = &state.ui->tools->get_settings(tools.get_tool());
     tools::ToolHighlight tool_highlight;
-    SelectionMask *selection = mapgen.get_selection_mask();
-    SnippetsState &snippets = state.control->snippets;
+    SnippetsState& snippets = state.control->snippets;
 
-    tools::ToolTarget target {
+    tools::ToolTarget target{
         view_hovered,
-        mapgen.uses_rows(),
+        mapgen_ptr->uses_rows(),
         false,
         false,
-        tile_pos,
-        get_mouse_view_pos( cam ),
-        mapgen,
+        point_abs_etile(vc.get_tile_mouse_pos_unbounded(cam)),
+        get_mouse_view_pos(cam),
+        vc.mapgen,
         settings,
         tools.get_main_tile(),
         tool_highlight,
-        selection,
+        vc.mapgen.get_selection_mask(),
         snippets,
     };
-    tools::ToolControl &tool_control = state.control->get_tool_control( tools.get_tool() );
-    if( snippets.has_snippet_for( mapgen.uuid ) &&
-        mapgen.uses_rows() &&
-        !tool_control.operates_on_snippets( target ) ) {
-        CanvasSnippet snippet = snippets.drop_snippet( mapgen.uuid );
-        mapgen.apply_snippet( snippet );
-        mapgen.select_from_snippet( snippet );
+    tools::ToolControl& tool_control = state.control->get_tool_control(tools.get_tool());
+    if (snippets.has_snippet_for(vc.mapgen.uuid) &&
+        vc.mapgen.uses_rows() &&
+        !tool_control.operates_on_snippets(target)) {
+        CanvasSnippet snippet = snippets.drop_snippet(vc.mapgen.uuid);
+        vc.mapgen.apply_snippet(snippet);
+        vc.mapgen.select_from_snippet(snippet);
         state.mark_changed();
-    } else {
-        tool_control.handle_tool_operation( target );
-        if( target.made_changes ) {
+    }
+    else {
+        tool_control.handle_tool_operation(target);
+        if (target.made_changes) {
             state.mark_changed();
         }
     }
-    tools.set_main_tile( target.main_tile );
+    tools.set_main_tile(target.main_tile);
 
-    if (!tool_control.operation_in_progress() ) {
+    if (!tool_control.operation_in_progress()) {
         tools.set_is_pipette_override(ImGui::IsKeyDown(ImGuiKey_ModAlt));
         if (ImGui::IsWindowFocused()) {
             handle_toolbar_hotkeys(state);
         }
     }
 
-    bool show_tooltip = false;
-    const ViewEntry *tooltip_entry = nullptr;
-    MapKey tooltip_entry_uuid;
-    bool tooltip_entry_error = false;
-    bool tooltip_entry_fill_ter = false;
-    bool tooltip_entry_predecessor = false;
-    bool tooltip_entry_update_or_nested_bg = false;
-    std::string tooltip_error_msg;
-
-    SpriteRef sprite_predecessor("me_predecessor");
-
-    const Canvas2D<MapKey>& canvas_2d = mapgen.base.canvas;
-    const CanvasSnippet *snippet = snippets.get_snippet( mapgen.uuid );
-
-    float canvas_sprite_opacity = state.ui->canvas_sprite_opacity;
-    bool show_canvas_sprites = state.ui->show_canvas_sprites && canvas_sprite_opacity > 0.01f;
-    bool show_update_or_nested_bg = mapgen.mtype != MapgenType::Oter;
-    bool show_fill_ter_fallback = mapgen.mtype == MapgenType::Oter && mapgen.oter.mapgen_base == OterMapgenFill::FillTer && show_canvas_sprites && state.ui->show_fill_ter_sprites;
-    bool has_fill_ter = mapgen.mtype == MapgenType::Oter && mapgen.oter.mapgen_base == OterMapgenFill::FillTer && !mapgen.oter.fill_ter.is_empty() && !mapgen.oter.fill_ter.is_null();
-    bool show_predecessor = mapgen.mtype == MapgenType::Oter && mapgen.oter.mapgen_base == OterMapgenFill::PredecessorMapgen || mapgen.oter.mapgen_base == OterMapgenFill::FallbackPredecessorMapgen;
-    bool has_predecessor = show_predecessor && !mapgen.oter.predecessor_mapgen.is_empty() && !mapgen.oter.predecessor_mapgen.is_null();
-
-    if( view_hovered ) {
-        if( ImGui::IsKeyDown( ImGuiKey_ModCtrl ) ) {
-            show_tooltip = true;
-            if( is_mouse_in_bounds ) {
-                MapKey uuid = get_key_at_pos(canvas_2d, snippet, tile_pos.raw() );
-                tooltip_entry = pal.find_entry( uuid );
-                tooltip_entry_uuid = uuid;
-                tooltip_entry_error = !tooltip_entry;
-                if (tooltip_entry_error) {
-                    if (!uuid) {
-                        tooltip_error_msg = "No symbol assigned here";
-                    }
-                    else if (show_update_or_nested_bg && uuid.is_default_fill_ter_allowed()) {
-                        // No error - no change applied
-                        tooltip_entry_error = false;
-                        tooltip_entry_update_or_nested_bg = true;
-                    }
-                    else if (has_fill_ter && uuid.is_default_fill_ter_allowed() ) {
-                        // No error - silent fill_ter fallback
-                        tooltip_entry_error = false;
-                        tooltip_entry_fill_ter = true;
-                    }
-                    else if (has_predecessor && uuid.is_default_fill_ter_allowed()) {
-                        // No error - silent predecessor fallback
-                        tooltip_entry_error = false;
-                        tooltip_entry_predecessor = true;
-                    }
-                    else if (uuid.is_default_fill_ter_allowed()) {
-                        tooltip_error_msg = "No filler specified, or symbol not present in palette";
-                    }
-                    else {
-                        tooltip_error_msg = "Symbol not present in palette";
-                    }
-                }
-            }
+    if (view_hovered) {
+        if (ImGui::IsMouseDragging(ImGuiMouseButton_Middle)) {
+            point_rel_screen drag_delta(ImGui::GetMouseDragDelta(ImGuiMouseButton_Middle));
+            cam.drag_delta = -cam.screen_to_world(drag_delta);
         }
-
-        if( ImGui::IsMouseDragging( ImGuiMouseButton_Middle ) ) {
-            point_rel_screen drag_delta( ImGui::GetMouseDragDelta( ImGuiMouseButton_Middle ) );
-            cam.drag_delta = -cam.screen_to_world( drag_delta );
-        } else if( tools.get_tool() == tools::ToolKind::Cursor && ImGui::IsMouseDragging( ImGuiMouseButton_Left ) ) {
+        else if (tools.get_tool() == tools::ToolKind::Cursor && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
             // FIXME: this should be part of tool control code
-            point_rel_screen drag_delta( ImGui::GetMouseDragDelta( ImGuiMouseButton_Left ) );
-            cam.drag_delta = -cam.screen_to_world( drag_delta );
-        } else {
+            point_rel_screen drag_delta(ImGui::GetMouseDragDelta(ImGuiMouseButton_Left));
+            cam.drag_delta = -cam.screen_to_world(drag_delta);
+        }
+        else {
             cam.pos += cam.drag_delta;
             cam.drag_delta = point_rel_epos();
         }
-        if( !ImGui::IsKeyDown( ImGuiKey_ModAlt ) && std::abs( io.MouseWheel ) > 0.5f ) {
+        if (!ImGui::IsKeyDown(ImGuiKey_ModAlt) && std::abs(io.MouseWheel) > 0.5f) {
             int zoom_speed;
-            if( cam.scale >= 64 ) {
+            if (cam.scale >= 64) {
                 zoom_speed = 16;
-            } else if( cam.scale >= 32 ) {
+            }
+            else if (cam.scale >= 32) {
                 zoom_speed = 8;
-            } else if( cam.scale >= 16 ) {
+            }
+            else if (cam.scale >= 16) {
                 zoom_speed = 4;
-            } else {
+            }
+            else {
                 zoom_speed = 2;
             }
-            int delta_wheel = static_cast<int>( std::round( io.MouseWheel ) );
+            int delta_wheel = static_cast<int>(std::round(io.MouseWheel));
             int delta = delta_wheel * zoom_speed;
-            cam.scale = clamp( cam.scale + delta, MIN_SCALE, MAX_SCALE );
-        }
-        if( mapgen.uses_rows() ) {
-            if( ImGui::IsKeyDown( ImGuiKey_ModAlt ) && ImGui::IsMouseClicked( ImGuiMouseButton_Left ) ) {
-                if( is_mouse_in_bounds ) {
-                    MapKey uuid = get_key_at_pos(canvas_2d, snippet, tile_pos.raw() );
-                    tools.set_main_tile( uuid );
-                } else {
-                    tools.set_main_tile(MapKey());
-                }
-            }
+            cam.scale = clamp(cam.scale + delta, MIN_SCALE, MAX_SCALE);
         }
     }
 
-    if( mapgen.uses_rows() ) {
-        bool show_canvas_symbols = state.ui->show_canvas_symbols;
-        std::optional<SpriteRef> fallback_sprite;
 
-        if (show_canvas_sprites) {
-            if (show_update_or_nested_bg) {
-                fallback_sprite = sprite_predecessor;
-            }
-            else if (show_fill_ter_fallback) {
-                fallback_sprite = SpriteRef( mapgen.oter.fill_ter.data );
-            }
-            else if (show_predecessor) {
-                fallback_sprite = sprite_predecessor;
-            }
+    vc.draw_background(draw_list, cam, *state.ui);
+    vc.draw_main_layer(draw_list, cam, *state.ui);
+    vc.draw_overlays(draw_list, cam, *state.ui);
 
-            // Run this for separate layers, then for each entry individually
-            // to avoid draw command fragmentation from using different sprites
-            if (fallback_sprite) {
-                for (int y = 0; y < mapgen.mapgensize().y(); y++) {
-                    for (int x = 0; x < mapgen.mapgensize().x(); x++) {
-                        point_abs_etile p(x, y);
-                        MapKey  uuid = get_key_at_pos(canvas_2d, snippet, p.raw());
-                        SpritePair img = pal.sprite_from_uuid(uuid);
-                        if (!img.ter) {
-                            fill_tile_sprited(draw_list, cam, p, *fallback_sprite);
-                        }
-                    }
-                }
-            }
-            for (const ViewEntry& ve : pal.entries) {
-                SpritePair img = pal.sprite_from_uuid(ve.key);
-                if (!img.ter) {
-                    continue;
-                }
-                for (int y = 0; y < mapgen.mapgensize().y(); y++) {
-                    for (int x = 0; x < mapgen.mapgensize().x(); x++) {
-                        point_abs_etile p(x, y);
-                        MapKey  uuid = get_key_at_pos(canvas_2d, snippet, p.raw());
-                        if (uuid != ve.key) {
-                            continue;
-                        }
-                        if (img.ter) {
-                            fill_tile_sprited(draw_list, cam, p, *img.ter);
-                        }
-                    }
-                }
-            }
-            for (const ViewEntry& ve : pal.entries) {
-                SpritePair img = pal.sprite_from_uuid(ve.key);
-                if (!img.furn) {
-                    continue;
-                }
-                for (int y = 0; y < mapgen.mapgensize().y(); y++) {
-                    for (int x = 0; x < mapgen.mapgensize().x(); x++) {
-                        point_abs_etile p(x, y);
-                        MapKey  uuid = get_key_at_pos(canvas_2d, snippet, p.raw());
-                        if (uuid != ve.key) {
-                            continue;
-                        }
-                        fill_tile_sprited(draw_list, cam, p, *img.furn);
-                    }
-                }
-            }
-        }
 
-        for( int y = 0; y < mapgen.mapgensize().y(); y++ ) {
-            for( int x = 0; x < mapgen.mapgensize().x(); x++ ) {
-                point_abs_etile p( x, y );
-                const MapKey &uuid = get_key_at_pos(canvas_2d, snippet, p.raw() );
-                ImVec4 col = pal.color_from_uuid( uuid );
-                bool has_img = false;
-                if (show_canvas_sprites) {
-                    has_img = fallback_sprite.has_value() || !pal.sprite_from_uuid(uuid).is_empty();
-                }
-                if( has_img ) {
-                    col.w *= (1.0f - canvas_sprite_opacity);
-                }
-                fill_tile( draw_list, cam, p, col );
-            }
-        }
-
-        if (show_canvas_symbols) {
-            for (int y = 0; y < mapgen.mapgensize().y(); y++) {
-                for (int x = 0; x < mapgen.mapgensize().x(); x++) {
-                    point_abs_etile p(x, y);
-                    MapKey uuid = get_key_at_pos(canvas_2d, snippet, p.raw());
-                    std::string buf;
-                    const std::string* mk;
-                    bool using_fallback = false;
-                    bool has_key_in_palette = pal.find_entry(uuid);
-                    if (has_key_in_palette) {
-                        buf = uuid.str();
-                        mk = &buf;
-                    } else {
-                        using_fallback = true;
-                        if (!uuid) {
-                            static std::string fallback = "#";
-                            mk = &fallback;
-                        }
-                        else if (show_update_or_nested_bg && uuid.is_default_fill_ter_allowed()) {
-                            buf = uuid.str();
-                            mk = &buf;
-                        }
-                        else if (has_fill_ter && uuid.is_default_fill_ter_allowed()) {
-                            buf = uuid.str();
-                            mk = &buf;
-                        }
-                        else if (has_predecessor && uuid.is_default_fill_ter_allowed()) {
-                            buf = uuid.str();
-                            mk = &buf;
-                        }
-                        else {
-                            buf = "<" + uuid.str() + ">";
-                            mk = &buf;
-                        }
-                    }
-
-                    point_abs_epos center = coords::project_combine(p,
-                        point_etile_epos(ETILE_SIZE / 2, ETILE_SIZE / 2));
-                    point_abs_screen text_center = cam.world_to_screen(center);
-                    point_rel_screen text_size(ImGui::CalcTextSize(mk->c_str()));
-                    point_abs_screen text_pos = text_center - text_size.raw() / 2;
-                    ImGui::SetCursorPos(text_pos.raw());
-                    if (using_fallback) {
-                        ImGui::PushStyleColor(ImGuiCol_Text, col_missing_palette_text);
-                    }
-                    ImGui::Text("%s", mk->c_str());
-                    if (using_fallback) {
-                        ImGui::PopStyleColor();
-                    }
-                }
-            }
-        }
+    CanvasSnippet* snippet = state.control->snippets.get_snippet(vc.mapgen.uuid);
+    if (snippet) {
+        draw_selection_mask(draw_list, snippet->get_selection_mask(),
+            point_abs_etile(snippet->get_pos()), cam, true);
     }
 
-    if( mapgen.mtype == MapgenType::Oter && mapgen.oter.matrix_mode && state.ui->show_omt_grid ) {
-        point size = mapgen.oter.om_terrain_matrix.get_size();
-        constexpr point_rel_etile oter_size( SEEX * 2, SEEY * 2 );
-        for( int y = 0; y < size.y; y++ ) {
-            for( int x = 0; x < size.x; x++ ) {
-                const point_abs_etile pos_zero( oter_size.x() * x, oter_size.y() * y );
-                outline_region(
-                    draw_list,
-                    cam,
-                    pos_zero,
-                    pos_zero + point_rel_etile( -1, -1 ) + oter_size,
-                    col_mapgensize_border
-                );
-            }
-        }
-    } else {
-        outline_region(
-            draw_list,
-            cam,
-            point_abs_etile( 0, 0 ),
-            point_abs_etile( -1, -1 ) + mapgen.mapgensize(),
-            col_mapgensize_border
-        );
+    SelectionMask* selection = vc.mapgen.get_selection_mask();
+    if (selection) {
+        draw_selection_mask(draw_list, *selection, point_abs_etile(), cam, false);
     }
 
-    if( state.ui->show_canvas_objects ) {
-        for( const MapObject &obj : mapgen.objects ) {
-            if( !obj.visible ) {
-                continue;
-            }
-
-            point_abs_etile p1( obj.x.min, obj.y.min );
-            point_abs_etile p2( obj.x.max, obj.y.max );
-            ImVec4 col_border = obj.color;
-            ImVec4 col_text = obj.color;
-            col_text.w = 1.0f;
-            ImVec4 col_bg = obj.color;
-            col_bg.w *= 0.4f;
-            highlight_region( draw_list, cam, p1, p2, col_bg, col_border );
-
-            std::string label = obj.piece->fmt_summary();
-            point_abs_epos pos1 = coords::project_combine( p1, point_etile_epos( ETILE_SIZE / 2,
-                                  ETILE_SIZE / 2 ) );
-            point_abs_epos pos2 = coords::project_combine( p2, point_etile_epos( ETILE_SIZE / 2,
-                                  ETILE_SIZE / 2 ) );
-            point_abs_epos center( ( pos1.raw() + pos2.raw() ) / 2 );
-            point_abs_screen text_center = cam.world_to_screen( center );
-            point_rel_screen text_size( ImGui::CalcTextSize( label.c_str() ) );
-            point_abs_screen text_pos = text_center - text_size.raw() / 2;
-            ImGui::SetCursorPos( text_pos.raw() );
-            ImGui::TextColored( col_text, "%s", label.c_str() );
-        }
-    }
-
-    if (state.ui->show_canvas_setmaps) {
-        // FIXME: undupe this from objects
-        for (const SetMap& obj : mapgen.setmaps) {
-            if (!obj.visible) {
-                continue;
-            }
-
-            inclusive_rectangle<point> bb = obj.get_bounding_box();
-            point_abs_etile p1(bb.p_min);
-            point_abs_etile p2(bb.p_max);
-            ImVec4 col_border = obj.color;
-            ImVec4 col_text = obj.color;
-            col_text.w = 1.0f;
-            ImVec4 col_bg = obj.color;
-            col_bg.w *= 0.4f;
-            highlight_region(draw_list, cam, p1, p2, col_bg, col_border);
-
-            std::string label = obj.fmt_summary();
-            point_abs_epos pos1 = coords::project_combine(p1, point_etile_epos(ETILE_SIZE / 2,
-                ETILE_SIZE / 2));
-            point_abs_epos pos2 = coords::project_combine(p2, point_etile_epos(ETILE_SIZE / 2,
-                ETILE_SIZE / 2));
-            point_abs_epos center((pos1.raw() + pos2.raw()) / 2);
-            point_abs_screen text_center = cam.world_to_screen(center);
-            point_rel_screen text_size(ImGui::CalcTextSize(label.c_str()));
-            point_abs_screen text_pos = text_center - text_size.raw() / 2;
-            ImGui::SetCursorPos(text_pos.raw());
-            ImGui::TextColored(col_text, "%s", label.c_str());
-        }
-    }
-
-    if( snippet ) {
-        draw_selection_mask( draw_list, snippet->get_selection_mask(),
-                             point_abs_etile( snippet->get_pos() ), cam, true );
-    }
-    if( selection ) {
-        draw_selection_mask( draw_list, *selection, point_abs_etile(), cam, false );
-    }
-
-    std::vector<const MapObject*> hovered_objects;
-    std::vector<const SetMap*> hovered_setmaps;
-
-    if( view_hovered ) {
-        for (const MapObject& obj : mapgen.objects) {
-            if (obj.x.max < tile_pos.x() ||
-                obj.y.max < tile_pos.y() ||
-                obj.x.min > tile_pos.x() ||
-                obj.y.min > tile_pos.y()
-                ) {
-                continue;
-            }
-            hovered_objects.push_back(&obj);
-        }
-
-        for (const SetMap& setmap : mapgen.setmaps) {
-            inclusive_rectangle bb = setmap.get_bounding_box();
-            if (!bb.contains(tile_pos.raw())) {
-                continue;
-            }
-            hovered_setmaps.push_back(&setmap);
-        }
-
-        std::unordered_set<point> nested_info;
-        std::unordered_set<point> vehicle_info;
-        std::unordered_set<int> vehicle_rotations;
-
-        for (const MapObject* obj : hovered_objects) {
-            const PieceNested* nested = dynamic_cast<const PieceNested*>(obj->piece.get());
-            if (nested) {
-                std::unordered_set<point> sil = nested->silhouette();
-                nested_info.insert(sil.begin(), sil.end());
-            }
-            const PieceVehicle* vehicle = dynamic_cast<const PieceVehicle*>(obj->piece.get());
-            if (vehicle) {
-                vehicle_rotations.insert(vehicle->allowed_rotations.begin(), vehicle->allowed_rotations.end());
-                std::unordered_set<point> sil = vehicle->silhouette();
-                vehicle_info.insert(sil.begin(), sil.end());
-            }
-        }
-
-        if (mapgen.uses_rows() && is_mouse_in_bounds) {
-            MapKey  uuid = get_key_at_pos(canvas_2d, snippet, tile_pos.raw());
-            ViewEntry* hovered_entry = pal.find_entry(uuid);
-
-            if (hovered_entry) {
-                for (const ViewPiece& piece : hovered_entry->pieces) {
-                    const PieceNested* nested = dynamic_cast<const PieceNested*>(piece.piece);
-                    if (nested) {
-                        std::unordered_set<point> sil = nested->silhouette();
-                        nested_info.insert(sil.begin(), sil.end());
-                    }
-                    const PieceVehicle* vehicle = dynamic_cast<const PieceVehicle*>(piece.piece);
-                    if (vehicle) {
-                        vehicle_rotations.insert(vehicle->allowed_rotations.begin(), vehicle->allowed_rotations.end());
-                        std::unordered_set<point> sil = vehicle->silhouette();
-                        vehicle_info.insert(sil.begin(), sil.end());
-                    }
-                }
-            }
-        }
-        bool show_nest = false;
-        if (nested_info.size() > 1) {
-            show_nest = true;
-        }
-        else if (nested_info.size() == 1) {
-            show_nest = *nested_info.begin() != point_zero;
-        }
-        if (show_nest) {
-            for (const point& delta : nested_info) {
-                fill_tile(draw_list, cam, tile_pos + delta, col_nest);
-            }
-        }
-
-        bool show_vehicle = !vehicle_info.empty();
-        if (show_vehicle) {
-            for (const point& delta : vehicle_info) {
-                fill_tile(draw_list, cam, tile_pos + delta, col_vehicle_outline);
-            }
-            for (int angle : vehicle_rotations) {
-                // Reminder: 0 degrees means east, rotations are clockwise
-                int angle_normalized = (angle - 90 + 360) % 360;
-                draw_ray(draw_list, cam, tile_pos, units::from_degrees(angle_normalized), 1.4f, col_vehicle_dir);
-            }
-        }
-
-        highlight_tile( draw_list, cam, tile_pos, col_cursor );
-    }
-
-    if( target.highlight.active() ) {
-        ImVec4 tool_color = target.highlight.color ? ImVec4( *target.highlight.color ) : col_tool;
-        for( const point_abs_etile &p : target.highlight.tiles ) {
+    if (target.highlight.active()) {
+        ImVec4 tool_color = target.highlight.color ? ImVec4(*target.highlight.color) : col_tool;
+        for (const point_abs_etile& p : target.highlight.tiles) {
             ImVec4 col_bg = tool_color;
             col_bg.w *= 0.4f;
-            fill_tile( draw_list, cam, p, col_bg );
-            highlight_tile( draw_list, cam, p, tool_color);
+            fill_tile(draw_list, cam, p, col_bg);
+            highlight_tile(draw_list, cam, p, tool_color);
         }
-        for( const auto &p : target.highlight.areas ) {
-            auto rect = editor::normalize_rect( p.first, p.second );
+        for (const auto& p : target.highlight.areas) {
+            auto rect = editor::normalize_rect(p.first, p.second);
             ImVec4 col_bg = tool_color;
             col_bg.w *= 0.4f;
-            highlight_region( draw_list, cam, rect.first, rect.second, col_bg, tool_color);
+            highlight_region(draw_list, cam, rect.first, rect.second, col_bg, tool_color);
         }
     }
 
-    bool tooltip_needs_separator = false;
+    if (view_hovered) {
+        vc.draw_hovered_outline(draw_list, cam, *state.ui);
+        highlight_tile(draw_list, cam, get_mouse_tile_pos(cam), col_cursor);
+    }
 
-    if( target.want_tooltip ) {
+    if (target.want_tooltip) {
         ImGui::BeginTooltip();
-        if( tooltip_needs_separator ) {
-            std::string label = tools::get_tool_definition( tools.get_tool() ).get_tool_display_name();
-            ImGui::SeparatorText( label.c_str() );
-        }
-        tool_control.show_tooltip( target );
+        std::string label = tools::get_tool_definition(tools.get_tool()).get_tool_display_name();
+        ImGui::SeparatorText(label.c_str());
+        tool_control.show_tooltip(target);
         ImGui::EndTooltip();
-        tooltip_needs_separator = true;
     }
-
-    state.control->highlight_entry_in_palette = tooltip_entry_uuid;
-
-    if( show_tooltip ) {
-        if( tooltip_entry ||
-            tooltip_entry_error || 
-            (tooltip_entry_fill_ter && show_fill_ter_fallback) || 
-            (tooltip_entry_predecessor && show_predecessor) ||
-            (tooltip_entry_update_or_nested_bg && show_update_or_nested_bg) ||
-            !hovered_setmaps.empty() ||
-            !hovered_objects.empty() ) {
+    if (view_hovered && ImGui::IsKeyDown(ImGuiKey_ModCtrl)) {
+        if (target.want_tooltip) {
             ImGui::BeginTooltip();
-            if( tooltip_needs_separator ) {
-                ImGui::SeparatorText( "Info" );
-            }
-            if( tooltip_entry ) {
-                show_palette_entry_tooltip( state.project(), *tooltip_entry);
-            }
-            if( tooltip_entry_error ) {
-                std::string text = "ERROR: " + tooltip_error_msg;
-                ImGui::Text( text.c_str() );
-            }
-            for( const MapObject *obj : hovered_objects) {
-                ImGui::TextDisabled( "OBJ" );
-                ImGui::SameLine();
-                ImGui::Text( "%s", obj->piece->fmt_summary().c_str() );
-            }
-            for (const SetMap* setmap : hovered_setmaps) {
-                ImGui::TextDisabled("SET");
-                ImGui::SameLine();
-                ImGui::Text("%s", setmap->fmt_summary().c_str());
-            }
-            if (show_fill_ter_fallback && has_fill_ter && (tooltip_entry_fill_ter || !pal.sprite_from_uuid(tooltip_entry_uuid).ter)) {
-                ImGui::TextDisabled("FILL");
-                ImGui::SameLine();
-                ImGui::Text("%s", mapgen.oter.fill_ter.data.c_str());
-            }
-            if (show_predecessor && has_predecessor && tooltip_entry_predecessor) {
-                ImGui::TextDisabled("PREDECESSOR");
-                ImGui::SameLine();
-                ImGui::Text("%s", mapgen.oter.predecessor_mapgen.data.c_str());
-            }
-            if (show_update_or_nested_bg && tooltip_entry_update_or_nested_bg) {
-                if (mapgen.mtype == MapgenType::Nested) {
-                    ImGui::TextDisabled("PARENT");
-                }
-                else {
-                    ImGui::TextDisabled("UNCHANGED");
-                }
-            }
+            ImGui::SeparatorText("Info");
             ImGui::EndTooltip();
-            tooltip_needs_separator = true;
         }
+        vc.draw_tooltip(cam, *state.ui);
+        state.control->highlight_entry_in_palette = vc.get_tooltip_highlighted_key(cam);
     }
+    else {
+        state.control->highlight_entry_in_palette = MapKey();
+    }
+
 
     ImGui::PopID();
     ImGui::End();

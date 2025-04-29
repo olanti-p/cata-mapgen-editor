@@ -19,6 +19,20 @@ struct SpriteRef {
     SpriteRef &operator=( const SpriteRef & ) = default;
     SpriteRef &operator=( SpriteRef && ) = default;
 
+    constexpr operator bool() const {
+        return tile_idx != -1;
+    }
+
+    constexpr bool operator==(const SpriteRef& rhs) const {
+        return tile_idx == rhs.tile_idx;
+    }
+    constexpr bool operator!=(const SpriteRef& rhs) const {
+        return tile_idx != rhs.tile_idx;
+    }
+    constexpr bool operator<(const SpriteRef& rhs) const {
+        return tile_idx < rhs.tile_idx;
+    }
+
     ~SpriteRef() = default;
 
     ImTextureID get_tex_id() const;
