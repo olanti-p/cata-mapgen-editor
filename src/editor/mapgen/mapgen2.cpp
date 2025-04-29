@@ -5,19 +5,22 @@
 #include <climits>
 #include <vector>
 
+#include <imgui/imgui.h>
+
 #include "common/canvas_2d.h"
 #include "common/uuid.h"
-#include <imgui/imgui.h>
 #include "mapgen/canvas_snippet.h"
 #include "mapgen/palette.h"
 #include "point.h"
 #include "selection_mask.h"
 #include "state/state.h"
 #include "state/ui_state.h"
+#include "state/control_state.h"
 #include "string_formatter.h"
 #include "widget/editable_id.h"
 #include "widget/widgets.h"
 #include "project/project.h"
+#include "project/new_mapgen.h"
 
 namespace editor
 {
@@ -253,6 +256,7 @@ void show_mapgen_info( State &state, Mapgen &mapgen, bool &show )
             state.mark_changed( "nested-mapgen-id" );
         }
         ImGui::HelpPopup( "ID of this nested mapgen." );
+        ImGui::Text("imported_id: %s", mapgen.nested.imported_mapgen_id.c_str());
         if( ImGui::InputIntRange( "rotation", mapgen.nested.rotation ) ) {
             state.mark_changed();
         }
@@ -266,6 +270,15 @@ void show_mapgen_info( State &state, Mapgen &mapgen, bool &show )
         ImGui::HelpPopup( "Size of this nested mapgen." );
         show_canvas_hint();
     }
+
+    if (ImGui::Button("Import all nested mapgens")) {
+        state.control->import_all_nests_of = mapgen.uuid;
+    }
+    ImGui::HelpPopup(
+        "Import all nested mapgens that can be used by this mapgen,\n"
+        "from all placements and all ancestor palettes.\n\n"
+        "Nested mapgens that are already imported won't be affected."
+    );
 
     show_flags(state, mapgen);
 

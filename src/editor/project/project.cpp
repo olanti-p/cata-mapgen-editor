@@ -191,4 +191,14 @@ const Palette* Project::find_palette_by_string(const std::string& id) const
     return nullptr;
 }
 
+const Mapgen* Project::find_nested_mapgen_by_string(const std::string& id) const
+{
+    for (const Mapgen& it : mapgens) {
+        if (it.mtype == MapgenType::Nested && it.nested.imported_mapgen_id == id) {
+            return &it;
+        }
+    }
+    return nullptr;
+}
+
 } // namespace editor

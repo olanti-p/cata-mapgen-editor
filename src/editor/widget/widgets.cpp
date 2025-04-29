@@ -148,6 +148,14 @@ bool detail::InputId( const char *label,
     return ret;
 }
 
+bool InputPoint(const char* label, point& p) {
+    int values[2] = { p.x, p.y };
+    bool ret = InputInt2(label, values);
+    p.x = values[0];
+    p.y = values[1];
+    return ret;
+}
+
 bool InputIntRange( const char *label, editor::IntRange &r )
 {
     bool has_error = r.min > r.max;

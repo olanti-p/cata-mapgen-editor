@@ -20,8 +20,9 @@ struct CanvasSnippet;
 
 struct ViewCanvasNest {
     point pos = point::zero;
+    point offset = point::zero;
     point size = point(1, 1);
-    std::string id;
+    Mapgen* mapgen = nullptr;
 };
 
 struct ViewCanvasCell {
@@ -38,17 +39,30 @@ enum class ViewCanvasFallback {
     FillTer,
 };
 
+struct ViewCanvasTransform {
+    point transpose = point::zero;
+
+    point apply(point value) const {
+        return value + transpose;
+    }
+    point apply_inv(point value) const {
+        return value - transpose;
+    }
+    Camera make_camera(const Camera& cam) const;
+};
+
 struct ViewCanvas {
     Mapgen& mapgen;
+    Project& project;
     ViewPalette palette;
     std::vector<ViewCanvasNest> nests;
     Canvas2D<ViewCanvasCell> matrix;
-    //const CanvasSnippet* snippet = nullptr;
+    ViewCanvasTransform transform;
 
     std::set<SpriteRef> terrain_sprites;
     std::set<SpriteRef> furniture_sprites;
 
-    bool show_fallbacks = true;
+    bool child_mode = false;
 
     ViewCanvas(State& state, Mapgen& mapgen);
 
@@ -59,6 +73,8 @@ struct ViewCanvas {
     bool show_predecessor(UiState& ui) const;
     bool has_predecessor() const;
     bool has_parent() const;
+
+    void try_add_as_nest(const Piece* piece, point pos);
 
     void draw_background(ImDrawList* draw_list, Camera& cam, UiState&ui) const;
     void draw_main_layer(ImDrawList* draw_list, Camera& cam, UiState& ui) const;

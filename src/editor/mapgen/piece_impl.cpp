@@ -1418,14 +1418,56 @@ void NestedCheckZLevel::show_ui(State& state) {
 PieceNested::PieceNested(const PieceNested& rhs) : Piece(rhs) {
     chunks = rhs.chunks;
     else_chunks = rhs.else_chunks;
+    preview = rhs.preview;
+    preview_pos = rhs.preview_pos;
     checks.clear();
     for (const auto& it : rhs.checks) {
         checks.emplace_back(it->clone());
     }
 }
 
-void PieceNested::show_ui( State &state )
+static void add_nested_chunk(std::vector<std::string>& opts, EID::Nest id) {
+    const auto& base_id = id.data;
+    auto it = editor_mapgen_nested_options.find(base_id);
+    if (it != editor_mapgen_nested_options.end()) {
+        for (const auto& entry : it->second) {
+            opts.push_back(entry);
+        }
+    }
+}
+
+std::vector<std::string> PieceNested::build_preview_options() const
 {
+    // TODO: persist this
+    std::vector<std::string> preview_opts;
+    preview_opts.emplace_back("");
+    for (const auto& it : chunks.entries) {
+        add_nested_chunk(preview_opts, it.val);
+    }
+    for (const auto& it : else_chunks.entries) {
+        add_nested_chunk(preview_opts, it.val);
+    }
+    return preview_opts;
+}
+
+void PieceNested::show_ui(State& state)
+{
+    {
+        std::vector<std::string> preview_opts = build_preview_options();
+        auto it = std::find(preview_opts.begin(), preview_opts.end(), preview);
+        int current_idx = it == preview_opts.end() ? -1 : static_cast<int>(std::distance(preview_opts.begin(), it));
+        if (ImGui::ComboWithFilter("preview", &current_idx, preview_opts, 10)) {
+            preview = preview_opts[current_idx];
+            state.mark_changed();
+        }
+    }
+
+    if (is_object) {
+        if (ImGui::InputPoint("preview pos", preview_pos)) {
+            state.mark_changed("preview_pos");
+        }
+    }
+
     ImGui::PushID("chunks");
     ImGui::SeparatorText("Chunks");
     show_weighted_list(state, chunks);

@@ -658,6 +658,7 @@ const std::map<std::string, mapgen_palette>& get_temp_mapgen_palettes();
 const mapgen_palette& get_temp_mapgen_palette(const std::string& key);
 extern std::map<std::string, mapgen_function_json*> editor_mapgen_refs;
 extern std::map<std::string, mapgen_function_json_nested*> editor_mapgen_refs_nested;
+extern std::map<std::string, std::vector<std::string>> editor_mapgen_nested_options;
 extern std::map<std::string, update_mapgen_function_json*> editor_mapgen_refs_update;
 extern std::map<nested_mapgen_id, nested_mapgen> nested_mapgens;
 extern std::map<update_mapgen_id, update_mapgen> update_mapgens;

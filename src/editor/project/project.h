@@ -35,6 +35,12 @@ struct Project {
         const Project* this_c = this;
         return const_cast<Palette*>(this_c->find_palette_by_string(id));
     }
+
+    const Mapgen* find_nested_mapgen_by_string(const std::string& id) const;
+    Mapgen* find_nested_mapgen_by_string(const std::string& id) {
+        const Project* this_c = this;
+        return const_cast<Mapgen*>(this_c->find_nested_mapgen_by_string(id));
+    }
 };
 
 void show_project_overview_ui( State &state, Project &project, bool &show );

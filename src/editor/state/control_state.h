@@ -87,6 +87,7 @@ struct ControlState {
 
         QuickPaletteAddState quick_add_state;
         SnippetsState snippets;
+        UUID import_all_nests_of = UUID_INVALID;
 
         void show_warning_popup( const std::string &data );
         void handle_warning_popup();

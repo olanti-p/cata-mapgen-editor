@@ -90,6 +90,7 @@ struct MapgenUpdate {
 };
 
 struct MapgenNested {
+    std::string imported_mapgen_id;
     std::string nested_mapgen_id;
     point size = point( 24, 24 );
     IntRange rotation;

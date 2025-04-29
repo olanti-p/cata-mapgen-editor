@@ -446,10 +446,15 @@ struct PieceNested : public Piece {
     void init_new() override;
 
     std::unordered_set<point> silhouette() const;
+    std::vector<std::string> build_preview_options() const;
 
     WeightedList<EID::Nest> chunks;
     WeightedList<EID::Nest> else_chunks;
     std::vector<std::unique_ptr<NestedCheck>> checks;
+
+    // TODO: make it typed
+    std::string preview;
+    point preview_pos = point::zero;
 };
 
 struct PieceAltTrap : public Piece {

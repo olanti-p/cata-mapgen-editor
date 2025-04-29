@@ -148,16 +148,27 @@ static MapKey get_key_at_pos(const Canvas2D<MapKey>& canvas, const editor::Canva
     return canvas.get(pos);
 }
 
-ViewCanvas::ViewCanvas(State& state, Mapgen& mapgen) : mapgen(mapgen), palette(state.project()), matrix(point::zero)
+Camera ViewCanvasTransform::make_camera(const Camera& cam) const
 {
-    Project& project = state.project();
-    
+    Camera ret = cam;
+    ret.pos -= transpose * ETILE_SIZE;
+    return ret;
+}
+
+ViewCanvas::ViewCanvas(State& state, Mapgen& mapgen) : mapgen(mapgen), project(state.project()), palette(state.project()), matrix(point::zero)
+{
     Palette& pal_data = *project.get_palette(mapgen.base.palette);
     palette.add_palette_recursive(pal_data, state.ui->view_palette_tree_states[pal_data.uuid]);
     palette.finalize();
 
     const Canvas2D<MapKey>& canvas_2d = mapgen.base.canvas;
     CanvasSnippet* snippet = state.control->snippets.get_snippet(mapgen.uuid);
+
+    for (const MapObject& obj : mapgen.objects) {
+        if (obj.visible) {
+            try_add_as_nest(obj.piece.get(), point(obj.x.min, obj.y.min));
+        }
+    }
 
     matrix.set_size(canvas_2d.get_size());
     for (int y = 0; y < mapgen.mapgensize().y(); y++) {
@@ -169,6 +180,11 @@ ViewCanvas::ViewCanvas(State& state, Mapgen& mapgen) : mapgen(mapgen), palette(s
             ViewCanvasCell cell;
             cell.key = key;
             cell.data = entry;
+            if (entry) {
+                for (const ViewPiece& it : entry->pieces) {
+                    try_add_as_nest(it.piece, p.raw());
+                }
+            }
             if (img.furn) {
                 cell.furn = *img.furn;
                 furniture_sprites.insert(*img.furn);
@@ -223,8 +239,27 @@ bool ViewCanvas::has_parent() const
     return mapgen.mtype == MapgenType::Nested || mapgen.mtype == MapgenType::Update;
 }
 
+void ViewCanvas::try_add_as_nest(const Piece* piece, point pos)
+{
+    const PieceNested* nested = dynamic_cast<const PieceNested*>(piece);
+    if (nested && !nested->preview.empty()) {
+        Mapgen* mapgen = project.find_nested_mapgen_by_string(nested->preview);
+        if (mapgen) {
+            ViewCanvasNest nest;
+            nest.pos = pos;
+            nest.offset = nested->preview_pos;
+            nest.mapgen = mapgen;
+            nest.size = mapgen->mapgensize().raw();
+            nests.push_back(nest);
+        }
+    }
+}
+
 ViewCanvasFallback ViewCanvas::get_fallback_display() const
 {
+    if (child_mode) {
+        return ViewCanvasFallback::None;
+    }
     if (mapgen.mtype != MapgenType::Oter || has_predecessor()) {
         return ViewCanvasFallback::Predecessor;
     }
@@ -291,7 +326,7 @@ void ViewCanvas::draw_main_layer(ImDrawList* draw_list, Camera& cam, UiState& ui
             }
         }
 
-        if (show_canvas_symbols) {
+        if (show_canvas_symbols && !child_mode) {
             for (int y = 0; y < matrix.get_size().y; y++) {
                 for (int x = 0; x < matrix.get_size().x; x++) {
                     point_abs_etile p(x, y);
@@ -475,7 +510,10 @@ void ViewCanvas::draw_tooltip(Camera& cam, UiState& ui) const {
         draw_tooltip_data_objects(cam, ui);
         // FIXME: improve logic around this check, take overwrite rules into account
         if (!cell.has_terrain) {
-            if (has_fill_ter()) {
+            if (child_mode) {
+                // Show nothing
+            }
+            else if (has_fill_ter()) {
                 ImGui::TextDisabled("FILL");
                 ImGui::SameLine();
                 ImGui::Text("%s", mapgen.oter.fill_ter.data.c_str());
@@ -721,11 +759,25 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
         }
     }
 
+    std::vector<ViewCanvas> nests;
+    for (ViewCanvasNest& it : vc.nests) {
+        ViewCanvas nest_canvas(state, *it.mapgen);
+        nest_canvas.transform.transpose = it.pos + it.offset;
+        nest_canvas.child_mode = true;
+        nests.emplace_back(std::move(nest_canvas));
+    }
 
     vc.draw_background(draw_list, cam, *state.ui);
     vc.draw_main_layer(draw_list, cam, *state.ui);
+    for (const ViewCanvas &it : nests) {
+        Camera nest_cam = it.transform.make_camera(cam);
+        it.draw_main_layer(draw_list, nest_cam, *state.ui);
+    }
     vc.draw_overlays(draw_list, cam, *state.ui);
-
+    for (const ViewCanvas& it : nests) {
+        Camera nest_cam = it.transform.make_camera(cam);
+        it.draw_overlays(draw_list, nest_cam, *state.ui);
+    }
 
     CanvasSnippet* snippet = state.control->snippets.get_snippet(vc.mapgen.uuid);
     if (snippet) {
@@ -774,6 +826,15 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
         }
         vc.draw_tooltip(cam, *state.ui);
         state.control->highlight_entry_in_palette = vc.get_tooltip_highlighted_key(cam);
+        for (const ViewCanvas& it : nests) {
+            Camera nest_cam = it.transform.make_camera(cam);
+            if (it.get_tile_mouse_pos_in_bounds(nest_cam)) {
+                ImGui::BeginTooltip();
+                ImGui::SeparatorText(it.mapgen.nested.imported_mapgen_id.c_str());
+                ImGui::EndTooltip();
+                it.draw_tooltip(nest_cam, *state.ui);
+            }
+        }
     }
     else {
         state.control->highlight_entry_in_palette = MapKey();

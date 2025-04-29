@@ -1227,6 +1227,7 @@ void MapgenUpdate::deserialize( const TextJsonValue &jsin )
 void MapgenNested::serialize( JsonOut &jsout ) const
 {
     jsout.start_object();
+    jsout.member( "imported_mapgen_id", imported_mapgen_id );
     jsout.member( "nested_mapgen_id", nested_mapgen_id );
     jsout.member( "size", size );
     jsout.member( "rotation", rotation );
@@ -1237,6 +1238,7 @@ void MapgenNested::deserialize( const TextJsonValue &jsin )
 {
     JSON_OBJECT jo = jsin.get_object();
 
+    jo.read( "imported_mapgen_id", imported_mapgen_id );
     jo.read( "nested_mapgen_id", nested_mapgen_id );
     jo.read( "size", size );
     jo.read( "rotation", rotation );

@@ -958,6 +958,7 @@ std::vector<std::shared_ptr<mapgen_function_json_nested>> editor_mapgen_storage_
 std::vector<std::shared_ptr<update_mapgen_function_json>> editor_mapgen_storage_update;
 std::map<std::string, mapgen_function_json*> editor_mapgen_refs;
 std::map<std::string, mapgen_function_json_nested*> editor_mapgen_refs_nested;
+std::map<std::string, std::vector<std::string>> editor_mapgen_nested_options;
 std::map<std::string, update_mapgen_function_json*> editor_mapgen_refs_update;
 std::map<nested_mapgen_id, nested_mapgen> nested_mapgens;
 std::map<update_mapgen_id, update_mapgen> update_mapgens;
@@ -1168,6 +1169,7 @@ static void add_editor_mapgen(const std::string& editor_id_base, std::shared_ptr
     }
     editor_mapgen_storage_nested.push_back(f);
     editor_mapgen_refs_nested.emplace(combined_id, f.get());
+    editor_mapgen_nested_options[editor_id_base].push_back(combined_id);
 }
 
 static void add_editor_mapgen(const std::string& editor_id_base, std::shared_ptr<update_mapgen_function_json> f) {
@@ -9641,6 +9643,12 @@ bool PieceNested::try_import( const jmapgen_piece& piece, PaletteImportReport& r
         NestedCheckZLevel check;
         check.z = it;
         checks.emplace_back(std::make_unique<NestedCheckZLevel>(std::move(check)));
+    }
+
+    std::vector<std::string> preview_opts = build_preview_options();
+    if (preview_opts.size() >= 2) {
+        // Show at least something as a nest
+        preview = preview_opts[1];
     }
 
     return true; // TODO

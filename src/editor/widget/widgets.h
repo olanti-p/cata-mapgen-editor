@@ -25,6 +25,7 @@
 class nc_color;
 struct jmapgen_int;
 class jmapgen_place;
+struct point;
 
 namespace editor
 {
@@ -89,6 +90,8 @@ bool InputId( const char *label, editor::EditableID<T> &id, ImGuiInputTextFlags 
     return detail::InputId( label, id.data, editor::EditableID<T>::get_all_opts(), id.is_valid(),
                             flags, callback, user_data );
 }
+
+bool InputPoint(const char* label, point& p);
 
 bool InputIntRange( const char *label, editor::IntRange &r );
 

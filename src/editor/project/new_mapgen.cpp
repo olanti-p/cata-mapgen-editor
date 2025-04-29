@@ -1,9 +1,9 @@
 #include "new_mapgen.h"
 
 #include "common/color.h"
-#include <imgui/imgui.h>
 #include "mapgen/mapgen.h"
 #include "mapgen/palette.h"
+#include "mapgen/piece_impl.h"
 #include "state/state.h"
 #include "common/uuid.h"
 #include "widget/widgets.h"
@@ -16,6 +16,8 @@
 
 #include <chrono>
 #include <cstddef>
+
+#include <imgui/imgui.h>
 
 namespace editor
 {
@@ -420,6 +422,7 @@ Mapgen* import_mapgen(State& state, ImportMapgenState& mapgen)
         new_mapgen.nested.size = new_mapgen.base.canvas.get_size();
         new_mapgen.nested.rotation = ref->rotation;
         new_mapgen.nested.nested_mapgen_id = ref->editor_mapgen_id;
+        new_mapgen.nested.imported_mapgen_id = mapgen.nested;
 
         // TODO
     }
@@ -444,5 +447,70 @@ Mapgen* import_mapgen(State& state, ImportMapgenState& mapgen)
     return &new_mapgen;
 }
 
+void list_nests_from_piece(Project& project, std::set<std::string>& list, Piece& piece)
+{
+    PieceNested* nested = dynamic_cast<PieceNested*>(&piece);
+    if (!nested) {
+        return;
+    }
+    std::vector<std::string> opts = nested->build_preview_options();
+    std::copy(opts.begin(), opts.end(), std::inserter(list, list.end()));
+}
+
+void list_nests_from_palette(Project& project, std::set<std::string>& list, Palette& palette)
+{
+    for (PaletteEntry& entry : palette.entries) {
+        for (auto& piece : entry.pieces) {
+            list_nests_from_piece(project, list, *piece.get());
+        }
+    }
+    for (const PaletteAncestorSwitch& it : palette.ancestors.list) {
+        for (const std::string& opt : it.options) {
+            Palette* ancestor = project.find_palette_by_string(opt);
+            if (ancestor) {
+                list_nests_from_palette(project, list, *ancestor);
+            }
+        }
+    }
+}
+
+void list_nests_from_mapgen(Project& project, std::set<std::string>& list, Mapgen& mapgen)
+{
+    Palette& palette = *project.get_palette(mapgen.base.palette);
+    list_nests_from_palette(project, list, palette);
+    for (MapObject& object : mapgen.objects) {
+        list_nests_from_piece(project, list, *object.piece.get());
+    }
+}
+
+void quick_import_all_nests(State& state, Mapgen& mapgen)
+{
+    Project& project = state.project();
+    std::set<std::string> list;
+    list_nests_from_mapgen(project, list, mapgen);
+
+    std::vector<const std::string*> to_import;
+
+    for (const std::string& it : list) {
+        if (it.empty()) {
+            continue;
+        }
+        Mapgen* nested = project.find_nested_mapgen_by_string(it);
+        if (!nested) {
+            if (editor_mapgen_refs_nested.count(it) > 0) {
+                to_import.push_back(&it);
+            }
+        }
+    }
+
+    for (const std::string* it : to_import) {
+        ImportMapgenState istate;
+        istate.mtype = MapgenType::Nested;
+        istate.nested = *it;
+        Mapgen* nested = import_mapgen(state, istate);
+        Palette* palette = project.get_palette(nested->base.palette);
+        recursive_import_palette(state, *palette);
+    }
+}
 
 } // namespace editor

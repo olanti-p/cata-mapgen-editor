@@ -213,15 +213,6 @@ void run_ui_for_state( State &state )
     UiState &uistate = *state.ui;
     ControlState &control = *state.control;
 
-    Mapgen *active_mapgen = nullptr;
-    if( uistate.active_mapgen_id ) {
-        active_mapgen = proj.get_mapgen( *uistate.active_mapgen_id );
-        if( !active_mapgen ) {
-            uistate.active_mapgen_id.reset();
-        }
-    }
-    control.quick_add_state.active = false;
-
     if (control.reimport_all_palettes) {
         control.reimport_all_palettes = false;
         for (Palette& pal : proj.palettes) {
@@ -232,6 +223,20 @@ void run_ui_for_state( State &state )
         // FIXME: this should be transparent to the user
         state.mark_changed("palette-reimport-on-load");
     }
+    if (state.control->import_all_nests_of) {
+        quick_import_all_nests(state, *state.project().get_mapgen(state.control->import_all_nests_of));
+        state.control->import_all_nests_of = UUID_INVALID;
+        state.mark_changed();
+    }
+
+    Mapgen* active_mapgen = nullptr;
+    if (uistate.active_mapgen_id) {
+        active_mapgen = proj.get_mapgen(*uistate.active_mapgen_id);
+        if (!active_mapgen) {
+            uistate.active_mapgen_id.reset();
+        }
+    }
+    control.quick_add_state.active = false;
 
     // TODO: multiple mapgens on same canvas
     show_editor_view( state, active_mapgen );
