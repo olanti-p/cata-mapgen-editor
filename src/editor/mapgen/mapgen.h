@@ -82,7 +82,7 @@ struct MapgenOter {
 
 struct MapgenUpdate {
     std::string update_mapgen_id;
-    EID::Ter fill_ter = EID::Ter::NULL_ID();
+    EID::Ter fill_ter = EID::Ter::NULL_ID(); // FIXME: is this a thing? Does it work?
     bool uses_rows = true;
 
     void serialize( JsonOut &jsout ) const;

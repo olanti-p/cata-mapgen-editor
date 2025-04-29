@@ -22,7 +22,7 @@ void show_palette_entry_tooltip( const PaletteEntry &entry )
     }
 }
 
-void show_palette_entry_tooltip(const Project& project, const ViewEntry& entry)
+void show_palette_entry_tooltip(const ViewEntry& entry)
 {
     for (const auto& piece : entry.pieces) {
         ImGui::TextDisabled("MAP");

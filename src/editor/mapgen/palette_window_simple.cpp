@@ -194,7 +194,7 @@ void show_palette_entries_simple(State& state, ViewPalette& palette)
         }
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort)) {
             ImGui::BeginTooltip();
-            show_palette_entry_tooltip(state.project(), entry);
+            show_palette_entry_tooltip(entry);
             ImGui::EndTooltip();
         }
         float last_button_x2 = ImGui::GetItemRectMax().x;
