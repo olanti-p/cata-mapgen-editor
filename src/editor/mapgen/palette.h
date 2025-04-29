@@ -90,7 +90,7 @@ struct PaletteAncestorList {
 
 struct Palette {
 public:
-    UUID uuid;
+    UUID uuid = UUID_INVALID;
     bool imported = false;
     bool standalone = true;
     bool temp_palette = false;

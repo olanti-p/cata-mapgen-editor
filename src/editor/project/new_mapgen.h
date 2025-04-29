@@ -11,7 +11,7 @@ struct State;
 
 struct NewMapgenState {
     MapgenType mtype = MapgenType::Oter;
-    UUID palette;
+    UUID palette = UUID_INVALID;
     std::string name;
 
     bool confirmed = false;

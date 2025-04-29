@@ -31,7 +31,7 @@ void deserialize( std::unique_ptr<editor::Piece> &ptr, const TextJsonObject &jo 
 {
     editor::PieceType pt = editor::PieceType::NumJmTypes;
     jo.read( "piece_type", pt );
-    editor::UUID uuid;
+    editor::UUID uuid = editor::UUID_INVALID;
     jo.read( "uuid", uuid );
     std::optional<editor::PieceConstraint> constraint;
     jo.read("constraint", constraint);

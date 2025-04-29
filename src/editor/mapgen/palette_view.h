@@ -92,7 +92,7 @@ public:
 
     Project& project;
     std::vector<ViewEntry> entries;
-    UUID source_uuid;
+    UUID source_uuid = UUID_INVALID;
 
     const ImVec4 &color_from_uuid( const MapKey &uuid ) const;
     SpritePair sprite_from_uuid( const MapKey &uuid ) const;
