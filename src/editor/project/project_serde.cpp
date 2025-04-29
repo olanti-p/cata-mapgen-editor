@@ -730,9 +730,15 @@ void PieceSealeditem::serialize( JsonOut &jsout ) const
     jsout.member("furniture", furniture);
     jsout.member("chance", chance);
     jsout.member("use_item", use_item);
-    jsout.member("item_data", item_data);
+    jsout.member("item_data");
+    jsout.start_object();
+    item_data.serialize(jsout);
+    jsout.end_object();
     jsout.member("use_group", use_group);
-    jsout.member("group_data", group_data);
+    jsout.member("group_data");
+    jsout.start_object();
+    group_data.serialize(jsout);
+    jsout.end_object();
 }
 
 void PieceSealeditem::deserialize( const JSON_OBJECT &jsin )
