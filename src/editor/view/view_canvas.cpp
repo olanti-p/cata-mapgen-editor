@@ -759,24 +759,30 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
         }
     }
 
-    std::vector<ViewCanvas> nests;
+    std::unordered_map<Mapgen*, std::unique_ptr<ViewCanvas>> nest_canvases;
     for (ViewCanvasNest& it : vc.nests) {
+        if (nest_canvases.find(it.mapgen) != nest_canvases.end()) {
+            continue;
+        }
         ViewCanvas nest_canvas(state, *it.mapgen);
-        nest_canvas.transform.transpose = it.pos + it.offset;
         nest_canvas.child_mode = true;
-        nests.emplace_back(std::move(nest_canvas));
+        nest_canvases.emplace( it.mapgen, std::make_unique<ViewCanvas>( std::move(nest_canvas)));
     }
 
     vc.draw_background(draw_list, cam, *state.ui);
     vc.draw_main_layer(draw_list, cam, *state.ui);
-    for (const ViewCanvas &it : nests) {
-        Camera nest_cam = it.transform.make_camera(cam);
-        it.draw_main_layer(draw_list, nest_cam, *state.ui);
+    for (const ViewCanvasNest&it : vc.nests) {
+        ViewCanvas& canvas = *nest_canvases[it.mapgen];
+        ViewCanvasTransform tf(it.pos + it.offset);
+        Camera nest_cam = tf.make_camera(cam);
+        canvas.draw_main_layer(draw_list, nest_cam, *state.ui);
     }
     vc.draw_overlays(draw_list, cam, *state.ui);
-    for (const ViewCanvas& it : nests) {
-        Camera nest_cam = it.transform.make_camera(cam);
-        it.draw_overlays(draw_list, nest_cam, *state.ui);
+    for (const ViewCanvasNest& it : vc.nests) {
+        ViewCanvas& canvas = *nest_canvases[it.mapgen];
+        ViewCanvasTransform tf(it.pos + it.offset);
+        Camera nest_cam = tf.make_camera(cam);
+        canvas.draw_overlays(draw_list, nest_cam, *state.ui);
     }
 
     CanvasSnippet* snippet = state.control->snippets.get_snippet(vc.mapgen.uuid);
@@ -826,13 +832,15 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
         }
         vc.draw_tooltip(cam, *state.ui);
         state.control->highlight_entry_in_palette = vc.get_tooltip_highlighted_key(cam);
-        for (const ViewCanvas& it : nests) {
-            Camera nest_cam = it.transform.make_camera(cam);
-            if (it.get_tile_mouse_pos_in_bounds(nest_cam)) {
+        for (const ViewCanvasNest& it : vc.nests) {
+            ViewCanvas& canvas = *nest_canvases[it.mapgen];
+            ViewCanvasTransform tf(it.pos + it.offset);
+            Camera nest_cam = tf.make_camera(cam);
+            if (canvas.get_tile_mouse_pos_in_bounds(nest_cam)) {
                 ImGui::BeginTooltip();
-                ImGui::SeparatorText(it.mapgen.nested.imported_mapgen_id.c_str());
+                ImGui::SeparatorText(canvas.mapgen.nested.imported_mapgen_id.c_str());
                 ImGui::EndTooltip();
-                it.draw_tooltip(nest_cam, *state.ui);
+                canvas.draw_tooltip(nest_cam, *state.ui);
             }
         }
     }

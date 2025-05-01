@@ -42,6 +42,10 @@ enum class ViewCanvasFallback {
 struct ViewCanvasTransform {
     point transpose = point::zero;
 
+    ViewCanvasTransform() = default;
+    ~ViewCanvasTransform() = default;
+    explicit ViewCanvasTransform(point transpose) : transpose(transpose) {}
+
     point apply(point value) const {
         return value + transpose;
     }
@@ -57,7 +61,6 @@ struct ViewCanvas {
     ViewPalette palette;
     std::vector<ViewCanvasNest> nests;
     Canvas2D<ViewCanvasCell> matrix;
-    ViewCanvasTransform transform;
 
     std::set<SpriteRef> terrain_sprites;
     std::set<SpriteRef> furniture_sprites;
