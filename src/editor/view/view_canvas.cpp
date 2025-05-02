@@ -825,6 +825,12 @@ void show_editor_view( State &state, Mapgen *mapgen_ptr )
 
     if (view_hovered) {
         vc.draw_hovered_outline(draw_list, cam, *state.ui);
+        for (const ViewCanvasNest& it : vc.nests) {
+            ViewCanvas& canvas = *nest_canvases[it.mapgen];
+            ViewCanvasTransform tf(it.pos + it.offset);
+            Camera nest_cam = tf.make_camera(cam);
+            canvas.draw_hovered_outline(draw_list, nest_cam, *state.ui);
+        }
         highlight_tile(draw_list, cam, get_mouse_tile_pos(cam), col_cursor);
     }
 
