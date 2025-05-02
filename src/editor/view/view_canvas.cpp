@@ -588,7 +588,7 @@ void ViewCanvas::draw_hovered_outline(ImDrawList* draw_list, Camera& cam, UiStat
     std::unordered_set<int> vehicle_rotations;
 
     for (const MapObject& obj : mapgen.objects) {
-        if (!obj.get_bounding_box().contains(tile_pos)) {
+        if (!obj.get_bounding_box().contains(tile_pos) || !obj.visible) {
             continue;
         }
         const PieceNested* nested = dynamic_cast<const PieceNested*>(obj.piece.get());
