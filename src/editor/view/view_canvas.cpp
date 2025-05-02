@@ -170,6 +170,11 @@ ViewCanvas::ViewCanvas(State& state, Mapgen& mapgen) : mapgen(mapgen), project(s
         }
     }
 
+    SpriteRef unknown_sprite("unknown");
+    if (!unknown_sprite) {
+        std::abort(); // Shouldn't happen
+    }
+
     matrix.set_size(canvas_2d.get_size());
     for (int y = 0; y < mapgen.mapgensize().y(); y++) {
         for (int x = 0; x < mapgen.mapgensize().x(); x++) {
@@ -186,10 +191,16 @@ ViewCanvas::ViewCanvas(State& state, Mapgen& mapgen) : mapgen(mapgen), project(s
                 }
             }
             if (img.furn) {
+                if (!*img.furn) {
+                    img.furn = &unknown_sprite;
+                }
                 cell.furn = *img.furn;
                 furniture_sprites.insert(*img.furn);
             }
             if (img.ter) {
+                if (!*img.ter) {
+                    img.ter = &unknown_sprite;
+                }
                 cell.ter = *img.ter;
                 terrain_sprites.insert(*img.ter);
                 cell.has_terrain = true;
