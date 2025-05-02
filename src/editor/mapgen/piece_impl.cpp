@@ -12,6 +12,7 @@
 #include "vehicle.h"
 #include "item_factory.h"
 #include "omdata.h"
+#include "mongroup.h"
 
 namespace editor
 {
@@ -1650,6 +1651,98 @@ void PieceRemoveAll::show_ui(State& state)
 std::string PieceRemoveAll::fmt_data_summary() const
 {
     return "";
+}
+
+void PieceRemoveVehicles::show_ui(State& state)
+{
+    show_plain_list<EID::Vehicle>(state, list, [&](size_t idx) {
+        auto& it = list[idx];
+        if (ImGui::InputId("##veh-type", it)) {
+            state.mark_changed("list-veh-type");
+        }
+        ImGui::HelpPopup("Vehicle type to remove.\n\nLeave empty to skip type check.");
+    });
+}
+
+std::string PieceRemoveVehicles::fmt_data_summary() const
+{
+    if (list.empty()) {
+        return "<any>";
+    }
+    else {
+        std::string ret = list[0].data;
+        if (list.size() > 1) {
+            ret += string_format(" (+%d)", list.size() - 1);
+        }
+        return ret;
+    }
+}
+
+void PieceRemoveNPCs::show_ui(State& state)
+{
+    if (ImGui::InputText("npc_class", &npc_class)) {
+        state.mark_changed("npc-class");
+    }
+    ImGui::HelpPopup("NPC must match this class.\n\nLeave empty to skip class check.");
+
+    if (ImGui::InputText("unique_id", &unique_id)) {
+        state.mark_changed("unique-id");
+    }
+    ImGui::HelpPopup("NPC must have this unique id.\n\nLeave empty to skip unique id check.");
+}
+
+std::string PieceRemoveNPCs::fmt_data_summary() const
+{
+    if (npc_class.empty() && unique_id.empty()) {
+        return "<any>";
+    }
+    else if (!unique_id.empty()) {
+        return unique_id;
+    }
+    else {
+        return npc_class;
+    }
+}
+
+void PieceCorpse::show_ui(State& state)
+{
+    if (ImGui::InputId("group", group)) {
+        state.mark_changed("group");
+    }
+    if (ImGui::InputIntClamped("age (days)", age_days, 0, INT_MAX)) {
+        state.mark_changed("age-days");
+    }
+}
+
+std::string PieceCorpse::fmt_data_summary() const
+{
+    return group.data;
+}
+
+void PieceCorpse::roll_loot(std::vector<item>& result, time_point turn, float spawnrate) const
+{
+    // TODO: undupe with mapgen.cpp
+    mongroup_id group_id(group.data);
+    if (group_id.is_valid()) {
+        const std::vector<mtype_id> monster_group =
+            MonsterGroupManager::GetMonstersFromGroup(group_id, true);
+        const mtype_id& corpse_type = random_entry_ref(monster_group);
+        item corpse = item::make_corpse(corpse_type,
+            std::max(calendar::turn - time_duration::from_days( age_days ), calendar::start_of_cataclysm));
+        result.push_back(corpse);
+    }
+}
+
+void PieceVariable::show_ui(State& state)
+{
+    if (ImGui::InputText("name", &name)) {
+        state.mark_changed("name");
+    }
+}
+
+std::string PieceVariable::fmt_data_summary() const
+{
+    return name;
 }
 
 void PieceUnknown::show_ui(State& state)

@@ -9714,6 +9714,51 @@ bool PieceRemoveAll::try_import(const jmapgen_piece& piece, PaletteImportReport&
     return dynamic_cast<const jmapgen_remove_all*>(&piece) != nullptr;
 }
 
+bool PieceRemoveVehicles::try_import(const jmapgen_piece& piece, PaletteImportReport& report)
+{
+    const jmapgen_remove_vehicles* casted = dynamic_cast<const jmapgen_remove_vehicles*>(&piece);
+    if (!casted) {
+        return false;
+    }
+    list.clear();
+    for (const vproto_id& it : casted->vehicles_to_remove) {
+        list.emplace_back(EID::Vehicle(it.str()));
+    }
+    return true;
+}
+
+bool PieceRemoveNPCs::try_import(const jmapgen_piece& piece, PaletteImportReport& report)
+{
+    const jmapgen_remove_npcs* casted = dynamic_cast<const jmapgen_remove_npcs*>(&piece);
+    if (!casted) {
+        return false;
+    }
+    npc_class = casted->npc_class;
+    unique_id = casted->unique_id;
+    return true;
+}
+
+bool PieceCorpse::try_import(const jmapgen_piece& piece, PaletteImportReport& report)
+{
+    const jmapgen_corpse* casted = dynamic_cast<const jmapgen_corpse*>(&piece);
+    if (!casted) {
+        return false;
+    }
+    group = EID::MGroup( casted->group );
+    age_days = to_days<int>(casted->age);
+    return true;
+}
+
+bool PieceVariable::try_import(const jmapgen_piece& piece, PaletteImportReport& report)
+{
+    const jmapgen_variable* casted = dynamic_cast<const jmapgen_variable*>(&piece);
+    if (!casted) {
+        return false;
+    }
+    name = casted->name;
+    return true;
+}
+
 bool PieceUnknown::try_import(const jmapgen_piece& piece, PaletteImportReport& report)
 {
     return false;

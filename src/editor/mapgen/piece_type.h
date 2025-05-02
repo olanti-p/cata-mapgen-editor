@@ -31,10 +31,14 @@ enum class PieceType : int {
     SealedItem,
     Zone,
     Nested,
+    Corpse,
+    Variable,
     AltTrap,
     AltFurniture,
     AltTerrain,
     RemoveAll,
+    RemoveVehicles,
+    RemoveNPCs,
     Unknown,
 
     NumJmTypes

@@ -19,6 +19,7 @@
 #include "magic_ter_furn_transform.h"
 #include "trap.h"
 #include "vehicle_group.h"
+#include "veh_type.h"
 
 namespace editor
 {
@@ -312,6 +313,18 @@ const std::vector<std::string> &EditableID<VehicleGroup>::get_all_opts()
         all_opts.reserve( vgroups.size() );
         for( const auto &it : vgroups ) {
             all_opts.push_back( it.first.str() );
+        }
+    }
+    return all_opts;
+}
+
+template<>
+const std::vector<std::string>& EditableID<vehicle_prototype>::get_all_opts()
+{
+    if (all_opts.empty()) {
+        all_opts.reserve(vehicles::get_all_prototypes().size());
+        for (const auto& it : vehicles::get_all_prototypes()) {
+            all_opts.push_back(it.id.str());
         }
     }
     return all_opts;

@@ -47,8 +47,12 @@ const std::vector<std::unique_ptr<Piece>> &get_piece_templates()
         REG_PIECE( PieceSealeditem );
         REG_PIECE( PieceZone );
         REG_PIECE( PieceNested );
+        REG_PIECE( PieceCorpse );
+        REG_PIECE( PieceVariable );
         REG_PIECE( PieceAltTrap );
         REG_PIECE( PieceRemoveAll );
+        REG_PIECE( PieceRemoveVehicles );
+        REG_PIECE( PieceRemoveNPCs );
         REG_PIECE( PieceUnknown );
     }
     return ret;
@@ -84,6 +88,8 @@ bool is_available_as_mapping( PieceType pt )
                pt == editor::PieceType::Terrain ||
                pt == editor::PieceType::Furniture ||
                pt == editor::PieceType::Trap ||
+               pt == editor::PieceType::Variable ||
+               pt == editor::PieceType::RemoveNPCs ||
                pt == editor::PieceType::Loot
            );
 }
@@ -108,6 +114,7 @@ bool is_used_by_loot_designer(PieceType pt)
         pt == editor::PieceType::SealedItem ||
         pt == editor::PieceType::Liquid ||
         pt == editor::PieceType::Loot ||
+        pt == editor::PieceType::Corpse ||
         pt == editor::PieceType::VendingMachine;
 }
 

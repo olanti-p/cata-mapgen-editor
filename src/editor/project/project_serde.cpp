@@ -233,10 +233,14 @@ std::string enum_to_string<editor::PieceType>( editor::PieceType data )
         case editor::PieceType::SealedItem: return "SealedItem";
         case editor::PieceType::Zone: return "Zone";
         case editor::PieceType::Nested: return "Nested";
+        case editor::PieceType::Corpse: return "Corpse";
+        case editor::PieceType::Variable: return "Variable";
         case editor::PieceType::AltTrap: return "AltTrap";
         case editor::PieceType::AltFurniture: return "AltFurniture";
         case editor::PieceType::AltTerrain: return "AltTerrain";
         case editor::PieceType::RemoveAll: return "RemoveAll";
+        case editor::PieceType::RemoveVehicles: return "RemoveVehicles";
+        case editor::PieceType::RemoveNPCs: return "RemoveNPCs";
         case editor::PieceType::Unknown: return "Unknown";
         // *INDENT-ON*
         default:
@@ -903,6 +907,50 @@ void PieceRemoveAll::serialize(JsonOut& jsout) const
 void PieceRemoveAll::deserialize(const JSON_OBJECT& jsin)
 {
     // No data
+}
+
+void PieceRemoveVehicles::serialize(JsonOut& jsout) const
+{
+    jsout.member("list", list);
+}
+
+void PieceRemoveVehicles::deserialize(const JSON_OBJECT& jsin)
+{
+    jsin.read("list", list);
+}
+
+void PieceRemoveNPCs::serialize(JsonOut& jsout) const
+{
+    jsout.member("npc_class", npc_class);
+    jsout.member("unique_id", unique_id);
+}
+
+void PieceRemoveNPCs::deserialize(const JSON_OBJECT& jsin)
+{
+    jsin.read("npc_class", npc_class);
+    jsin.read("unique_id", unique_id);
+}
+
+void PieceCorpse::serialize(JsonOut& jsout) const
+{
+    jsout.member("group", group);
+    jsout.member("age_days", age_days);
+}
+
+void PieceCorpse::deserialize(const JSON_OBJECT& jsin)
+{
+    jsin.read("group", group);
+    jsin.read("age_days", age_days);
+}
+
+void PieceVariable::serialize(JsonOut& jsout) const
+{
+    jsout.member("name", name);
+}
+
+void PieceVariable::deserialize(const JSON_OBJECT& jsin)
+{
+    jsin.read("name", name);
 }
 
 void PieceUnknown::serialize(JsonOut& jsout) const

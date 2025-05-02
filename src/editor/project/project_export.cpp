@@ -817,6 +817,35 @@ void PieceRemoveAll::export_func(JsonOut& jo) const
     // Empty object
 }
 
+void PieceRemoveVehicles::export_func(JsonOut& jo) const
+{
+    ee::emit_key(jo, "vehicles");
+    ee::emit_array(jo, list);
+}
+
+void PieceRemoveNPCs::export_func(JsonOut& jo) const
+{
+    if (!npc_class.empty()) {
+        ee::emit(jo, "class", npc_class);
+    }
+    if (!unique_id.empty()) {
+        ee::emit(jo, "unique_id", unique_id);
+    }
+}
+
+void PieceCorpse::export_func(JsonOut& jo) const
+{
+    ee::emit(jo, "group", group);
+    if (age_days != 0) {
+        ee::emit(jo, "age", age_days);
+    }
+}
+
+void PieceVariable::export_func(JsonOut& jo) const
+{
+    ee::emit(jo, "name", name);
+}
+
 void PieceUnknown::export_func(JsonOut& jo) const
 {
     // TODO: print some error or something
@@ -906,11 +935,15 @@ std::string get_palette_category( editor::PieceType data )
         case editor::PieceType::SealedItem: return "sealed_item";
         case editor::PieceType::Zone: return "zones";
         case editor::PieceType::Nested: return "nested";
+        case editor::PieceType::Corpse: return "corpses";
         case editor::PieceType::AltTrap: return "trap";
         case editor::PieceType::AltFurniture: return "furniture";
         case editor::PieceType::AltTerrain: return "terrain";
         case editor::PieceType::RemoveAll: return "remove_all";
+        case editor::PieceType::RemoveVehicles: return "remove_vehicles";
         // These cannot exist as mappings
+        case editor::PieceType::RemoveNPCs:
+        case editor::PieceType::Variable:
         case editor::PieceType::Unknown:
         case editor::PieceType::Loot:
         case editor::PieceType::Trap:
@@ -953,6 +986,10 @@ std::string get_object_category( editor::PieceType data )
         case editor::PieceType::Computer: return "place_computers";
         case editor::PieceType::Zone: return "place_zones";
         case editor::PieceType::Nested: return "place_nested";
+        case editor::PieceType::Corpse: return "place_corpses";
+        case editor::PieceType::Variable: return "place_variables";
+        case editor::PieceType::RemoveNPCs: return "remove_npcs";
+        case editor::PieceType::RemoveVehicles: return "remove_vehicles";
         // These cannot exist as objects
         case editor::PieceType::RemoveAll:
         case editor::PieceType::Unknown:

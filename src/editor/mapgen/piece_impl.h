@@ -485,6 +485,34 @@ struct PieceRemoveAll : public Piece {
     IMPLEMENT_ME_PIECE(PieceRemoveAll, PieceType::RemoveAll)
 };
 
+struct PieceRemoveVehicles : public Piece {
+    IMPLEMENT_ME_PIECE(PieceRemoveVehicles, PieceType::RemoveVehicles)
+
+    std::vector<EID::Vehicle> list;
+};
+
+struct PieceRemoveNPCs : public Piece {
+    IMPLEMENT_ME_PIECE(PieceRemoveNPCs, PieceType::RemoveNPCs)
+
+    std::string npc_class; // FIXME: make this typed?
+    std::string unique_id;
+};
+
+struct PieceCorpse : public Piece {
+    IMPLEMENT_ME_PIECE(PieceCorpse, PieceType::Corpse)
+
+    void roll_loot(std::vector<item>& result, time_point turn, float spawnrate) const override;
+
+    EID::MGroup group;
+    int age_days = 0;
+};
+
+struct PieceVariable : public Piece {
+    IMPLEMENT_ME_PIECE(PieceVariable, PieceType::Variable)
+
+    std::string name;
+};
+
 struct PieceUnknown : public Piece {
     IMPLEMENT_ME_PIECE(PieceUnknown, PieceType::Unknown)
 };

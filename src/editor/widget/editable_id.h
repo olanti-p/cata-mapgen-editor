@@ -115,6 +115,7 @@ using Trait = EditableID<mutation_branch>;
 using Trap = EditableID<trap>;
 using Update = EditableID<update_mapgen>;
 using VGroup = EditableID<VehicleGroup>;
+using Vehicle = EditableID<vehicle_prototype>;
 using Zone = EditableID<zone_type>;
 
 } // namespace EID
