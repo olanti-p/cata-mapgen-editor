@@ -90,6 +90,24 @@
     "difficulty": 5
   },
   {
+    "id": "vampire_commune_with_night_spell",
+    "type": "SPELL",
+    "name": "Learn from the Children of the Night",
+    "description": "Speak to nearby night-creatures; rats, bats, wolves, and so on.  They will tell you the layout of your surrounding area.\n\n<color_light_red>Blood Cost:</color> 100 ml (<u_val:blood_amount_for_graph> ml current).",
+    "message": "",
+    "teachable": false,
+    "magic_type": "xe_vampire_blood_powers",
+    "effect": "effect_on_condition",
+    "effect_str": "EOC_COMMUNE_NIGHT_MAP",
+    "shape": "blast",
+    "valid_targets": [ "self" ],
+    "flags": [ "NO_HANDS", "SILENT", "NO_FAIL" ],
+    "skill": "deduction",
+    "spell_class": "VAMPIRE_BLOOD_ARTS",
+    "base_casting_time": 12000,
+    "difficulty": 5
+  },
+  {
     "id": "vampire_magic_for_blood_spell",
     "type": "SPELL",
     "name": "Blood-Fueled Magic",
@@ -208,25 +226,7 @@
         "min((3 + (vampire_total_tier_one_traits() * 0.2) + (vampire_total_tier_two_traits() * 0.33) + (vampire_total_tier_three_traits() * 0.5) + (vampire_total_tier_four_traits() * 0.75)), 12)"
       ]
     },
-    "targeted_monster_ids": [
-      "mon_wolf",
-      "mon_wolf_pup",
-      "mon_coyote",
-      "mon_coyote_mutant_shark",
-      "mon_coyote_mutant_venom",
-      "mon_bear",
-      "mon_bear_cub",
-      "mon_bear_mutant_3headed",
-      "mon_big_rat",
-      "mon_pack_rat",
-      "mon_sewer_rat",
-      "mon_black_ratkin",
-      "mon_black_rat",
-      "mon_bat",
-      "xe_mon_bat",
-      "mon_vampire_bat",
-      "mon_bat_giant"
-    ]
+    "targeted_monster_species": [ "NIGHT_CREATURE" ]
   },
   {
     "id": "vampire_command_beast_spell_real",
