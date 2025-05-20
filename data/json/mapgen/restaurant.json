@@ -69,10 +69,7 @@
       "P": { "item": "SUS_toilet", "chance": 50 },
       "S": { "item": "restaur_sink", "chance": 90 },
       "&": { "item": "SUS_trash_trashcan", "chance": 65, "repeat": [ 0, 2 ] },
-      "d": [
-        { "item": "SUS_trash_trashcan", "chance": 50, "repeat": [ 0, 4 ] },
-        { "item": "SUS_trash_dumpster", "chance": 50, "repeat": [ 0, 4 ] }
-      ]
+      "d": { "item": "SUS_trash_dumpster", "chance": 50 }
     }
   },
   {
@@ -467,7 +464,7 @@
         "H": { "item": "coat_rack", "chance": 100, "repeat": [ 1, 4 ] },
         "S": { "item": "cleaning", "chance": 100, "repeat": [ 1, 3 ] },
         "s": { "item": "bed", "chance": 50 },
-        "e": { "item": "oven", "chance": 100, "repeat": [ 1, 2 ] },
+        "e": { "item": "SUS_oven", "chance": 100, "repeat": [ 1, 2 ] },
         "@": { "item": "foodperson_outfit", "chance": 100 },
         "L": [ { "item": "allclothes", "chance": 100, "repeat": [ 1, 2 ] }, { "item": "stash_drugs", "chance": 30 } ],
         "E": { "item": "livingroom", "chance": 50, "repeat": [ 1, 2 ] },
