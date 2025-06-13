@@ -10,6 +10,9 @@ See [INSTALL.md](doc/BNMT/INSTALL.md)
 ## How to compile
 See [COMPILING.md](doc/BNMT/COMPILING.md)
 
+## Maintenance status
+Currently on hold, waiting on some id-related mapgen changes to go through in the upstream.
+
 ## How to use
 (Outdated) See [TUTORIAL.md](doc/BNMT/TUTORIAL.md)
 
