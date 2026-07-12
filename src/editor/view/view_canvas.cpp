@@ -294,7 +294,7 @@ void ViewCanvas::draw_main_layer(ImDrawList* draw_list, Camera& cam, UiState& ui
         ViewCanvasFallback fallback_display = get_fallback_display();
 
         if (show_canvas_sprites) {
-            ImColor col = ImColor::ImColor(1.0f, 1.0f, 1.0f, canvas_sprite_opacity);
+            ImColor col = ImColor(1.0f, 1.0f, 1.0f, canvas_sprite_opacity);
 
             if (fallback_display == ViewCanvasFallback::FillTer) {
                 fallback_sprite = SpriteRef(mapgen.oter.fill_ter.data);

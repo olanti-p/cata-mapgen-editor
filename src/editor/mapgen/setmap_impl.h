@@ -3,7 +3,7 @@
 
 #include "setmap.h"
 
-#include "widget/editable_id.h"
+#include "editor/widget/editable_id.h"
 
 namespace editor
 {

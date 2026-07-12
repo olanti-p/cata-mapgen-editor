@@ -1,8 +1,8 @@
 #ifndef CATA_SRC_EDITOR_SETMAP_H
 #define CATA_SRC_EDITOR_SETMAP_H
 
-#include "common/uuid.h"
-#include "common/int_range.h"
+#include "editor/common/uuid.h"
+#include "editor/common/int_range.h"
 #include "enum_traits.h"
 
 #include "cuboid_rectangle.h"
